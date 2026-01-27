@@ -1,0 +1,165 @@
+/* ============================================
+   DESIGN TOKENS - RecettesScrapper
+   ============================================ */
+
+:root {
+  /* === COULEURS - LIGHT MODE === */
+
+  /* Brand */
+  --color-brand: #FF5500; /*OK*/
+  --color-brand-hover: #e55a24;
+
+  /* Texte */
+  --color-text: #2E2B25; /*OK*/
+  --color-text-50: #2E2B280; /*OK*/
+  --color--contrast-50: rgba(255, 255, 255, 0.5);
+
+  /* Fonds */
+  --color-background: #FBFAF8; 
+  --color-background-strong: #F2EEE5;
+  --color-background-neutral: #ffffff;
+
+  /* === GRILLE === */
+  --grid-columns: 12;
+  --grid-margin: 64px;
+  --grid-gutter: 24px;
+
+  /* === ESPACEMENT === */
+  --space-01: 4px;
+  --space-02: 8px;
+  --space-03: 12px;
+  --space-04: 16px;
+  --space-05: 24px;
+  --space-06: 32px;
+  --space-07: 48px;
+  --space-08: 64px;
+  --space-09: 96px;
+
+
+  /* === TYPOGRAPHIE === */
+  --font-family-heading: 'Recoleta', Georgia, serif;
+  --font-family-body: 'Neue Montreal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Headings - Desktop */
+  --font-size-heading-01: 44px;
+  --font-size-heading-02: 36px;
+  --font-size-heading-03: 28px;
+
+  /* Body - Desktop */
+  --font-size-body-medium: 18px;
+  --font-size-body-small: 16px;
+
+  /* Line heights */
+  --line-height-heading: 100%;
+  --line-height-body: 140%;
+
+  /* Letter spacing */
+  --letter-spacing-body: 0.01em;
+
+
+  /* === BORDER RADIUS === */
+  --radius-01: 4px;
+  --radius-02: 8px;
+  --radius-03: 12px;
+  --radius-04: 16px;
+  --radius-05: 20px;
+  --radius-06: 24px;
+  --radius-07: 32px;
+  --radius-08: 40px;
+  --radius-full: 9999px;
+
+
+  /* === TRANSITIONS === */
+  --transition-ultra-fast: 100ms ease;
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+
+  /* Spring easing - avec fallback */
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-in-out: 400ms cubic-bezier(0.5, 0, 0.1, 1);
+}
+
+
+/* === DARK MODE === */
+/* Via préférence système */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Texte */
+    --color-text: #f0f0f0;
+    --color-text-50: rgba(240, 240, 240, 0.5);
+    --color-text-contrast: #121212;
+    --color--contrast-50: rgba(18, 18, 18, 0.5);
+
+    /* Fonds */
+    --color-background: #121212;
+    --color-background-strong: #0a0a0a;
+    --color-background-neutral: #1e1e1e;
+  }
+}
+
+/* Via toggle manuel */
+:root[data-theme="dark"] {
+  /* Texte */
+  --color-text: #f0f0f0;
+  --color-text-50: rgba(240, 240, 240, 0.5);
+  --color-text-contrast: #121212;
+  --color--contrast-50: rgba(18, 18, 18, 0.5);
+
+  /* Fonds */
+  --color-background: #121212;
+  --color-background-strong: #0a0a0a;
+  --color-background-neutral: #1e1e1e;
+}
+
+
+/* === RESPONSIVE - TABLET (480px - 1280px) === */
+@media (max-width: 1280px) {
+  :root {
+    /* Grid */
+    --grid-margin: 32px;
+    --grid-gutter: 16px;
+
+    /* Spacing - identique au mobile */
+    --space-05: 16px;
+    --space-06: 24px;
+    --space-07: 32px;
+    --space-08: 48px;
+    --space-09: 64px;
+
+    /* Headings - Tablet (valeurs intermédiaires) */
+    --font-size-heading-01: 38px;
+    --font-size-heading-02: 31px;
+    --font-size-heading-03: 25px;
+
+    /* Body - Tablet */
+    --font-size-body-medium: 17px;
+    --font-size-body-small: 15px;
+  }
+}
+
+/* === RESPONSIVE - MOBILE (< 480px) === */
+@media (max-width: 480px) {
+  :root {
+    /* Grid */
+    --grid-columns: 4;
+    --grid-margin: 16px;
+    --grid-gutter: 8px;
+
+    /* Spacing - identique au tablet */
+    --space-05: 16px;
+    --space-06: 24px;
+    --space-07: 32px;
+    --space-08: 48px;
+    --space-09: 64px;
+
+    /* Headings - Mobile */
+    --font-size-heading-01: 32px;
+    --font-size-heading-02: 26px;
+    --font-size-heading-03: 22px;
+
+    /* Body - Mobile */
+    --font-size-body-medium: 16px;
+    --font-size-body-small: 14px;
+  }
+}

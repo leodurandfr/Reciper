@@ -1,4 +1,4 @@
-# RecettesScrapper
+# Recipper
 
 Application web locale pour sauvegarder et organiser des recettes de cuisine via scraping d'URLs.
 
@@ -103,4 +103,4 @@ L'application supporte plus de 600 sites de recettes grace a la bibliotheque rec
 | GET | `/api/recipes` | Liste toutes les recettes |
 | GET | `/api/recipes/{id}` | Detail d'une recette |
 | DELETE | `/api/recipes/{id}` | Supprimer une recette |
-# Recipper
+

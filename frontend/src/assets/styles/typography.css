@@ -1,0 +1,61 @@
+/* ============================================
+   TYPOGRAPHY - RecettesScrapper
+   ============================================ */
+
+/* === FONT FACES === */
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('../fonts/Recoleta-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue Montreal';
+  src: url('../fonts/NeueMontreal-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+
+/* === CLASSES TYPOGRAPHIQUES === */
+
+/* Headings - Recoleta */
+.heading-01 {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-heading-01);
+  line-height: var(--line-height-heading);
+  font-weight: 600;
+}
+
+.heading-02 {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-heading-02);
+  line-height: var(--line-height-heading);
+  font-weight: 600;
+}
+
+.heading-03 {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-heading-03);
+  line-height: var(--line-height-heading);
+  font-weight: 600;
+}
+
+/* Body - Neue Montreal */
+.body-medium {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
+  font-weight: 400;
+}
+
+.body-small {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
+  font-weight: 400;
+}

@@ -1,0 +1,40 @@
+# Ignored files and directories
+.DS_Store
+.claude/
+_bmad-output/
+_bmad/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.pytest_cache/
+*.egg-info/
+.eggs/
+
+# Node.js
+node_modules/
+dist/
+.npm
+
+# Base de donnees
+*.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environnement
+.env
+.env.local
+.env.*.local
