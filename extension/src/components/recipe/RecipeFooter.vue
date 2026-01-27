@@ -20,8 +20,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { deleteRecipe, toggleFavorite } from '../../services/api'
+import { deleteRecipe, toggleFavorite } from '../../services/db.js'
 
 const props = defineProps({
   recipe: {
@@ -30,9 +29,8 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'favorite-toggled'])
+const emit = defineEmits(['edit', 'favorite-toggled', 'deleted'])
 
-const router = useRouter()
 const deleting = ref(false)
 const togglingFavorite = ref(false)
 const localIsFavorite = ref(null)
@@ -48,7 +46,8 @@ async function handleToggleFavorite() {
     localIsFavorite.value = updated.is_favorite
     emit('favorite-toggled', updated.is_favorite)
   } catch (err) {
-    alert('Erreur lors de la mise a jour des favoris')
+    console.error('Erreur toggle favori:', err)
+    alert('Erreur lors de la mise à jour des favoris')
   } finally {
     togglingFavorite.value = false
   }
@@ -60,8 +59,9 @@ async function confirmDelete() {
   deleting.value = true
   try {
     await deleteRecipe(props.recipe.id)
-    router.push('/')
+    emit('deleted')
   } catch (err) {
+    console.error('Erreur suppression:', err)
     alert('Erreur lors de la suppression')
     deleting.value = false
   }
@@ -74,12 +74,12 @@ async function confirmDelete() {
   justify-content: space-between;
   align-items: center;
   padding-top: var(--space-05);
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
   margin-top: var(--space-05);
 }
 
 .source-link {
-  color: #666;
+  color: var(--color-text-subdued);
   text-decoration: none;
 }
 
@@ -96,25 +96,26 @@ async function confirmDelete() {
 .btn-favorite,
 .btn-delete {
   padding: var(--space-02) var(--space-04);
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-01);
-  background: white;
+  background: var(--color-background);
   cursor: pointer;
+  color: var(--color-text);
 }
 
 .btn-edit:hover,
 .btn-favorite:hover {
-  background: #f5f5f5;
+  background: var(--color-background-neutral);
 }
 
 .btn-delete {
-  border-color: #dc3545;
-  color: #dc3545;
+  border-color: var(--color-error);
+  color: var(--color-error);
 }
 
 .btn-delete:hover:not(:disabled) {
-  background: #dc3545;
-  color: white;
+  background: var(--color-error);
+  color: var(--color-text-contrast);
 }
 
 .btn-edit:disabled,

@@ -10,6 +10,7 @@
       :recipe="recipe"
       @favorite-toggled="handleFavoriteToggled"
       @recipe-updated="handleRecipeUpdated"
+      @recipe-deleted="handleRecipeDeleted"
     />
   </div>
 </template>
@@ -17,7 +18,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getRecipe } from '../services/api'
+import { getRecipe } from '../services/db.js'
+import { parseInstructionsWithIngredients } from '../composables/useIngredientMatcher.js'
 import RecipeDetail from '../components/RecipeDetail.vue'
 
 const route = useRoute()
@@ -28,13 +30,24 @@ const error = ref('')
 
 async function fetchRecipe() {
   try {
-    recipe.value = await getRecipe(route.params.id)
-  } catch (err) {
-    if (err.response?.status === 404) {
+    const id = parseInt(route.params.id, 10)
+    const recipeData = await getRecipe(id)
+
+    if (!recipeData) {
       error.value = 'Recette non trouvée'
-    } else {
-      error.value = 'Erreur lors du chargement de la recette'
+      return
     }
+
+    // Ajouter les instructions parsées avec les ingrédients associés
+    recipeData.parsed_instructions = parseInstructionsWithIngredients(
+      recipeData.instructions || [],
+      recipeData.ingredients || []
+    )
+
+    recipe.value = recipeData
+  } catch (err) {
+    console.error('Erreur chargement recette:', err)
+    error.value = 'Erreur lors du chargement de la recette'
   } finally {
     loading.value = false
   }
@@ -47,7 +60,16 @@ function handleFavoriteToggled(isFavorite) {
 }
 
 function handleRecipeUpdated(updatedRecipe) {
+  // Recalculer les instructions parsées
+  updatedRecipe.parsed_instructions = parseInstructionsWithIngredients(
+    updatedRecipe.instructions || [],
+    updatedRecipe.ingredients || []
+  )
   recipe.value = updatedRecipe
+}
+
+function handleRecipeDeleted() {
+  router.push('/favorites')
 }
 
 onMounted(fetchRecipe)
@@ -64,11 +86,11 @@ onMounted(fetchRecipe)
 .error {
   text-align: center;
   padding: var(--space-06);
-  background: white;
+  background: var(--color-background-neutral);
   border-radius: var(--radius-02);
 }
 
 .error {
-  color: #e74c3c;
+  color: var(--color-error);
 }
 </style>

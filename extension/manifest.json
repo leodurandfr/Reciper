@@ -1,20 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "RecettesScrapper",
-  "version": "1.0.0",
-  "description": "Sauvegarde automatique des recettes depuis 606 sites culinaires",
+  "name": "Recipper",
+  "version": "2.0.0",
+  "description": "Save recipes automatically from 600+ cooking websites",
   "permissions": [
     "webNavigation",
     "tabs",
-    "storage"
+    "storage",
+    "unlimitedStorage"
   ],
   "host_permissions": [
-    "http://localhost:8000/*",
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "service-worker.js",
     "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Recipper - Mes recettes"
   },
   "icons": {
     "16": "icons/icon16.png",

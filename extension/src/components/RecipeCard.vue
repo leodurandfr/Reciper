@@ -50,7 +50,7 @@ function handleImageError(e) {
 }
 
 .image-container {
-  height: 180px;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
 }
 

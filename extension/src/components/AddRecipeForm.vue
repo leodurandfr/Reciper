@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="add-recipe-form">
+  <form @submit.prevent="handleSubmit" class="add-recipe-form col-full">
     <div class="input-group">
       <input
         v-model="url"
@@ -18,10 +18,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { createRecipe } from '../services/api'
+import { useRouter } from 'vue-router'
+import { scrapeRecipe } from '../services/api.js'
+import { addRecipe, getRecipeByUrl } from '../services/db.js'
 
 const emit = defineEmits(['recipe-added'])
 
+const router = useRouter()
 const url = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -33,11 +36,29 @@ async function handleSubmit() {
   error.value = ''
 
   try {
-    const recipe = await createRecipe(url.value)
-    emit('recipe-added', recipe)
+    // Vérifier si la recette existe déjà
+    const existing = await getRecipeByUrl(url.value)
+    if (existing) {
+      // Rediriger vers la recette existante
+      router.push(`/recipe/${existing.id}`)
+      url.value = ''
+      return
+    }
+
+    // Scraper la recette via le backend
+    const scrapedRecipe = await scrapeRecipe(url.value)
+
+    // Sauvegarder dans IndexedDB
+    const savedRecipe = await addRecipe(scrapedRecipe)
+
+    emit('recipe-added', savedRecipe)
     url.value = ''
+
+    // Rediriger vers la nouvelle recette
+    router.push(`/recipe/${savedRecipe.id}`)
   } catch (err) {
-    error.value = err.response?.data?.detail || 'Erreur lors de l\'ajout de la recette'
+    console.error('Erreur ajout recette:', err)
+    error.value = err.message || 'Erreur lors de l\'ajout de la recette'
   } finally {
     loading.value = false
   }
@@ -59,7 +80,7 @@ async function handleSubmit() {
 }
 
 .error {
-  color: #e74c3c;
+  color: var(--color-error);
   margin-top: var(--space-02);
 }
 </style>

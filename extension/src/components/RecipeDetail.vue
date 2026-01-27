@@ -21,6 +21,7 @@
       class="col-full"
       @edit="showEditModal = true"
       @favorite-toggled="handleFavoriteToggled"
+      @deleted="handleRecipeDeleted"
     />
 
     <RecipeEditModal
@@ -48,7 +49,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['favorite-toggled', 'recipe-updated'])
+const emit = defineEmits(['favorite-toggled', 'recipe-updated', 'recipe-deleted'])
 
 const showEditModal = ref(false)
 
@@ -84,6 +85,10 @@ function handleFavoriteToggled(isFavorite) {
 
 function handleRecipeUpdated(updatedRecipe) {
   emit('recipe-updated', updatedRecipe)
+}
+
+function handleRecipeDeleted() {
+  emit('recipe-deleted')
 }
 </script>
 

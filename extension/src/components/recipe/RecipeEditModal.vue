@@ -28,7 +28,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="prep_time">Temps de preparation (min)</label>
+            <label for="prep_time">Temps de préparation (min)</label>
             <input
               id="prep_time"
               v-model.number="form.prep_time"
@@ -59,7 +59,7 @@
         </div>
 
         <div class="form-group">
-          <label for="ingredients">Ingredients (un par ligne)</label>
+          <label for="ingredients">Ingrédients (un par ligne)</label>
           <textarea
             id="ingredients"
             v-model="ingredientsText"
@@ -90,8 +90,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { updateRecipe } from '../../services/api'
+import { ref, watch } from 'vue'
+import { updateRecipe } from '../../services/db.js'
 
 const props = defineProps({
   isOpen: {
@@ -146,27 +146,38 @@ async function handleSubmit() {
   saving.value = true
 
   try {
+    const ingredients = ingredientsText.value
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+
+    const instructions = instructionsText.value
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+
+    // Calculer total_time
+    const prepTime = form.value.prep_time || 0
+    const cookTime = form.value.cook_time || 0
+    const totalTime = prepTime + cookTime > 0 ? prepTime + cookTime : null
+
     const data = {
       title: form.value.title,
       description: form.value.description || null,
       prep_time: form.value.prep_time || null,
       cook_time: form.value.cook_time || null,
+      total_time: totalTime,
       yields: form.value.yields || null,
-      ingredients: ingredientsText.value
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0),
-      instructions: instructionsText.value
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0),
+      ingredients,
+      instructions,
     }
 
     const updated = await updateRecipe(props.recipe.id, data)
     emit('updated', updated)
     close()
   } catch (err) {
-    alert('Erreur lors de la mise a jour')
+    console.error('Erreur mise à jour:', err)
+    alert('Erreur lors de la mise à jour')
   } finally {
     saving.value = false
   }
@@ -186,7 +197,7 @@ async function handleSubmit() {
 }
 
 .modal {
-  background: white;
+  background: var(--color-background);
   border-radius: var(--radius-02);
   width: 100%;
   max-width: 600px;
@@ -199,7 +210,7 @@ async function handleSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-04) var(--space-05);
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .modal-header h2 {
@@ -211,7 +222,7 @@ async function handleSubmit() {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #666;
+  color: var(--color-text-subdued);
 }
 
 .modal-body {
@@ -226,15 +237,18 @@ async function handleSubmit() {
   display: block;
   margin-bottom: var(--space-01);
   font-weight: 500;
+  color: var(--color-text);
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
   padding: var(--space-02) var(--space-03);
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-01);
   font-family: inherit;
+  background: var(--color-background);
+  color: var(--color-text);
 }
 
 .form-group textarea {
@@ -252,7 +266,7 @@ async function handleSubmit() {
   justify-content: flex-end;
   gap: var(--space-02);
   padding-top: var(--space-04);
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
   margin-top: var(--space-04);
 }
 
@@ -264,13 +278,14 @@ async function handleSubmit() {
 }
 
 .btn-cancel {
-  background: white;
-  border: 1px solid #ccc;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .btn-save {
-  background: #333;
-  color: white;
+  background: var(--color-background-contrast);
+  color: var(--color-text-contrast);
   border: none;
 }
 

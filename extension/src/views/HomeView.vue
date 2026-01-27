@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <AppTabs />
+    <AddRecipeForm @recipe-added="handleRecipeAdded" />
     <div v-if="loading" class="loading">Chargement des recettes...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <RecipeList v-else :recipes="recipes" :show-favorites-only="favoritesOnly" />
@@ -9,9 +10,10 @@
 
 <script setup>
 import { ref, onMounted, watch, toRef } from 'vue'
-import { getRecipes } from '../services/api'
+import { getAllRecipes } from '../services/db.js'
 import RecipeList from '../components/RecipeList.vue'
 import AppTabs from '../components/AppTabs.vue'
+import AddRecipeForm from '../components/AddRecipeForm.vue'
 
 const props = defineProps({
   favoritesOnly: {
@@ -28,12 +30,17 @@ async function fetchRecipes() {
   loading.value = true
   error.value = ''
   try {
-    recipes.value = await getRecipes(props.favoritesOnly)
+    recipes.value = await getAllRecipes({ favoritesOnly: props.favoritesOnly })
   } catch (err) {
+    console.error('Erreur chargement recettes:', err)
     error.value = 'Erreur lors du chargement des recettes'
   } finally {
     loading.value = false
   }
+}
+
+function handleRecipeAdded() {
+  fetchRecipes()
 }
 
 watch(toRef(props, 'favoritesOnly'), fetchRecipes)
@@ -53,11 +60,11 @@ onMounted(fetchRecipes)
   grid-column: 1 / -1;
   text-align: center;
   padding: var(--space-06);
-  background: white;
+  background: var(--color-background-neutral);
   border-radius: var(--radius-02);
 }
 
 .error {
-  color: #e74c3c;
+  color: var(--color-error);
 }
 </style>
