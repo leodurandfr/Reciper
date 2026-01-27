@@ -3,7 +3,7 @@
  * Stockés dans chrome.storage.local (ou localStorage pour dev)
  */
 
-const DEFAULT_BACKEND_URL = 'http://localhost:8080'
+const DEFAULT_BACKEND_URL = 'https://api-reciper.leodurand.com'
 const SETTINGS_KEY = 'settings'
 
 const defaultSettings = {

@@ -14,8 +14,8 @@ Extension Chrome qui intercepte automatiquement les clics sur les liens de recet
 ## Installation
 
 ### Prerequis
-- Le backend doit tourner sur `http://localhost:8080`
-- Le frontend doit tourner sur `http://localhost:5173`
+- Le backend par défaut est `https://api-reciper.leodurand.com`
+- Modifiable dans les paramètres de l'extension
 
 ### Installation de l'extension
 

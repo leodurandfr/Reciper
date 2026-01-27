@@ -11,7 +11,7 @@
         <input
           v-model="backendUrl"
           type="url"
-          placeholder="http://localhost:8080"
+          placeholder="https://api-reciper.leodurand.com"
           class="input-url"
         >
         <button

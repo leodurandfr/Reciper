@@ -1,6 +1,6 @@
 import { isSupportedSite } from "./supported-sites.js";
 
-const DEFAULT_BACKEND_URL = "http://localhost:8080";
+const DEFAULT_BACKEND_URL = "https://api-reciper.leodurand.com";
 
 // Set pour tracker les URLs en cours de traitement
 const processingUrls = new Set();
@@ -123,9 +123,39 @@ async function scrapeAndSave(url) {
 }
 
 /**
- * Intercepte les navigations vers les sites de recettes supportés
+ * Injecte le content script et affiche la notification de chargement
  */
-chrome.webNavigation.onBeforeNavigate.addListener(
+async function injectContentScript(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["content-script.js"],
+    });
+    return true;
+  } catch (error) {
+    console.log("Reciper: Injection failed -", error.message);
+    return false;
+  }
+}
+
+/**
+ * Envoie un message au content script
+ */
+async function sendToContentScript(tabId, message) {
+  try {
+    await chrome.tabs.sendMessage(tabId, message);
+    return true;
+  } catch (error) {
+    console.log("Reciper: Message failed -", error.message);
+    return false;
+  }
+}
+
+/**
+ * Intercepte les navigations vers les sites de recettes supportés
+ * Utilise onCompleted pour attendre que la page soit chargée
+ */
+chrome.webNavigation.onCompleted.addListener(
   async (details) => {
     // Ignorer les iframes
     if (details.frameId !== 0) return;
@@ -152,16 +182,39 @@ chrome.webNavigation.onBeforeNavigate.addListener(
         throw new Error("Backend non disponible");
       }
 
+      // Injecter le content script et afficher le loading
+      const injected = await injectContentScript(details.tabId);
+      if (!injected) {
+        throw new Error("Injection impossible");
+      }
+
+      // Petit délai pour laisser le script s'initialiser
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Afficher la notification de chargement
+      await sendToContentScript(details.tabId, {
+        type: "RECIPER_SHOW_LOADING",
+      });
+
       // Scraper et sauvegarder
       const result = await scrapeAndSave(details.url);
 
-      // Rediriger vers la page de l'extension
-      chrome.tabs.update(details.tabId, {
-        url: chrome.runtime.getURL(`index.html#/recipe/${result.recipeId}`),
+      // Afficher le succès avec le lien vers la recette
+      const extensionUrl = chrome.runtime.getURL(
+        `index.html#/recipe/${result.recipeId}`
+      );
+      await sendToContentScript(details.tabId, {
+        type: "RECIPER_SHOW_SUCCESS",
+        recipeId: result.recipeId,
+        extensionUrl,
       });
     } catch (error) {
-      // Fallback vers le site original
-      console.log("Reciper: Fallback -", error.message);
+      // Afficher l'erreur si le content script est injecté
+      await sendToContentScript(details.tabId, {
+        type: "RECIPER_SHOW_ERROR",
+        error: error.message,
+      });
+      console.log("Reciper: Error -", error.message);
     } finally {
       setTimeout(() => {
         processingUrls.delete(details.url);
@@ -174,7 +227,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 );
 
 /**
- * Gestionnaire de messages (pour le popup)
+ * Gestionnaire de messages (pour le popup et content script)
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SCRAPE_AND_SAVE") {
@@ -183,11 +236,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) =>
         sendResponse({ success: false, error: error.message })
       );
-    return true; // Indique une réponse asynchrone
+    return true;
   }
 
   if (message.type === "GET_BACKEND_URL") {
     getBackendUrl().then((url) => sendResponse({ url }));
+    return true;
+  }
+
+  // Ouvrir la page de recette (demandé par le content script)
+  if (message.type === "OPEN_RECIPE") {
+    const url = chrome.runtime.getURL(`index.html#/recipe/${message.recipeId}`);
+    chrome.tabs.update(sender.tab.id, { url });
+    sendResponse({ success: true });
     return true;
   }
 });

@@ -34,6 +34,12 @@ function extensionPlugin() {
         resolve(distDir, 'supported-sites.js')
       )
 
+      // Copier content-script.js
+      copyFileSync(
+        resolve(__dirname, 'content-script.js'),
+        resolve(distDir, 'content-script.js')
+      )
+
       // Copier popup.html et popup.js
       copyFileSync(
         resolve(__dirname, 'popup.html'),

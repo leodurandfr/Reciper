@@ -65,10 +65,17 @@ Load extension in Chrome: `chrome://extensions/` > Load unpacked > select `exten
   - `services/db.js` - IndexedDB operations
   - `services/api.js` - Backend API calls
   - `stores/settings.js` - User settings (backend URL, theme)
-- `service-worker.js` - Intercepts recipe site navigation
+- `service-worker.js` - Detects recipe sites and triggers scraping
+- `content-script.js` - Notification overlay on recipe pages
 - `popup.html/js` - Extension popup
 - `manifest.json` - Chrome extension manifest (v3)
 - `dist/` - Built extension (load this in Chrome)
+
+### User Flow
+1. User navigates to a supported recipe site (Marmiton, 750g, etc.)
+2. Notification overlay appears: "Récupération de la recette..."
+3. Backend scrapes the recipe
+4. Notification shows "Prêt !" with link to view in Reciper
 
 ## API Endpoints
 
