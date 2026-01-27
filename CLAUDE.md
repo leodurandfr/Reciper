@@ -87,3 +87,38 @@ Load extension in Chrome: `chrome://extensions/` > Load unpacked > select `exten
 **Extension:**
 - Vue 3 with Vue Router
 - IndexedDB for local storage
+
+## Deployment (Synology NAS)
+
+### Architecture
+L'extension Chrome communique avec le backend via HTTPS :
+- Backend hébergé sur NAS Synology avec Docker
+- Exposé via reverse proxy DSM avec certificat SSL
+- Les utilisateurs n'installent que l'extension Chrome
+
+### Déploiement Docker
+
+1. **Copier le dossier `backend/` sur le NAS**
+   Via File Station ou SCP vers `/volume1/docker/reciper/`
+
+2. **Lancer via Container Manager**
+   - Projet > Créer
+   - Sélectionner le dossier avec docker-compose.yml
+   - Démarrer
+
+3. **Configurer le Reverse Proxy DSM**
+   - Panneau de configuration > Portail de connexion > Avancé > Proxy inversé
+   - Source : `https://api.votre-domaine.com` (port 443)
+   - Destination : `http://localhost:8742`
+
+### Variables d'environnement
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| PORT | 8742 | Port interne du container |
+| CORS_ORIGINS | * | Origines autorisées (recommandé: votre domaine) |
+
+### Vérification
+```bash
+curl https://api.votre-domaine.com/api/health
+# Réponse : {"status":"healthy"}
+```

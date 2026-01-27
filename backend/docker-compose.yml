@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   scraper-api:
     build:
@@ -8,7 +6,7 @@ services:
     container_name: recettes-scrapper-api
     restart: unless-stopped
     ports:
-      - "${PORT:-8080}:8080"
+      - "127.0.0.1:${PORT:-8742}:8080"
     environment:
       - PORT=8080
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
