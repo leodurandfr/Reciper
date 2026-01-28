@@ -9,6 +9,7 @@ import App from './App.vue'
 import HomeView from './views/HomeView.vue'
 import RecipeView from './views/RecipeView.vue'
 import SettingsView from './views/SettingsView.vue'
+import LoadingView from './views/LoadingView.vue'
 import { initDB } from './services/db.js'
 import { initTheme } from './stores/settings.js'
 
@@ -24,6 +25,7 @@ const routes = [
   { path: '/history', component: HomeView, props: { favoritesOnly: false } },
   { path: '/recipe/:id', component: RecipeView, props: true },
   { path: '/settings', component: SettingsView },
+  { path: '/loading', component: LoadingView },
 ]
 
 // Utiliser createWebHashHistory pour les extensions Chrome

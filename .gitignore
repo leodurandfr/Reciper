@@ -38,3 +38,6 @@ dist/
 .env
 .env.local
 .env.*.local
+
+# Image Docker
+google-cloud-cli-darwin-arm.tar.gz

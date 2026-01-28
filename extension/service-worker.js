@@ -18,6 +18,18 @@ async function getBackendUrl() {
 }
 
 /**
+ * Récupère le paramètre autoOpenRecipe depuis les settings
+ */
+async function getAutoOpenRecipe() {
+  try {
+    const result = await chrome.storage.local.get("settings");
+    return result.settings?.autoOpenRecipe || false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Ouvre IndexedDB et retourne une promesse avec la DB
  */
 function openDB() {
@@ -152,8 +164,45 @@ async function sendToContentScript(tabId, message) {
 }
 
 /**
- * Intercepte les navigations vers les sites de recettes supportés
- * Utilise onCompleted pour attendre que la page soit chargée
+ * Interception rapide pour le mode autoOpen (avant affichage de la page)
+ * Utilise onCommitted qui se déclenche dès que la navigation est engagée
+ */
+chrome.webNavigation.onCommitted.addListener(
+  async (details) => {
+    // Ignorer les iframes et les navigations internes
+    if (details.frameId !== 0) return;
+    if (details.transitionType === "auto_subframe") return;
+
+    const url = new URL(details.url);
+
+    // Vérifier si c'est un site supporté
+    if (!isSupportedSite(url.hostname)) return;
+
+    // Vérifier si le mode autoOpen est activé
+    const autoOpen = await getAutoOpenRecipe();
+    if (!autoOpen) return; // Laisser onCompleted gérer le mode notification
+
+    // Éviter les doubles traitements
+    if (processingUrls.has(details.url)) return;
+    processingUrls.add(details.url);
+
+    // Rediriger immédiatement vers la page de chargement
+    const encodedUrl = encodeURIComponent(details.url);
+    const loadingUrl = chrome.runtime.getURL(
+      `index.html#/loading?url=${encodedUrl}&returnUrl=${encodedUrl}`
+    );
+    chrome.tabs.update(details.tabId, { url: loadingUrl });
+
+    setTimeout(() => processingUrls.delete(details.url), 5000);
+  },
+  {
+    url: [{ schemes: ["http", "https"] }],
+  }
+);
+
+/**
+ * Intercepte les navigations pour le mode notification
+ * Utilise onCompleted pour attendre que la page soit chargée (nécessaire pour le content script)
  */
 chrome.webNavigation.onCompleted.addListener(
   async (details) => {
@@ -170,6 +219,11 @@ chrome.webNavigation.onCompleted.addListener(
     processingUrls.add(details.url);
 
     try {
+      // Vérifier si le mode autoOpen est activé (déjà géré par onCommitted)
+      const autoOpen = await getAutoOpenRecipe();
+      if (autoOpen) return;
+
+      // Mode notification : comportement classique
       const backendUrl = await getBackendUrl();
 
       // Vérifier si le backend est accessible

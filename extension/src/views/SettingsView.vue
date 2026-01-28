@@ -83,6 +83,23 @@
       </div>
     </section>
 
+    <!-- Comportement -->
+    <section class="settings-section">
+      <h2 class="heading-03">Comportement</h2>
+
+      <label class="toggle-option">
+        <input
+          type="checkbox"
+          v-model="autoOpenRecipe"
+          @change="changeAutoOpenRecipe"
+        >
+        <div class="toggle-content">
+          <span class="toggle-label">Ouvrir automatiquement les recettes</span>
+          <span class="toggle-description text-muted">Accéder directement à la recette dans Reciper après le scraping, sans afficher la notification.</span>
+        </div>
+      </label>
+    </section>
+
     <!-- Thème -->
     <section class="settings-section">
       <h2 class="heading-03">Apparence</h2>
@@ -131,6 +148,7 @@ const importOverwrite = ref(false)
 const importResult = ref(null)
 
 const theme = ref('system')
+const autoOpenRecipe = ref(false)
 const themeOptions = [
   { value: 'light', label: 'Clair' },
   { value: 'dark', label: 'Sombre' },
@@ -141,6 +159,7 @@ onMounted(async () => {
   const settings = await getSettings()
   backendUrl.value = settings.backendUrl
   theme.value = settings.theme
+  autoOpenRecipe.value = settings.autoOpenRecipe
 
   recipeCount.value = await getRecipeCount()
 })
@@ -266,6 +285,10 @@ function cancelImport() {
 async function changeTheme() {
   await saveSettings({ theme: theme.value })
   applyTheme(theme.value)
+}
+
+async function changeAutoOpenRecipe() {
+  await saveSettings({ autoOpenRecipe: autoOpenRecipe.value })
 }
 </script>
 
@@ -400,5 +423,33 @@ async function changeTheme() {
   align-items: center;
   gap: var(--space-02);
   cursor: pointer;
+}
+
+.toggle-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-03);
+  cursor: pointer;
+}
+
+.toggle-option input[type="checkbox"] {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.toggle-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-01);
+}
+
+.toggle-label {
+  font-weight: 500;
+}
+
+.toggle-description {
+  font-size: var(--font-size-body-small);
 }
 </style>

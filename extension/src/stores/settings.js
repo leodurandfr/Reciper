@@ -10,6 +10,7 @@ const defaultSettings = {
   backendUrl: DEFAULT_BACKEND_URL,
   autoSaveImages: false, // Télécharger et sauver les images localement
   theme: 'system', // 'light', 'dark', 'system'
+  autoOpenRecipe: false, // Ouvrir automatiquement la recette après scraping
 }
 
 /**
@@ -36,7 +37,8 @@ export async function getSettings() {
  * @returns {Promise<void>}
  */
 export async function saveSettings(settings) {
-  const newSettings = { ...defaultSettings, ...settings }
+  const currentSettings = await getSettings()
+  const newSettings = { ...currentSettings, ...settings }
 
   try {
     if (typeof chrome !== 'undefined' && chrome.storage) {
