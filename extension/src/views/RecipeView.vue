@@ -1,6 +1,8 @@
 <template>
   <Teleport to="#header-left">
-    <button class="header-btn" @click="router.back()">← Retour</button>
+    <button class="header-btn" @click="handleBack">
+      ← {{ hasInternalHistory ? 'Retour' : 'Mes recettes' }}
+    </button>
   </Teleport>
   <div class="recipe-view">
     <div v-if="loading" class="loading">Chargement de la recette...</div>
@@ -16,7 +18,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRecipe } from '../services/db.js'
 import { parseInstructionsWithIngredients } from '../composables/useIngredientMatcher.js'
@@ -27,6 +29,20 @@ const router = useRouter()
 const recipe = ref(null)
 const loading = ref(true)
 const error = ref('')
+
+// Vérifie si on a un historique de navigation interne (hors /loading)
+const hasInternalHistory = computed(() => {
+  const back = window.history.state?.back
+  return back && !back.includes('/loading')
+})
+
+function handleBack() {
+  if (hasInternalHistory.value) {
+    router.back()
+  } else {
+    router.push('/favorites')
+  }
+}
 
 async function fetchRecipe() {
   try {
