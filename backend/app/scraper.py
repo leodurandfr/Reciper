@@ -1,7 +1,8 @@
 from recipe_scrapers import scrape_html
 from recipe_scrapers._exceptions import WebsiteNotImplementedError
 import httpx
-from .schemas import ScrapedRecipe
+from .schemas import ScrapedRecipe, EnrichedIngredient
+from .ingredient_image_matcher import get_ingredient_image_id
 
 
 class ScraperError(Exception):
@@ -67,6 +68,15 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
     except (AttributeError, NotImplementedError):
         ingredients = []
 
+    # Enrich ingredients with image IDs
+    enriched_ingredients = [
+        EnrichedIngredient(
+            text=ing,
+            image_id=get_ingredient_image_id(ing)
+        )
+        for ing in ingredients
+    ]
+
     try:
         instructions_text = scraper.instructions()
         if isinstance(instructions_text, str):
@@ -104,6 +114,7 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
         description=description,
         image_url=image_url,
         ingredients=ingredients,
+        enriched_ingredients=enriched_ingredients,
         instructions=instructions,
         prep_time=prep_time,
         cook_time=cook_time,

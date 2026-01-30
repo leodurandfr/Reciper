@@ -5,6 +5,7 @@
     <div class="col-left">
       <RecipeIngredients
         :ingredients="recipe.ingredients || []"
+        :enriched-ingredients="recipe.enriched_ingredients || []"
         :scaled-ingredients="scaledIngredients"
         :current-portions="currentPortions"
         :portion-options="portionOptions"

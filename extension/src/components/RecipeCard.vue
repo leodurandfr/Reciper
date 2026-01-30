@@ -9,17 +9,17 @@
       />
       <div v-else class="placeholder-image">Pas d'image</div>
     </div>
-    <div class="content">
-      <h3 class="heading-03">{{ recipe.title }}</h3>
-      <div class="meta body-small">
-        <span v-if="recipe.prep_time" class="time">Préparation {{ recipe.prep_time }}min</span>
-        <span v-if="recipe.cook_time" class="time">Cuisson {{ recipe.cook_time }}min</span>
-      </div>
+    <h3 class="heading-03">{{ recipe.title }}</h3>
+    <div class="meta">
+      <Tag v-if="recipe.prep_time" label="Préparation" :value="`${recipe.prep_time}min`" />
+      <Tag v-if="recipe.cook_time" label="Cuisson" :value="`${recipe.cook_time}min`" />
     </div>
   </router-link>
 </template>
 
 <script setup>
+import Tag from './Tag.vue'
+
 defineProps({
   recipe: {
     type: Object,
@@ -34,10 +34,12 @@ function handleImageError(e) {
 
 <style scoped>
 .recipe-card {
-  display: block;
-  background: white;
-  border-radius: var(--radius-02);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-05);
+  padding: var(--space-05);
+  background: var(--color-background);
+  border-radius: var(--radius-07);
   text-decoration: none;
   color: inherit;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -52,6 +54,7 @@ function handleImageError(e) {
 .image-container {
   aspect-ratio: 4 / 3;
   overflow: hidden;
+  border-radius: var(--radius-03);
 }
 
 .image-container img {
@@ -70,12 +73,7 @@ function handleImageError(e) {
   color: #95a5a6;
 }
 
-.content {
-  padding: var(--space-04);
-}
-
-.content h3 {
-  margin-bottom: var(--space-02);
+.recipe-card h3 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -84,13 +82,7 @@ function handleImageError(e) {
 
 .meta {
   display: flex;
-  justify-content: space-between;
-  color: #7f8c8d;
+  gap: var(--space-04);
+  margin-top: auto;
 }
-
-.time {
-  color: #3498db;
-  font-weight: 500;
-}
-
 </style>

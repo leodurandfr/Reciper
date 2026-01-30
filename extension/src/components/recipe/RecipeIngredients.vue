@@ -11,7 +11,15 @@
 
     <ul class="ingredients-list">
       <li v-for="(ingredient, index) in scaledIngredients" :key="index">
-        <div class="ingredient-image"></div>
+        <div class="ingredient-image">
+          <img
+            v-if="getIngredientImageUrl(index)"
+            :src="getIngredientImageUrl(index)"
+            :alt="ingredient"
+            width="32"
+            height="32"
+          />
+        </div>
         <div class="ingredient-content">
           <span class="ingredient-text">{{ ingredient }}</span>
         </div>
@@ -22,11 +30,16 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useSettings } from '@/stores/settings'
 
 const props = defineProps({
   ingredients: {
     type: Array,
     required: true,
+  },
+  enrichedIngredients: {
+    type: Array,
+    default: () => [],
   },
   scaledIngredients: {
     type: Array,
@@ -43,11 +56,22 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:current-portions'])
+const settings = useSettings()
 
 const portions = computed({
   get: () => props.currentPortions,
   set: (val) => emit('update:current-portions', val),
 })
+
+function getIngredientImageUrl(index) {
+  const enriched = props.enrichedIngredients?.[index]
+  if (!enriched?.image_id) {
+    return null
+  }
+
+  const backendUrl = settings.backendUrl || 'http://localhost:8742'
+  return `${backendUrl}/api/ingredients/images/${enriched.image_id}`
+}
 </script>
 
 <style scoped>
@@ -96,6 +120,16 @@ const portions = computed({
   background: #f0f0f0;
   border-radius: var(--radius-01);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ingredient-image img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .ingredient-content {

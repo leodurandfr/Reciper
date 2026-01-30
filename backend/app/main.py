@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from .schemas import ScrapeRequest, ScrapedRecipe
 from .scraper import scrape_recipe, ScraperError, UnsupportedWebsiteError, FetchError
@@ -49,3 +51,23 @@ async def scrape(request: ScrapeRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except ScraperError as e:
         raise HTTPException(status_code=500, detail=f"Erreur de scraping: {str(e)}")
+
+
+@app.get("/api/ingredients/images/{image_id}")
+async def get_ingredient_image(image_id: str):
+    """Serve an ingredient image."""
+    # Security: validate image_id doesn't contain path traversal
+    if '..' in image_id or '/' in image_id or '\\' in image_id:
+        raise HTTPException(status_code=400, detail="Invalid image_id")
+
+    # Look for PNG image
+    image_path = Path(__file__).parent / "static" / "ingredients" / f"{image_id}.png"
+
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(
+        image_path,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=31536000"}  # Cache 1 year
+    )
