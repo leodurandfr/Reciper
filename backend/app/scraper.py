@@ -3,6 +3,7 @@ from recipe_scrapers._exceptions import WebsiteNotImplementedError
 import httpx
 from .schemas import ScrapedRecipe, EnrichedIngredient
 from .ingredient_image_matcher import get_ingredient_image_id
+from .language_detection import get_language_from_domain
 
 
 class ScraperError(Exception):
@@ -68,11 +69,15 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
     except (AttributeError, NotImplementedError):
         ingredients = []
 
-    # Enrich ingredients with image IDs
+    # Extract host and detect language
+    host = scraper.host()
+    detected_language = get_language_from_domain(host)
+
+    # Enrich ingredients with image IDs using language-specific matching
     enriched_ingredients = [
         EnrichedIngredient(
             text=ing,
-            image_id=get_ingredient_image_id(ing)
+            image_id=get_ingredient_image_id(ing, language=detected_language)
         )
         for ing in ingredients
     ]
@@ -105,8 +110,6 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
         yields = scraper.yields()
     except (AttributeError, NotImplementedError):
         yields = None
-
-    host = scraper.host()
 
     return ScrapedRecipe(
         url=url,

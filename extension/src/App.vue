@@ -12,10 +12,29 @@
   <main>
     <router-view />
   </main>
+
+  <!-- Debug Grid Toggle -->
+  <button @click="toggleGrid" class="grid-toggle" :class="{ active: showGrid }" title="Toggle Grid Overlay">
+    {{ showGrid ? '⊞' : '⊡' }}
+  </button>
+  <div v-if="showGrid" class="grid-overlay">
+    <div class="grid-container">
+      <div v-for="i in 12" :key="i" class="grid-column">
+        <span class="column-number">{{ i }}</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import AppHeader from './components/AppHeader.vue'
+
+const showGrid = ref(false)
+
+function toggleGrid() {
+  showGrid.value = !showGrid.value
+}
 </script>
 
 <style>
@@ -102,7 +121,7 @@ main {
 }
 
 .btn-danger {
-  background-color: var(--color-error);
+  background-color: var(--color-brand);
   color: var(--color-text-contrast);
   padding: var(--space-03) var(--space-05);
   border-radius: var(--radius-01);
@@ -110,14 +129,14 @@ main {
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #c0392b;
+  background-color: var(--color-brand-hover);
 }
 
 /* Inputs */
 input[type="text"],
 input[type="url"] {
   padding: var(--space-03);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-text);
   border-radius: var(--radius-01);
   background-color: var(--color-background-neutral);
   color: var(--color-text);
@@ -143,12 +162,87 @@ input:focus {
   opacity: 1;
 }
 
+/* Grid Toggle Button (Debug) */
+.grid-toggle {
+  position: fixed;
+  bottom: var(--space-04);
+  right: var(--space-04);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: var(--color-text-contrast);
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  transition: all var(--transition-fast);
+}
+
+.grid-toggle:hover {
+  transform: scale(1.1);
+}
+
+.grid-toggle.active {
+  background: var(--color-brand-hover);
+}
+
+/* Grid Overlay (Debug) */
+.grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--grid-gutter);
+  height: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--grid-margin);
+}
+
+.grid-column {
+  background: rgba(255, 85, 0, 0.1);
+  border: 1px solid var(--color-brand);
+  position: relative;
+}
+
+.column-number {
+  position: absolute;
+  top: var(--space-02);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-brand);
+  color: var(--color-text-contrast);
+  padding: var(--space-01) var(--space-02);
+  border-radius: var(--radius-01);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* Responsive - Tablet */
 @media (max-width: 1280px) {
   #app {
     grid-template-columns: repeat(12, 1fr);
     padding: 0 var(--grid-margin);
     gap: var(--grid-gutter);
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--grid-gutter);
+    padding: 0 var(--grid-margin);
   }
 }
 
@@ -174,6 +268,17 @@ input:focus {
   .col-span-3,
   .col-span-4 {
     grid-column: span 4;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--grid-gutter);
+    padding: 0 var(--grid-margin);
+  }
+
+  /* Masquer les colonnes 5-12 en mobile */
+  .grid-column:nth-child(n+5) {
+    display: none;
   }
 }
 </style>

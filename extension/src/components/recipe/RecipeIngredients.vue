@@ -92,7 +92,7 @@ function getIngredientImageUrl(index) {
 
 .portion-select {
   padding: var(--space-02) var(--space-03);
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-text);
   border-radius: var(--radius-01);
 }
 
@@ -107,7 +107,7 @@ function getIngredientImageUrl(index) {
   align-items: center;
   gap: var(--space-03);
   padding: var(--space-03) 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-text);
 }
 
 .ingredients-list li:last-child {
@@ -117,7 +117,7 @@ function getIngredientImageUrl(index) {
 .ingredient-image {
   width: 40px;
   height: 40px;
-  background: #f0f0f0;
+  background: var(--color-background);
   border-radius: var(--radius-01);
   flex-shrink: 0;
   display: flex;
@@ -139,6 +139,6 @@ function getIngredientImageUrl(index) {
 }
 
 .ingredient-text {
-  color: #333;
+  color: var(--color-text);
 }
 </style>

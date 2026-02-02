@@ -26,7 +26,6 @@
         width: 320px;
         background: #ffffff;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         z-index: 2147483647;
         overflow: hidden;
@@ -138,12 +137,10 @@
         font-weight: 500;
         font-size: 14px;
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
       }
 
       #${NOTIFICATION_ID} .reciper-link:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
       }
 
       #${NOTIFICATION_ID} .reciper-icon {

@@ -1,288 +1,253 @@
 /**
- * Service IndexedDB pour le stockage local des recettes
+ * Service de stockage des recettes avec chrome.storage.local
+ * Persiste meme quand l'utilisateur vide le cache/cookies du navigateur
  */
 
-const DB_NAME = 'ReciperDB'
-const DB_VERSION = 1
+const INDEX_KEY = 'recipes_index'
 
-let dbInstance = null
+// Cache memoire de l'index pour eviter les lectures repetees
+let indexCache = null
+
+// --- Helpers storage ---
+
+async function storageGet(keys) {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    return chrome.storage.local.get(keys)
+  }
+  // Fallback localStorage pour le dev
+  const result = {}
+  const keyList = Array.isArray(keys) ? keys : [keys]
+  for (const key of keyList) {
+    const val = localStorage.getItem(key)
+    if (val !== null) result[key] = JSON.parse(val)
+  }
+  return result
+}
+
+async function storageSet(items) {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    return chrome.storage.local.set(items)
+  }
+  for (const [key, val] of Object.entries(items)) {
+    localStorage.setItem(key, JSON.stringify(val))
+  }
+}
+
+async function storageRemove(keys) {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    return chrome.storage.local.remove(keys)
+  }
+  const keyList = Array.isArray(keys) ? keys : [keys]
+  for (const key of keyList) {
+    localStorage.removeItem(key)
+  }
+}
+
+// --- Index management ---
+
+async function getIndex() {
+  if (indexCache) return indexCache
+  const result = await storageGet(INDEX_KEY)
+  indexCache = result[INDEX_KEY] || { nextId: 1, ids: [], urlMap: {} }
+  return indexCache
+}
+
+async function saveIndex(index) {
+  indexCache = index
+  await storageSet({ [INDEX_KEY]: index })
+}
+
+// --- API publique ---
 
 /**
- * Initialise la base de données IndexedDB
- * @returns {Promise<IDBDatabase>}
+ * Initialise le stockage (charge l'index en cache)
  */
 export async function initDB() {
-  if (dbInstance) return dbInstance
-
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
-
-    request.onerror = () => reject(request.error)
-
-    request.onsuccess = () => {
-      dbInstance = request.result
-      resolve(dbInstance)
-    }
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result
-
-      // Créer l'object store recipes
-      if (!db.objectStoreNames.contains('recipes')) {
-        const store = db.createObjectStore('recipes', {
-          keyPath: 'id',
-          autoIncrement: true
-        })
-
-        // Index pour déduplication par URL
-        store.createIndex('url', 'url', { unique: true })
-        // Index pour filtrer les favoris
-        store.createIndex('is_favorite', 'is_favorite', { unique: false })
-        // Index pour trier par date
-        store.createIndex('created_at', 'created_at', { unique: false })
-        // Index pour filtrer par site
-        store.createIndex('host', 'host', { unique: false })
-      }
-    }
-  })
+  await getIndex()
 }
 
 /**
- * Ajoute une recette à la base de données
- * Si une recette avec la même URL existe, retourne l'existante
- * @param {Object} recipe - La recette à ajouter
- * @returns {Promise<Object>} La recette ajoutée ou existante
+ * Ajoute une recette
+ * Si une recette avec la meme URL existe, retourne l'existante
  */
 export async function addRecipe(recipe) {
-  const db = await initDB()
+  const index = await getIndex()
 
-  // Vérifier si la recette existe déjà
-  const existing = await getRecipeByUrl(recipe.url)
-  if (existing) {
-    return existing
+  // Verifier si la recette existe deja par URL
+  if (recipe.url && index.urlMap[recipe.url]) {
+    const existingId = index.urlMap[recipe.url]
+    return await getRecipe(existingId)
   }
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readwrite')
-    const store = transaction.objectStore('recipes')
+  const id = index.nextId
+  const recipeData = {
+    ...recipe,
+    id,
+    is_favorite: recipe.is_favorite || false,
+    image_base64: recipe.image_base64 || null,
+    created_at: recipe.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
 
-    const recipeData = {
-      ...recipe,
-      is_favorite: recipe.is_favorite || false,
-      image_blob: recipe.image_blob || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
+  // Supprimer image_blob si present (ancien format)
+  delete recipeData.image_blob
 
-    const request = store.add(recipeData)
+  // Mettre a jour l'index
+  index.nextId = id + 1
+  index.ids.unshift(id)
+  if (recipe.url) {
+    index.urlMap[recipe.url] = id
+  }
 
-    request.onsuccess = () => resolve({ ...recipeData, id: request.result })
-    request.onerror = () => reject(request.error)
+  // Sauvegarder recette + index en une seule operation
+  await storageSet({
+    [`recipe_${id}`]: recipeData,
+    [INDEX_KEY]: index,
   })
+  indexCache = index
+
+  return recipeData
 }
 
 /**
- * Récupère une recette par son ID
- * @param {number} id - L'ID de la recette
- * @returns {Promise<Object|null>}
+ * Recupere une recette par son ID
  */
 export async function getRecipe(id) {
-  const db = await initDB()
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readonly')
-    const store = transaction.objectStore('recipes')
-    const request = store.get(id)
-
-    request.onsuccess = () => resolve(request.result || null)
-    request.onerror = () => reject(request.error)
-  })
+  const result = await storageGet(`recipe_${id}`)
+  return result[`recipe_${id}`] || null
 }
 
 /**
- * Récupère une recette par son URL
- * @param {string} url - L'URL de la recette
- * @returns {Promise<Object|null>}
+ * Recupere une recette par son URL
  */
 export async function getRecipeByUrl(url) {
-  const db = await initDB()
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readonly')
-    const store = transaction.objectStore('recipes')
-    const index = store.index('url')
-    const request = index.get(url)
-
-    request.onsuccess = () => resolve(request.result || null)
-    request.onerror = () => reject(request.error)
-  })
+  const index = await getIndex()
+  const id = index.urlMap[url]
+  if (!id) return null
+  return await getRecipe(id)
 }
 
 /**
- * Récupère toutes les recettes avec options de filtrage
- * @param {Object} options - Options de filtrage
- * @param {boolean} options.favoritesOnly - Filtrer les favoris uniquement
- * @param {number} options.limit - Limite de résultats
- * @param {number} options.offset - Décalage pour pagination
- * @returns {Promise<Array>}
+ * Recupere toutes les recettes avec options de filtrage
  */
 export async function getAllRecipes(options = {}) {
-  const db = await initDB()
   const { favoritesOnly = false, limit = 1000, offset = 0 } = options
+  const index = await getIndex()
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readonly')
-    const store = transaction.objectStore('recipes')
+  if (index.ids.length === 0) return []
 
-    const request = store.getAll()
+  const keys = index.ids.map(id => `recipe_${id}`)
+  const result = await storageGet(keys)
 
-    request.onsuccess = () => {
-      let recipes = request.result
+  let recipes = index.ids
+    .map(id => result[`recipe_${id}`])
+    .filter(Boolean)
 
-      // Filtrer les favoris si demandé
-      if (favoritesOnly) {
-        recipes = recipes.filter(r => r.is_favorite)
-      }
+  if (favoritesOnly) {
+    recipes = recipes.filter(r => r.is_favorite)
+  }
 
-      // Trier par date décroissante
-      recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  // Tri par date decroissante
+  recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
-      // Appliquer pagination
-      recipes = recipes.slice(offset, offset + limit)
-
-      resolve(recipes)
-    }
-    request.onerror = () => reject(request.error)
-  })
+  return recipes.slice(offset, offset + limit)
 }
 
 /**
- * Met à jour une recette
- * @param {number} id - L'ID de la recette
- * @param {Object} updates - Les champs à mettre à jour
- * @returns {Promise<Object>}
+ * Met a jour une recette
  */
 export async function updateRecipe(id, updates) {
-  const db = await initDB()
-
   const existing = await getRecipe(id)
   if (!existing) {
     throw new Error('Recette non trouvée')
   }
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readwrite')
-    const store = transaction.objectStore('recipes')
+  const updatedRecipe = {
+    ...existing,
+    ...updates,
+    id,
+    updated_at: new Date().toISOString(),
+  }
 
-    const updatedRecipe = {
-      ...existing,
-      ...updates,
-      id, // S'assurer que l'ID ne change pas
-      updated_at: new Date().toISOString(),
-    }
+  const index = await getIndex()
 
-    const request = store.put(updatedRecipe)
+  // Si l'URL a change, mettre a jour le urlMap
+  if (updates.url && updates.url !== existing.url) {
+    delete index.urlMap[existing.url]
+    index.urlMap[updates.url] = id
+    await storageSet({
+      [`recipe_${id}`]: updatedRecipe,
+      [INDEX_KEY]: index,
+    })
+    indexCache = index
+  } else {
+    await storageSet({ [`recipe_${id}`]: updatedRecipe })
+  }
 
-    request.onsuccess = () => resolve(updatedRecipe)
-    request.onerror = () => reject(request.error)
-  })
+  return updatedRecipe
 }
 
 /**
  * Supprime une recette
- * @param {number} id - L'ID de la recette
- * @returns {Promise<boolean>}
  */
 export async function deleteRecipe(id) {
-  const db = await initDB()
+  const existing = await getRecipe(id)
+  const index = await getIndex()
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readwrite')
-    const store = transaction.objectStore('recipes')
-    const request = store.delete(id)
+  index.ids = index.ids.filter(i => i !== id)
+  if (existing?.url) {
+    delete index.urlMap[existing.url]
+  }
 
-    request.onsuccess = () => resolve(true)
-    request.onerror = () => reject(request.error)
-  })
+  await storageRemove(`recipe_${id}`)
+  await saveIndex(index)
+
+  return true
 }
 
 /**
  * Bascule le statut favori d'une recette
- * @param {number} id - L'ID de la recette
- * @returns {Promise<Object>}
  */
 export async function toggleFavorite(id) {
   const recipe = await getRecipe(id)
   if (!recipe) {
     throw new Error('Recette non trouvée')
   }
-
   return updateRecipe(id, { is_favorite: !recipe.is_favorite })
 }
 
 /**
  * Compte le nombre total de recettes
- * @returns {Promise<number>}
  */
 export async function getRecipeCount() {
-  const db = await initDB()
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readonly')
-    const store = transaction.objectStore('recipes')
-    const request = store.count()
-
-    request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(request.error)
-  })
+  const index = await getIndex()
+  return index.ids.length
 }
 
 /**
  * Supprime toutes les recettes
- * @returns {Promise<boolean>}
  */
 export async function clearAllRecipes() {
-  const db = await initDB()
+  const index = await getIndex()
+  const keys = index.ids.map(id => `recipe_${id}`)
+  keys.push(INDEX_KEY)
 
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['recipes'], 'readwrite')
-    const store = transaction.objectStore('recipes')
-    const request = store.clear()
+  await storageRemove(keys)
+  indexCache = null
 
-    request.onsuccess = () => resolve(true)
-    request.onerror = () => reject(request.error)
-  })
+  await saveIndex({ nextId: 1, ids: [], urlMap: {} })
+  return true
 }
 
 /**
  * Exporte toutes les recettes pour sauvegarde
- * @returns {Promise<Array>}
  */
 export async function exportRecipes() {
-  const recipes = await getAllRecipes({ limit: 10000 })
-
-  // Convertir les blobs en base64 pour l'export
-  const exportData = await Promise.all(
-    recipes.map(async (recipe) => {
-      const exportRecipe = { ...recipe }
-
-      if (recipe.image_blob instanceof Blob) {
-        exportRecipe.image_base64 = await blobToBase64(recipe.image_blob)
-        delete exportRecipe.image_blob
-      }
-
-      return exportRecipe
-    })
-  )
-
-  return exportData
+  return await getAllRecipes({ limit: 10000 })
 }
 
 /**
  * Importe des recettes depuis une sauvegarde
- * @param {Array} recipes - Les recettes à importer
- * @param {boolean} overwrite - Écraser les recettes existantes
- * @returns {Promise<{imported: number, skipped: number}>}
  */
 export async function importRecipes(recipes, overwrite = false) {
   let imported = 0
@@ -296,15 +261,11 @@ export async function importRecipes(recipes, overwrite = false) {
       continue
     }
 
-    // Convertir base64 en blob si présent
     const recipeData = { ...recipe }
-    if (recipe.image_base64) {
-      recipeData.image_blob = base64ToBlob(recipe.image_base64)
-      delete recipeData.image_base64
-    }
-
     // Supprimer l'ID pour permettre l'auto-increment
     delete recipeData.id
+    // Gerer l'ancien format avec image_blob
+    delete recipeData.image_blob
 
     if (existing && overwrite) {
       await updateRecipe(existing.id, recipeData)
@@ -315,29 +276,4 @@ export async function importRecipes(recipes, overwrite = false) {
   }
 
   return { imported, skipped }
-}
-
-// Utilitaires pour conversion blob/base64
-
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onloadend = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(blob)
-  })
-}
-
-function base64ToBlob(base64) {
-  const parts = base64.split(',')
-  const mime = parts[0].match(/:(.*?);/)[1]
-  const bstr = atob(parts[1])
-  const n = bstr.length
-  const u8arr = new Uint8Array(n)
-
-  for (let i = 0; i < n; i++) {
-    u8arr[i] = bstr.charCodeAt(i)
-  }
-
-  return new Blob([u8arr], { type: mime })
 }

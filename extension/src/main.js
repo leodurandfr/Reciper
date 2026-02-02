@@ -10,11 +10,7 @@ import HomeView from './views/HomeView.vue'
 import RecipeView from './views/RecipeView.vue'
 import SettingsView from './views/SettingsView.vue'
 import LoadingView from './views/LoadingView.vue'
-import { initDB } from './services/db.js'
 import { initTheme } from './stores/settings.js'
-
-// Initialiser IndexedDB
-initDB().catch(console.error)
 
 // Initialiser le thème
 initTheme()

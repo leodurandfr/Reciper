@@ -1,117 +1,182 @@
 """
 Ingredient image matching service for multilingual ingredient recognition.
 
-Matches raw ingredient strings (e.g., "200g farine", "2 tomatoes") to
-standardized ingredient IDs for image display using keyword-based matching
-across multiple languages.
+SIMPLIFIED APPROACH:
+- Detects language from domain (internal, not exposed in API)
+- Uses language-specific dictionaries to match ingredients to image IDs
+- Same matching logic for all languages (LAST match strategy)
+
+Supported languages:
+- French (FR) → Uses FR_TO_EN dictionary
+- English (EN) → Uses EN_INGREDIENTS dictionary
+- Other languages → Returns None (no dictionary available)
 """
 
 from typing import Optional
-from .data.ingredient_mapping import INGREDIENT_DATABASE, CATEGORY_IMAGES
+from .data.translations.fr_to_en import FR_TO_EN
+from .data.translations.en_ingredients import EN_INGREDIENTS
 
 
 def normalize_text(text: str) -> str:
     """
-    Normalize text: lowercase, remove common stopwords and numbers.
+    Normalize text: lowercase + remove special characters.
 
     Args:
-        text: Raw ingredient text (e.g., "200g de farine")
+        text: Raw ingredient text (e.g., "200g de farine", "3 Œuf(s)")
 
     Returns:
-        Normalized text with stopwords removed
+        Normalized text (lowercase, special chars removed)
     """
+    import re
+
     text = text.lower()
 
-    # Common stopwords across languages (articles, prepositions, units)
-    stopwords = [
-        # French
-        'le', 'la', 'les', 'de', 'du', 'des', 'un', 'une', "d'",
-        # English
-        'the', 'a', 'an', 'of',
-        # Units
-        'g', 'kg', 'ml', 'l', 'cl', 'dl',
-        'cup', 'cups', 'tablespoon', 'tablespoons', 'teaspoon', 'teaspoons',
-        'tbsp', 'tsp', 'oz', 'lb', 'lbs',
-        # Other
-        'à', 'pour', 'en', 'dans'
-    ]
+    # Replace apostrophes with spaces to split "d'ail" → "d ail"
+    text = re.sub(r"[''']", ' ', text)
 
-    words = text.split()
-    # Filter out stopwords and pure numbers
-    filtered = [w for w in words if w not in stopwords and not w.replace('.', '').replace(',', '').isdigit()]
+    # Remove special characters (parentheses, commas, semicolons, etc.)
+    # This fixes the "Œuf(s)" bug
+    text = re.sub(r'[(),;:]', ' ', text)
 
-    return ' '.join(filtered)
+    return text
 
 
 def extract_keywords(ingredient: str) -> list[str]:
     """
-    Extract significant keywords from an ingredient string.
+    Extract keywords from an ingredient string.
+
+    No stopword filtering - if the dictionary is clean, stopwords won't match anyway.
 
     Args:
         ingredient: Raw ingredient text
 
     Returns:
-        List of keywords (words with 3+ characters)
+        List of keywords (words with 2+ characters, excluding pure numbers)
     """
     normalized = normalize_text(ingredient)
+    words = normalized.split()
 
-    # Keep only words with 3+ characters to avoid noise
-    keywords = [w for w in normalized.split() if len(w) >= 3]
-
-    return keywords
+    # Keep words with 2+ characters, filter out pure numbers only
+    return [w for w in words if len(w) >= 2 and not w.replace('.', '').isdigit()]
 
 
-def match_ingredient(ingredient: str) -> Optional[str]:
+def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[str]:
     """
-    Find the ingredient ID matching a raw ingredient string.
+    Get the image ID for an ingredient based on detected language.
 
-    Searches across all languages and handles plural variations.
+    ULTRA-SIMPLE LOGIC (same for all languages):
+    1. Check for multi-word compounds (language-specific patterns)
+    2. Extract ALL keywords from the ingredient
+    3. Check each keyword against the language dictionary
+    4. Return the LAST match found
+
+    Supported languages:
+    - "fr": French → Uses FR_TO_EN dictionary
+    - "en": English → Uses EN_INGREDIENTS dictionary
+    - Other: Returns None (no dictionary available)
+
+    Examples:
+        # French
+        >>> get_ingredient_image_id("200g de farine", "fr")
+        "flour"
+        >>> get_ingredient_image_id("huile d'olive", "fr")
+        "olive-oil"
+
+        # English
+        >>> get_ingredient_image_id("2 cups flour", "en")
+        "flour"
+        >>> get_ingredient_image_id("3 eggs", "en")
+        "egg"
+
+        # Unsupported language
+        >>> get_ingredient_image_id("200g Mehl", "de")
+        None
 
     Args:
-        ingredient: Raw ingredient text (e.g., "200g de farine", "2 tomatoes")
+        ingredient: Raw ingredient text (e.g., "200g de farine")
+        language: Language code (fr, en, de, etc.) - defaults to "fr"
 
     Returns:
-        Ingredient ID (e.g., "flour", "tomato") or None if no match
+        Image ID (English) or None if no match
     """
+    import re
+
+    # STEP 1: Choose dictionary based on language
+    if language == "fr":
+        dictionary = FR_TO_EN
+    elif language == "en":
+        dictionary = EN_INGREDIENTS
+    else:
+        # No dictionary for this language
+        return None
+
+    # STEP 2: Check for multi-word compounds (only for French for now)
+    if language == "fr":
+        normalized_ingredient = ingredient.lower()
+
+        # French compound patterns
+        compound_patterns = [
+            (r'huile.{0,10}olive', 'olive-oil'),
+            (r'pomme.{0,10}terre', 'potato'),
+            (r'citron.{0,10}vert', 'lime'),
+            (r'noix.{0,10}coco', 'coconut'),
+            (r'pâte.{0,10}tartiner', 'spread'),
+            (r'pate.{0,10}tartiner', 'spread'),
+            (r'haricot.{0,10}rouge', 'kidney-bean'),
+        ]
+
+        for pattern, image_id in compound_patterns:
+            if re.search(pattern, normalized_ingredient):
+                return image_id
+
+    # STEP 3: Extract ALL keywords
     keywords = extract_keywords(ingredient)
 
-    # Search across all languages
+    # STEP 4: Find matches and return LAST (simple strategy for all)
+    last_match = None
     for keyword in keywords:
-        for ingredient_id, data in INGREDIENT_DATABASE.items():
-            for lang_keywords in data['keywords'].values():
-                # Direct match
-                if keyword in lang_keywords:
-                    return ingredient_id
+        result = _lookup_single_keyword(keyword, dictionary)
+        if result:
+            last_match = result
 
-                # Handle plural: remove trailing 's' or 'es'
-                singular = keyword.rstrip('s')
-                if singular != keyword and singular in lang_keywords:
-                    return ingredient_id
-
-                # Handle 'es' plural (e.g., "tomatoes" -> "tomato")
-                if keyword.endswith('es'):
-                    singular_es = keyword[:-2]
-                    if singular_es in lang_keywords:
-                        return ingredient_id
-
-    return None
+    return last_match
 
 
-def get_ingredient_image_id(ingredient: str) -> Optional[str]:
+def _lookup_single_keyword(keyword: str, dictionary: dict) -> Optional[str]:
     """
-    Get the image ID for an ingredient (specific or category fallback).
+    Look up a single keyword in the dictionary.
+
+    Tries exact match, then singular forms (removes trailing 's' or 'x').
 
     Args:
-        ingredient: Raw ingredient text
+        keyword: Single normalized keyword
+        dictionary: The dictionary to look up (FR_TO_EN or EN_INGREDIENTS)
 
     Returns:
-        Image ID to use for display, or None if no match
+        Image ID or None
     """
-    # Try specific ingredient match
-    image_id = match_ingredient(ingredient)
-    if image_id:
-        return image_id
+    if keyword in dictionary:
+        return dictionary[keyword]
 
-    # Future: Could implement category detection heuristics here
-    # For now, return None to show the default placeholder
+    # Try without trailing 's' (basic plural handling)
+    if keyword.endswith('s') and len(keyword) > 3:
+        singular = keyword[:-1]
+        if singular in dictionary:
+            return dictionary[singular]
+
+    # Try without 'x' (some French plurals: "choux" → "chou")
+    if keyword.endswith('x') and len(keyword) > 3:
+        singular = keyword[:-1]
+        if singular in dictionary:
+            return dictionary[singular]
+
     return None
+
+
+# Legacy function name for backward compatibility
+def match_ingredient_fr_to_en(ingredient: str) -> Optional[str]:
+    """
+    Legacy function - redirects to get_ingredient_image_id with language="fr".
+    Kept for backward compatibility with existing tests.
+    """
+    return get_ingredient_image_id(ingredient, language="fr")

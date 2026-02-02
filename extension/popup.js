@@ -5,48 +5,14 @@ const openAppBtn = document.getElementById('openApp')
 const addCurrentBtn = document.getElementById('addCurrent')
 const statusEl = document.getElementById('status')
 
-// Ouvrir IndexedDB avec création du store si nécessaire
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('ReciperDB', 1)
-
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve(request.result)
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result
-      if (!db.objectStoreNames.contains('recipes')) {
-        const store = db.createObjectStore('recipes', {
-          keyPath: 'id',
-          autoIncrement: true
-        })
-        store.createIndex('url', 'url', { unique: true })
-        store.createIndex('is_favorite', 'is_favorite', { unique: false })
-        store.createIndex('created_at', 'created_at', { unique: false })
-        store.createIndex('host', 'host', { unique: false })
-      }
-    }
-  })
-}
-
-// Charger le nombre de recettes
+// Charger le nombre de recettes depuis chrome.storage.local
 async function loadRecipeCount() {
   try {
-    const db = await openDB()
-
-    const transaction = db.transaction(['recipes'], 'readonly')
-    const store = transaction.objectStore('recipes')
-    const countRequest = store.count()
-
-    countRequest.onsuccess = () => {
-      recipeCountEl.textContent = countRequest.result
-    }
-
-    countRequest.onerror = () => {
-      recipeCountEl.textContent = '0'
-    }
+    const result = await chrome.storage.local.get('recipes_index')
+    const index = result.recipes_index || { ids: [] }
+    recipeCountEl.textContent = index.ids.length
   } catch (error) {
-    console.error('Erreur IndexedDB:', error)
+    console.error('Erreur storage:', error)
     recipeCountEl.textContent = '0'
   }
 }

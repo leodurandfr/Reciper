@@ -12,12 +12,14 @@
   /* Texte */
   --color-text: #2E2B25; /*OK*/
   --color-text-50: #2E2B280; /*OK*/
-  --color--contrast-50: rgba(255, 255, 255, 0.5);
 
   /* Fonds */
-  --color-background: #FBFAF8; 
+  --color-background: #FBFAF8;
   --color-background-strong: #F2EEE5;
   --color-background-neutral: #ffffff;
+
+  /* Bordures */
+  --color-border: rgba(46, 43, 37, 0.04);
 
   /* === GRILLE === */
   --grid-columns: 12;
@@ -95,6 +97,9 @@
     --color-background: #121212;
     --color-background-strong: #0a0a0a;
     --color-background-neutral: #1e1e1e;
+
+    /* Bordures */
+    --color-border: rgba(240, 240, 240, 0.04);
   }
 }
 
@@ -110,6 +115,9 @@
   --color-background: #121212;
   --color-background-strong: #0a0a0a;
   --color-background-neutral: #1e1e1e;
+
+  /* Bordures */
+  --color-border: rgba(240, 240, 240, 0.04);
 }
 
 

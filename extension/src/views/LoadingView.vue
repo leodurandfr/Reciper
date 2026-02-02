@@ -106,7 +106,7 @@ function goBack() {
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid var(--color-border);
+  border: 4px solid var(--color-text);
   border-top-color: var(--color-brand);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -119,7 +119,7 @@ function goBack() {
 }
 
 .loading-status {
-  color: var(--color-text-subdued);
+  color: var(--color-text);
   font-size: var(--font-size-body);
 }
 
@@ -134,8 +134,8 @@ function goBack() {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--color-background);
+  color: var(--color-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,15 +144,15 @@ function goBack() {
 }
 
 .error-message {
-  color: #721c24;
-  background-color: #f8d7da;
+  color: var(--color-brand);
+  background-color: var(--color-background);
   padding: var(--space-03) var(--space-04);
   border-radius: var(--radius-01);
   margin-bottom: var(--space-03);
 }
 
 .btn-secondary {
-  background-color: var(--color-background-contrast);
+  background-color: var(--color-brand);
   color: var(--color-text-contrast);
   padding: var(--space-03) var(--space-04);
   border-radius: var(--radius-01);

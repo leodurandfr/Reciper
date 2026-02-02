@@ -43,9 +43,9 @@ defineProps({
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  color: #7f8c8d;
+  color: var(--color-text);
   padding: var(--space-07);
-  background: white;
+  background: var(--color-background-neutral);
   border-radius: var(--radius-02);
 }
 

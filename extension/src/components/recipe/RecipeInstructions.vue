@@ -33,7 +33,7 @@ defineProps({
 
 .instructions-list li {
   padding: var(--space-04) 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-text);
 }
 
 .instructions-list li:last-child {
@@ -43,7 +43,7 @@ defineProps({
 .step-number {
   display: block;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   margin-bottom: var(--space-02);
 }
 

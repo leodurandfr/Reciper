@@ -34,21 +34,21 @@ const tabs = [
 
 .tab-btn {
   padding: var(--space-03) var(--space-05);
-  border: 2px solid #3498db;
-  background: white;
-  color: #3498db;
+  background: var(--color-background-neutral);
+  color: var(--color-text);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
   text-decoration: none;
 }
 
 .tab-btn:hover {
-  background: #ebf5fb;
+  background: var(--color-background);
 }
 
 .tab-btn.active {
-  background: #3498db;
-  color: white;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: var(--color-text-contrast);
 }
 </style>

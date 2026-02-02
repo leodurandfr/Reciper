@@ -42,13 +42,11 @@ function handleImageError(e) {
   border-radius: var(--radius-07);
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform var(--transition-fast);
 }
 
 .recipe-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .image-container {
@@ -66,11 +64,11 @@ function handleImageError(e) {
 .placeholder-image {
   width: 100%;
   height: 100%;
-  background: #ecf0f1;
+  background: var(--color-background);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #95a5a6;
+  color: var(--color-text);
 }
 
 .recipe-card h3 {

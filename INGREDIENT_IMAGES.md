@@ -1,20 +1,32 @@
 # Guide d'utilisation : Images d'ingrédients
 
-Ce guide explique comment utiliser et étendre le système d'images d'ingrédients multilingues.
+Ce guide explique comment utiliser et étendre le système d'images d'ingrédients avec dictionnaires modulaires par langue.
 
 ## 📋 Vue d'ensemble
 
-Le système associe automatiquement des images aux ingrédients scrapés, en supportant 5 langues (FR, EN, DE, ES, IT).
+Le système associe automatiquement des images aux ingrédients scrapés, avec support multilingue via dictionnaires modulaires.
 
-### Architecture
+### Architecture v2 (Dictionnaires modulaires)
 
 ```
-Backend scrape recette
+Backend scrape recette (français)
     ↓
-Enrichit chaque ingrédient avec image_id
+Extrait ingrédients bruts: ["200g de farine", "2 tomates", ...]
     ↓
-Extension affiche l'image via API
+Dictionnaire FR→EN traduit: "farine" → "flour", "tomates" → "tomato"
+    ↓
+Retourne enriched_ingredients avec image_id en anglais
+    ↓
+Extension affiche l'image via: /api/ingredients/images/{image_id}
+    ↓
+Exemple: GET /api/ingredients/images/flour → flour.png
 ```
+
+**Langues actuellement supportées** :
+- ✅ Français → Anglais (467 entrées, 269 images uniques)
+- 🔜 Allemand → Anglais (futur)
+- 🔜 Espagnol → Anglais (futur)
+- 🔜 Italien → Anglais (futur)
 
 ## 🎨 Ajouter de nouvelles images
 

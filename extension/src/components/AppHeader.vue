@@ -19,9 +19,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2c3e50;
   padding: var(--space-04) var(--space-06);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-left,
@@ -43,26 +41,28 @@
 }
 
 .logo {
-  color: white;
+  color: var(--color-brand);
   text-decoration: none;
+  transition: opacity var(--transition-fast);
 }
 
 .logo:hover {
-  color: #3498db;
+  opacity: 0.8;
 }
 
 :deep(.header-btn) {
   background: transparent;
   border: none;
-  color: white;
+  color: var(--color-text);
   cursor: pointer;
   padding: var(--space-02);
   display: flex;
   align-items: center;
   gap: var(--space-02);
+  transition: opacity var(--transition-fast);
 }
 
 :deep(.header-btn:hover) {
-  color: #3498db;
+  opacity: 0.8;
 }
 </style>

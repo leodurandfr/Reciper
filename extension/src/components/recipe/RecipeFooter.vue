@@ -74,12 +74,12 @@ async function confirmDelete() {
   justify-content: space-between;
   align-items: center;
   padding-top: var(--space-05);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-text);
   margin-top: var(--space-05);
 }
 
 .source-link {
-  color: var(--color-text-subdued);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -96,7 +96,7 @@ async function confirmDelete() {
 .btn-favorite,
 .btn-delete {
   padding: var(--space-02) var(--space-04);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-text);
   border-radius: var(--radius-01);
   background: var(--color-background);
   cursor: pointer;
@@ -109,12 +109,12 @@ async function confirmDelete() {
 }
 
 .btn-delete {
-  border-color: var(--color-error);
-  color: var(--color-error);
+  border-color: var(--color-brand);
+  color: var(--color-brand);
 }
 
 .btn-delete:hover:not(:disabled) {
-  background: var(--color-error);
+  background: var(--color-brand);
   color: var(--color-text-contrast);
 }
 

@@ -4,7 +4,6 @@ Application web locale pour sauvegarder et organiser des recettes de cuisine via
 
 ## Fonctionnalites
 
-- Ajouter une recette en collant son URL
 - Afficher la liste des recettes sauvegardees
 - Voir le detail d'une recette (ingredients, instructions, temps)
 - Supprimer une recette

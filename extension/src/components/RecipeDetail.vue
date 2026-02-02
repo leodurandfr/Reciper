@@ -97,7 +97,7 @@ function handleRecipeDeleted() {
 .recipe-grid {
   display: grid;
   grid-template-columns: subgrid;
-  grid-column: 1 / -1;
+  grid-column: 2 / 12;
   gap: var(--space-05);
   padding: var(--space-05) 0;
 }
@@ -106,17 +106,21 @@ function handleRecipeDeleted() {
   grid-column: 1 / -1;
 }
 
-/* Desktop & Tablet: split 4/8 (colonnes 1-4 / 5-12) */
+/* Desktop & Tablet: split 3/7 (colonnes 1-3 / 4-10) */
 .col-left {
-  grid-column: 1 / 5;
+  grid-column: 1 / 4;
 }
 
 .col-right {
-  grid-column: 5 / -1;
+  grid-column: 4 / -1;
 }
 
 /* Mobile: empilé */
 @media (max-width: 480px) {
+  .recipe-grid {
+    grid-column: 1 / -1;
+  }
+
   .col-full,
   .col-left,
   .col-right {

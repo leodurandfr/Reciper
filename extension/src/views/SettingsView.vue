@@ -314,7 +314,7 @@ async function changeAutoOpenRecipe() {
 }
 
 .text-muted {
-  color: var(--color-text-subdued);
+  color: var(--color-text);
 }
 
 .input-group {
@@ -328,7 +328,7 @@ async function changeAutoOpenRecipe() {
 }
 
 .btn-secondary {
-  background-color: var(--color-background-contrast);
+  background-color: var(--color-brand);
   color: var(--color-text-contrast);
   padding: var(--space-03) var(--space-04);
   border-radius: var(--radius-01);
@@ -354,13 +354,13 @@ async function changeAutoOpenRecipe() {
 }
 
 .status-message.success {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: var(--color-background);
+  color: var(--color-brand);
 }
 
 .status-message.error {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--color-background);
+  color: var(--color-brand);
 }
 
 .data-stats {
@@ -377,7 +377,7 @@ async function changeAutoOpenRecipe() {
 }
 
 .stat-label {
-  color: var(--color-text-subdued);
+  color: var(--color-text);
 }
 
 .button-group {
@@ -392,7 +392,7 @@ async function changeAutoOpenRecipe() {
 
 .import-preview {
   background: var(--color-background);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-text);
   border-radius: var(--radius-01);
   padding: var(--space-04);
   margin-top: var(--space-04);

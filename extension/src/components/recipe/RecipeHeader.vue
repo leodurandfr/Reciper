@@ -3,9 +3,9 @@
     <div class="recipe-info">
       <h1 class="heading-01">{{ recipe.title }}</h1>
 
-      <ul v-if="ingredientNames.length" class="ingredient-tags">
-        <li v-for="name in ingredientNames" :key="name" class="body-small">{{ name }}</li>
-      </ul>
+      <p v-if="ingredientNames.length" class="ingredient-list body-medium">
+        {{ ingredientNames.join(' · ') }}
+      </p>
 
       <div class="times body-small" v-if="recipe.prep_time || recipe.cook_time">
         <span v-if="recipe.prep_time">Preparation {{ recipe.prep_time }}min</span>
@@ -14,12 +14,13 @@
       </div>
     </div>
 
-    <img
-      v-if="recipe.image_url"
-      :src="recipe.image_url"
-      :alt="recipe.title"
-      class="recipe-image"
-    />
+    <div v-if="recipe.image_url" class="image-container">
+      <img
+        :src="recipe.image_url"
+        :alt="recipe.title"
+        class="recipe-image"
+      />
+    </div>
   </header>
 </template>
 
@@ -54,35 +55,30 @@ const ingredientNames = computed(() => {
 }
 
 .recipe-header h1 {
-  margin: 0 0 var(--space-04) 0;
+  margin: 0 0 var(--space-03) 0;
 }
 
-.ingredient-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-02);
-  list-style: none;
-  padding: 0;
+.ingredient-list {
+  color: var(--color-text-50);
   margin: 0 0 var(--space-04) 0;
-}
-
-.ingredient-tags li {
-  background: #f0f0f0;
-  padding: var(--space-01) var(--space-03);
-  border-radius: var(--radius-04);
 }
 
 .times {
   margin-bottom: var(--space-04);
-  color: #666;
+  color: var(--color-text);
+}
+
+.image-container {
+  grid-column: 7 / -1;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-02);
 }
 
 .recipe-image {
-  grid-column: 7 / -1;
   width: 100%;
-  max-height: 400px;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--radius-02);
 }
 
 /* Mobile: empilé */
@@ -91,7 +87,7 @@ const ingredientNames = computed(() => {
     grid-column: 1 / -1;
   }
 
-  .recipe-image {
+  .image-container {
     grid-column: 1 / -1;
   }
 }

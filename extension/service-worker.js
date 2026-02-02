@@ -30,69 +30,59 @@ async function getAutoOpenRecipe() {
 }
 
 /**
- * Ouvre IndexedDB et retourne une promesse avec la DB
+ * Recupere l'index des recettes depuis chrome.storage.local
  */
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("ReciperDB", 1);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains("recipes")) {
-        const store = db.createObjectStore("recipes", {
-          keyPath: "id",
-          autoIncrement: true,
-        });
-        store.createIndex("url", "url", { unique: true });
-        store.createIndex("is_favorite", "is_favorite", { unique: false });
-        store.createIndex("created_at", "created_at", { unique: false });
-        store.createIndex("host", "host", { unique: false });
-      }
-    };
-  });
+async function getIndex() {
+  const result = await chrome.storage.local.get("recipes_index");
+  return result.recipes_index || { nextId: 1, ids: [], urlMap: {} };
 }
 
 /**
- * Récupère une recette par URL depuis IndexedDB
+ * Recupere une recette par URL
  */
 async function getRecipeByUrl(url) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["recipes"], "readonly");
-    const store = transaction.objectStore("recipes");
-    const index = store.index("url");
-    const request = index.get(url);
-
-    request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => reject(request.error);
-  });
+  const index = await getIndex();
+  const id = index.urlMap[url];
+  if (!id) return null;
+  const result = await chrome.storage.local.get(`recipe_${id}`);
+  return result[`recipe_${id}`] || null;
 }
 
 /**
- * Ajoute une recette à IndexedDB
+ * Ajoute une recette dans chrome.storage.local
  */
 async function addRecipe(recipe) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["recipes"], "readwrite");
-    const store = transaction.objectStore("recipes");
+  const index = await getIndex();
 
-    const recipeData = {
-      ...recipe,
-      is_favorite: false,
-      image_blob: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+  // Verifier si la recette existe deja
+  if (recipe.url && index.urlMap[recipe.url]) {
+    const existingId = index.urlMap[recipe.url];
+    const result = await chrome.storage.local.get(`recipe_${existingId}`);
+    return result[`recipe_${existingId}`];
+  }
 
-    const request = store.add(recipeData);
+  const id = index.nextId;
+  const recipeData = {
+    ...recipe,
+    id,
+    is_favorite: false,
+    image_base64: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 
-    request.onsuccess = () => resolve({ ...recipeData, id: request.result });
-    request.onerror = () => reject(request.error);
+  index.nextId = id + 1;
+  index.ids.unshift(id);
+  if (recipe.url) {
+    index.urlMap[recipe.url] = id;
+  }
+
+  await chrome.storage.local.set({
+    [`recipe_${id}`]: recipeData,
+    recipes_index: index,
   });
+
+  return recipeData;
 }
 
 /**
@@ -128,7 +118,7 @@ async function scrapeAndSave(url) {
   // Scraper via le backend
   const scrapedRecipe = await scrapeRecipe(url);
 
-  // Sauvegarder dans IndexedDB
+  // Sauvegarder dans chrome.storage.local
   const savedRecipe = await addRecipe(scrapedRecipe);
 
   return { success: true, recipeId: savedRecipe.id, existing: false };

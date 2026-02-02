@@ -107,6 +107,6 @@ onMounted(fetchRecipe)
 }
 
 .error {
-  color: var(--color-error);
+  color: var(--color-brand);
 }
 </style>

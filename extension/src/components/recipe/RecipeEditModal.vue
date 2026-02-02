@@ -188,7 +188,7 @@ async function handleSubmit() {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color--contrast-50);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,7 +210,7 @@ async function handleSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-04) var(--space-05);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-text);
 }
 
 .modal-header h2 {
@@ -222,7 +222,7 @@ async function handleSubmit() {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--color-text-subdued);
+  color: var(--color-text);
 }
 
 .modal-body {
@@ -244,7 +244,7 @@ async function handleSubmit() {
 .form-group textarea {
   width: 100%;
   padding: var(--space-02) var(--space-03);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-text);
   border-radius: var(--radius-01);
   font-family: inherit;
   background: var(--color-background);
@@ -266,7 +266,7 @@ async function handleSubmit() {
   justify-content: flex-end;
   gap: var(--space-02);
   padding-top: var(--space-04);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-text);
   margin-top: var(--space-04);
 }
 
@@ -279,12 +279,12 @@ async function handleSubmit() {
 
 .btn-cancel {
   background: var(--color-background);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-text);
   color: var(--color-text);
 }
 
 .btn-save {
-  background: var(--color-background-contrast);
+  background: var(--color-brand);
   color: var(--color-text-contrast);
   border: none;
 }

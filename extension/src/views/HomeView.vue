@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <AppTabs />
-    <AddRecipeForm @recipe-added="handleRecipeAdded" />
     <div v-if="loading" class="loading">Chargement des recettes...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <RecipeList v-else :recipes="recipes" :show-favorites-only="favoritesOnly" />
@@ -13,7 +12,6 @@ import { ref, onMounted, watch, toRef } from 'vue'
 import { getAllRecipes } from '../services/db.js'
 import RecipeList from '../components/RecipeList.vue'
 import AppTabs from '../components/AppTabs.vue'
-import AddRecipeForm from '../components/AddRecipeForm.vue'
 
 const props = defineProps({
   favoritesOnly: {
@@ -39,10 +37,6 @@ async function fetchRecipes() {
   }
 }
 
-function handleRecipeAdded() {
-  fetchRecipes()
-}
-
 watch(toRef(props, 'favoritesOnly'), fetchRecipes)
 
 onMounted(fetchRecipes)
@@ -65,6 +59,6 @@ onMounted(fetchRecipes)
 }
 
 .error {
-  color: var(--color-error);
+  color: var(--color-brand);
 }
 </style>
