@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Recipper",
+  "name": "Reciper",
   "version": "2.0.0",
   "description": "Save recipes automatically from 600+ cooking websites",
   "permissions": [
@@ -24,7 +24,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Recipper - Mes recettes"
+    "default_title": "Reciper - Mes recettes"
   },
   "icons": {
     "16": "icons/icon16.png",

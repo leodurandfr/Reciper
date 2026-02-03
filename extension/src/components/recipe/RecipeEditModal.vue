@@ -210,7 +210,7 @@ async function handleSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-04) var(--space-05);
-  border-bottom: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .modal-header h2 {

@@ -3,7 +3,7 @@
     <div class="header-left" id="header-left">
       <slot name="left"></slot>
     </div>
-    <router-link to="/favorites" class="logo heading-02">Recipper</router-link>
+    <router-link to="/favorites" class="logo heading-02">Reciper</router-link>
     <div class="header-right" id="header-right">
       <slot name="right"></slot>
     </div>

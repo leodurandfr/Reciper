@@ -30,8 +30,6 @@ defineProps({
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: subgrid;
-  row-gap: var(--space-05);
-  margin-top: var(--space-06);
 }
 
 /* xl (>1024px): 4 cards par ligne (span 3 sur 12 colonnes) */

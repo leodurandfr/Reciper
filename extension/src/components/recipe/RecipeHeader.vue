@@ -3,14 +3,9 @@
     <div class="recipe-info">
       <h1 class="heading-01">{{ recipe.title }}</h1>
 
-      <p v-if="ingredientNames.length" class="ingredient-list body-medium">
-        {{ ingredientNames.join(' · ') }}
-      </p>
-
-      <div class="times body-small" v-if="recipe.prep_time || recipe.cook_time">
-        <span v-if="recipe.prep_time">Preparation {{ recipe.prep_time }}min</span>
-        <span v-if="recipe.prep_time && recipe.cook_time"> / </span>
-        <span v-if="recipe.cook_time">Cuisson {{ recipe.cook_time }}min</span>
+      <div class="times" v-if="recipe.prep_time || recipe.cook_time">
+        <Tag v-if="recipe.prep_time" label="Préparation" :value="`${recipe.prep_time}min`" size="body-medium" />
+        <Tag v-if="recipe.cook_time" label="Cuisson" :value="`${recipe.cook_time}min`" size="body-medium" />
       </div>
     </div>
 
@@ -21,18 +16,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import Tag from '../Tag.vue'
 
-const props = defineProps({
+defineProps({
   recipe: {
     type: Object,
     required: true,
   },
-})
-
-const ingredientNames = computed(() => {
-  if (!props.recipe.parsed_ingredients) return []
-  return props.recipe.parsed_ingredients.map(ing => ing.name).slice(0, 8)
 })
 </script>
 
@@ -41,8 +31,8 @@ const ingredientNames = computed(() => {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: subgrid;
-  align-items: start;
-  padding: var(--space-06);
+  align-items: stretch;
+  padding: var(--space-03);
   background: var(--color-background-neutral);
   border-radius: var(--radius-07);
 }
@@ -50,27 +40,27 @@ const ingredientNames = computed(() => {
 /* Desktop & Tablet: split 6/6 (colonnes 1-6 / 7-12) */
 .recipe-info {
   grid-column: 1 / 7;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--space-06) - var(--space-03)) 0 calc(var(--space-06) - var(--space-03)) calc(var(--space-06) - var(--space-03));
 }
 
 .recipe-header h1 {
   margin: 0 0 var(--space-03) 0;
 }
 
-.ingredient-list {
-  color: var(--color-text-50);
-  margin: 0 0 var(--space-04) 0;
-}
-
 .times {
-  margin-bottom: var(--space-04);
-  color: var(--color-text);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-01);
+  margin-top: auto;
 }
 
 .image-container {
   grid-column: 7 / -1;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 6 / 4;
   overflow: hidden;
-  border-radius: var(--radius-02);
+  border-radius: var(--radius-05);
 }
 
 .recipe-image {

@@ -1,4 +1,4 @@
-# Recipper
+# Reciper
 
 Application web locale pour sauvegarder et organiser des recettes de cuisine via scraping d'URLs.
 

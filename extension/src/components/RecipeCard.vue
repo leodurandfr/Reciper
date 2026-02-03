@@ -32,8 +32,8 @@ function handleImageError(e) {
   display: flex;
   flex-direction: column;
   gap: var(--space-05);
-  padding: var(--space-05);
-  background: var(--color-background);
+  padding: var(--space-05-fixed);
+  background: var(--color-background-neutral);
   border-radius: var(--radius-07);
   text-decoration: none;
   color: inherit;

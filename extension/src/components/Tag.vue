@@ -1,5 +1,5 @@
 <template>
-  <div class="tag body-small">
+  <div class="tag" :class="size">
     <span class="tag-label">{{ label }}</span>
     <span class="tag-value">{{ value }}</span>
   </div>
@@ -15,13 +15,17 @@ defineProps({
     type: [String, Number],
     required: true,
   },
+  size: {
+    type: String,
+    default: 'body-small',
+  },
 })
 </script>
 
 <style scoped>
 .tag {
   padding: 6px var(--space-03);
-  background: var(--color-background-strong);
+  background: var(--color-background);
   border-radius: var(--radius-03);
   display: inline-flex;
   gap: var(--space-01);

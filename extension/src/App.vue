@@ -42,7 +42,7 @@ function toggleGrid() {
 #app {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: var(--grid-gutter);
+  column-gap: var(--grid-gutter);
   align-content: start;
   min-height: 100vh;
   margin: 0 auto;
@@ -53,7 +53,6 @@ main {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: subgrid;
-  padding: var(--space-06) 0;
 }
 
 /* Classes utilitaires pour la grille 12 colonnes */

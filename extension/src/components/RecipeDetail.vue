@@ -86,7 +86,6 @@ function handleRecipeDeleted() {
   grid-template-columns: subgrid;
   grid-column: 2 / 12;
   gap: var(--space-05);
-  padding: var(--space-05) 0;
 }
 
 .col-left,

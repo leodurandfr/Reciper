@@ -14,7 +14,7 @@
   --color-text-50: #2E2B2580; /*OK*/
 
   /* Fonds */
-  --color-background: #FBFAF8;
+  --color-background: #f8f6f2;
   --color-background-strong: #F2EEE5;
   --color-background-neutral: #ffffff;
 
@@ -24,7 +24,7 @@
   /* === GRILLE === */
   --grid-columns: 12;
   --grid-margin: 64px;
-  --grid-gutter: 24px;
+  --grid-gutter: 16px;
 
   /* === ESPACEMENT === */
   --space-01: 4px;
@@ -32,6 +32,7 @@
   --space-03: 12px;
   --space-04: 16px;
   --space-05: 24px;
+  --space-05-fixed: 24px;
   --space-06: 32px;
   --space-07: 48px;
   --space-08: 64px;
@@ -43,9 +44,9 @@
   --font-family-body: 'Neue Montreal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Headings - Desktop */
-  --font-size-heading-01: 44px;
+  --font-size-heading-01: 48px;
   --font-size-heading-02: 36px;
-  --font-size-heading-03: 24px;
+  --font-size-heading-03: 28px;
 
   /* Body - Desktop */
   --font-size-body-medium: 18px;
@@ -130,15 +131,16 @@
 
     /* Spacing - identique au mobile */
     --space-05: 16px;
+    --space-05-fixed: 24px;
     --space-06: 24px;
     --space-07: 32px;
     --space-08: 48px;
     --space-09: 64px;
 
     /* Headings - Tablet (valeurs intermédiaires) */
-    --font-size-heading-01: 38px;
-    --font-size-heading-02: 31px;
-    --font-size-heading-03: 22px;
+    --font-size-heading-01: 42px;
+    --font-size-heading-02: 32px;
+    --font-size-heading-03: 26px;
 
     /* Body - Tablet */
     --font-size-body-medium: 17px;
@@ -156,15 +158,16 @@
 
     /* Spacing - identique au tablet */
     --space-05: 16px;
+    --space-05-fixed: 24px;
     --space-06: 24px;
     --space-07: 32px;
     --space-08: 48px;
     --space-09: 64px;
 
     /* Headings - Mobile */
-    --font-size-heading-01: 32px;
+    --font-size-heading-01: 36px;
     --font-size-heading-02: 26px;
-    --font-size-heading-03: 20px;
+    --font-size-heading-03: 22px;
 
     /* Body - Mobile */
     --font-size-body-medium: 16px;

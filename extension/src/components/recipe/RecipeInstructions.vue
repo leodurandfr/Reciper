@@ -4,7 +4,7 @@
 
     <ol class="instructions-list">
       <li v-for="step in instructions" :key="step.step_number">
-        <span class="step-number body-small">Etape {{ step.step_number }}</span>
+        <span class="step-number body-medium">Etape {{ step.step_number }}</span>
         <p class="step-text body-medium">{{ step.text }}</p>
       </li>
     </ol>
@@ -22,7 +22,7 @@ defineProps({
 
 <style scoped>
 .recipe-instructions h2 {
-  margin: 0 0 var(--space-04) 0;
+  margin: 0 0 var(--space-05) 0;
 }
 
 .instructions-list {
@@ -32,8 +32,12 @@ defineProps({
 }
 
 .instructions-list li {
-  padding: var(--space-04) 0;
-  border-bottom: 1px solid var(--color-text);
+  padding: var(--space-05) 0;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.instructions-list li:first-child {
+  border-top: 2px solid var(--color-border);
 }
 
 .instructions-list li:last-child {
@@ -42,9 +46,8 @@ defineProps({
 
 .step-number {
   display: block;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-02);
+  color: var(--color-text-50);
+  margin-bottom: var(--space-03);
 }
 
 .step-text {
