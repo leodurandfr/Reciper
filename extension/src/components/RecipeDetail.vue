@@ -3,34 +3,21 @@
     <RecipeHeader :recipe="recipe" class="col-full" />
 
     <div class="col-left">
-      <RecipeIngredients
-        :ingredients="recipe.ingredients || []"
-        :enriched-ingredients="recipe.enriched_ingredients || []"
-        :scaled-ingredients="scaledIngredients"
-        :current-portions="currentPortions"
-        :portion-options="portionOptions"
-        @update:current-portions="currentPortions = $event"
-      />
+      <RecipeIngredients :ingredients="recipe.ingredients || []"
+        :enriched-ingredients="recipe.enriched_ingredients || []" :scaled-ingredients="scaledIngredients"
+        :current-portions="currentPortions" :portion-options="portionOptions"
+        @update:current-portions="currentPortions = $event" />
     </div>
 
     <div class="col-right">
       <RecipeInstructions :instructions="recipe.parsed_instructions || []" />
     </div>
 
-    <RecipeFooter
-      :recipe="recipe"
-      class="col-full"
-      @edit="showEditModal = true"
-      @favorite-toggled="handleFavoriteToggled"
-      @deleted="handleRecipeDeleted"
-    />
+    <RecipeFooter :recipe="recipe" class="col-full" @edit="showEditModal = true"
+      @favorite-toggled="handleFavoriteToggled" @deleted="handleRecipeDeleted" />
 
-    <RecipeEditModal
-      :is-open="showEditModal"
-      :recipe="recipe"
-      @close="showEditModal = false"
-      @updated="handleRecipeUpdated"
-    />
+    <RecipeEditModal :is-open="showEditModal" :recipe="recipe" @close="showEditModal = false"
+      @updated="handleRecipeUpdated" />
   </article>
 </template>
 
@@ -102,6 +89,13 @@ function handleRecipeDeleted() {
   padding: var(--space-05) 0;
 }
 
+.col-left,
+.col-right {
+  padding: var(--space-06);
+  background: var(--color-background-neutral);
+  border-radius: var(--radius-07);
+}
+
 .col-full {
   grid-column: 1 / -1;
 }
@@ -114,17 +108,19 @@ function handleRecipeDeleted() {
   grid-column: 4 / -1;
 }
 
+
 @media (max-width: 1024px) {
   .recipe-grid {
     grid-column: 1 / 13;
   }
-  .col-left {
-  grid-column: 1 / 5;
-}
 
-.col-right {
-  grid-column: 5 / -1;
-}
+  .col-left {
+    grid-column: 1 / 5;
+  }
+
+  .col-right {
+    grid-column: 5 / -1;
+  }
 }
 
 /* Mobile: empilé */

@@ -1,12 +1,7 @@
 <template>
   <router-link :to="`/recipe/${recipe.id}`" class="recipe-card">
     <div class="image-container">
-      <img
-        v-if="recipe.image_url"
-        :src="recipe.image_url"
-        :alt="recipe.title"
-        @error="handleImageError"
-      />
+      <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.title" @error="handleImageError" />
       <div v-else class="placeholder-image">Pas d'image</div>
     </div>
     <h3 class="heading-03">{{ recipe.title }}</h3>
@@ -80,7 +75,8 @@ function handleImageError(e) {
 
 .meta {
   display: flex;
-  gap: var(--space-04);
+  flex-wrap: wrap;
+  gap: var(--space-01);
   margin-top: auto;
 }
 </style>

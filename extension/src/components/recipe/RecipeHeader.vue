@@ -15,11 +15,7 @@
     </div>
 
     <div v-if="recipe.image_url" class="image-container">
-      <img
-        :src="recipe.image_url"
-        :alt="recipe.title"
-        class="recipe-image"
-      />
+      <img :src="recipe.image_url" :alt="recipe.title" class="recipe-image" />
     </div>
   </header>
 </template>
@@ -45,8 +41,10 @@ const ingredientNames = computed(() => {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: subgrid;
-  margin-bottom: var(--space-05);
   align-items: start;
+  padding: var(--space-06);
+  background: var(--color-background-neutral);
+  border-radius: var(--radius-07);
 }
 
 /* Desktop & Tablet: split 6/6 (colonnes 1-6 / 7-12) */

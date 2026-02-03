@@ -19,7 +19,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-04) var(--space-06);
+  padding: var(--space-04) 0;
 }
 
 .header-left,

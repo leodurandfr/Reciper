@@ -11,7 +11,7 @@
 
   /* Texte */
   --color-text: #2E2B25; /*OK*/
-  --color-text-50: #2E2B280; /*OK*/
+  --color-text-50: #2E2B2580; /*OK*/
 
   /* Fonds */
   --color-background: #FBFAF8;
@@ -45,11 +45,11 @@
   /* Headings - Desktop */
   --font-size-heading-01: 44px;
   --font-size-heading-02: 36px;
-  --font-size-heading-03: 28px;
+  --font-size-heading-03: 24px;
 
   /* Body - Desktop */
   --font-size-body-medium: 18px;
-  --font-size-body-small: 16px;
+  --font-size-body-small: 14px;
 
   /* Line heights */
   --line-height-heading: 100%;
@@ -138,11 +138,11 @@
     /* Headings - Tablet (valeurs intermédiaires) */
     --font-size-heading-01: 38px;
     --font-size-heading-02: 31px;
-    --font-size-heading-03: 25px;
+    --font-size-heading-03: 22px;
 
     /* Body - Tablet */
     --font-size-body-medium: 17px;
-    --font-size-body-small: 15px;
+    --font-size-body-small: 13px;
   }
 }
 
@@ -164,10 +164,10 @@
     /* Headings - Mobile */
     --font-size-heading-01: 32px;
     --font-size-heading-02: 26px;
-    --font-size-heading-03: 22px;
+    --font-size-heading-03: 20px;
 
     /* Body - Mobile */
     --font-size-body-medium: 16px;
-    --font-size-body-small: 14px;
+    --font-size-body-small: 12px;
   }
 }

@@ -20,12 +20,15 @@ defineProps({
 
 <style scoped>
 .tag {
+  padding: 6px var(--space-03);
+  background: var(--color-background-strong);
+  border-radius: var(--radius-03);
   display: inline-flex;
   gap: var(--space-01);
 }
 
 .tag-label {
-  color: var(--color-text);
+  color: var(--color-text-50);
 }
 
 .tag-value {
