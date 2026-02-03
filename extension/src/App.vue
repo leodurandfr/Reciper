@@ -232,7 +232,7 @@ input:focus {
 }
 
 /* Responsive - Tablet */
-@media (max-width: 1280px) {
+@media (max-width: 1024px) {
   #app {
     grid-template-columns: repeat(12, 1fr);
     padding: 0 var(--grid-margin);

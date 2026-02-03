@@ -121,8 +121,8 @@
 }
 
 
-/* === RESPONSIVE - TABLET (480px - 1280px) === */
-@media (max-width: 1280px) {
+/* === RESPONSIVE - TABLET (480px - 1024px) === */
+@media (max-width: 1024px) {
   :root {
     /* Grid */
     --grid-margin: 32px;

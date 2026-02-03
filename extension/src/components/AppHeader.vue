@@ -15,7 +15,7 @@
 
 <style scoped>
 .app-header {
-  grid-column: 1 / -1;
+  grid-column: 2 / 12;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -64,5 +64,17 @@
 
 :deep(.header-btn:hover) {
   opacity: 0.8;
+}
+
+@media (max-width: 1024px) {
+  .app-header {
+    grid-column: 1 / 13;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    grid-column: 1 / -1;
+  }
 }
 </style>

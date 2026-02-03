@@ -34,7 +34,7 @@ defineProps({
   margin-top: var(--space-06);
 }
 
-/* xl (>1280px): 4 cards par ligne (span 3 sur 12 colonnes) */
+/* xl (>1024px): 4 cards par ligne (span 3 sur 12 colonnes) */
 .recipe-list :deep(.recipe-card) {
   grid-column: span 3;
   min-width: 0;
@@ -49,8 +49,8 @@ defineProps({
   border-radius: var(--radius-02);
 }
 
-/* lg (768-1280px): 3 cards par ligne (span 4 sur 12 colonnes) */
-@media (max-width: 1280px) {
+/* lg (768-1024px): 3 cards par ligne (span 4 sur 12 colonnes) */
+@media (max-width: 1024px) {
   .recipe-list :deep(.recipe-card) {
     grid-column: span 4;
   }

@@ -106,13 +106,25 @@ function handleRecipeDeleted() {
   grid-column: 1 / -1;
 }
 
-/* Desktop & Tablet: split 3/7 (colonnes 1-3 / 4-10) */
 .col-left {
   grid-column: 1 / 4;
 }
 
 .col-right {
   grid-column: 4 / -1;
+}
+
+@media (max-width: 1024px) {
+  .recipe-grid {
+    grid-column: 1 / 13;
+  }
+  .col-left {
+  grid-column: 1 / 5;
+}
+
+.col-right {
+  grid-column: 5 / -1;
+}
 }
 
 /* Mobile: empilé */
