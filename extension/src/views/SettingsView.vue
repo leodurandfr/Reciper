@@ -14,22 +14,18 @@
           placeholder="https://api-reciper.leodurand.com"
           class="input-url"
         >
-        <button
-          @click="testConnection"
-          :disabled="testing"
-          class="btn-secondary"
-        >
+        <BaseButton variant="outline" :disabled="testing" @click="testConnection">
           {{ testing ? 'Test...' : 'Tester' }}
-        </button>
+        </BaseButton>
       </div>
 
       <div v-if="connectionStatus" :class="['status-message', connectionStatus.type]">
         {{ connectionStatus.message }}
       </div>
 
-      <button @click="saveBackendUrl" :disabled="saving" class="btn-primary">
+      <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
         {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
-      </button>
+      </BaseButton>
     </section>
 
     <!-- Export/Import -->
@@ -43,11 +39,11 @@
       </div>
 
       <div class="button-group">
-        <button @click="handleExport" :disabled="exporting" class="btn-secondary">
+        <BaseButton variant="outline" :disabled="exporting" @click="handleExport">
           {{ exporting ? 'Export...' : 'Exporter mes recettes' }}
-        </button>
+        </BaseButton>
 
-        <label class="btn-secondary import-btn">
+        <label class="import-btn">
           Importer des recettes
           <input
             type="file"
@@ -71,10 +67,10 @@
         </div>
 
         <div class="button-group">
-          <button @click="confirmImport" :disabled="importing" class="btn-primary">
+          <BaseButton variant="fill" :disabled="importing" @click="confirmImport">
             {{ importing ? 'Import...' : 'Confirmer l\'import' }}
-          </button>
-          <button @click="cancelImport" class="btn-secondary">Annuler</button>
+          </BaseButton>
+          <BaseButton variant="outline" @click="cancelImport">Annuler</BaseButton>
         </div>
       </div>
 
@@ -130,6 +126,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import BaseButton from '../components/BaseButton.vue'
 import { getSettings, saveSettings, testBackendConnection, applyTheme } from '../stores/settings.js'
 import { getRecipeCount } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
@@ -327,25 +324,6 @@ async function changeAutoOpenRecipe() {
   flex: 1;
 }
 
-.btn-secondary {
-  background-color: var(--color-brand);
-  color: var(--color-text-contrast);
-  padding: var(--space-03) var(--space-04);
-  border-radius: var(--radius-01);
-  transition: opacity var(--transition-fast);
-  cursor: pointer;
-  border: none;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .status-message {
   padding: var(--space-03);
   border-radius: var(--radius-01);
@@ -387,7 +365,26 @@ async function changeAutoOpenRecipe() {
 }
 
 .import-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-02);
   cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-body);
+  letter-spacing: var(--letter-spacing-body);
+  line-height: var(--line-height-body);
+  font-size: var(--font-size-body-small);
+  padding: var(--space-02) var(--space-04);
+  border-radius: var(--radius-01);
+  background-color: transparent;
+  color: var(--color-brand);
+  box-shadow: inset 0 0 0 1px var(--color-border-strong);
+}
+
+.import-btn:hover {
+  box-shadow: inset 0 0 0 1px var(--color-brand);
 }
 
 .import-preview {

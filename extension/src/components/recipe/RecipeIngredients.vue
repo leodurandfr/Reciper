@@ -101,9 +101,6 @@ function getIngredientImageUrl(index) {
 </script>
 
 <style scoped>
-.recipe-ingredients {
-  margin-bottom: var(--space-05);
-}
 
 .section-header {
   display: flex;

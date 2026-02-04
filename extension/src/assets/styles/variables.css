@@ -18,8 +18,12 @@
   --color-background-strong: #F2EEE5;
   --color-background-neutral: #ffffff;
 
+  /* Contraste */
+  --color-text-contrast: #FFF;
+
   /* Bordures */
   --color-border: rgba(46, 43, 37, 0.04);
+  --color-border-strong: rgba(46, 43, 37, 0.12);
 
   /* === GRILLE === */
   --grid-columns: 12;
@@ -50,7 +54,7 @@
 
   /* Body - Desktop */
   --font-size-body-medium: 18px;
-  --font-size-body-small: 14px;
+  --font-size-body-small: 16px;
 
   /* Line heights */
   --line-height-heading: 100%;
@@ -101,6 +105,7 @@
 
     /* Bordures */
     --color-border: rgba(240, 240, 240, 0.04);
+    --color-border-strong: rgba(240, 240, 240, 0.12);
   }
 }
 
@@ -119,6 +124,7 @@
 
   /* Bordures */
   --color-border: rgba(240, 240, 240, 0.04);
+  --color-border-strong: rgba(240, 240, 240, 0.12);
 }
 
 
@@ -144,7 +150,7 @@
 
     /* Body - Tablet */
     --font-size-body-medium: 17px;
-    --font-size-body-small: 13px;
+    --font-size-body-small: 14px;
   }
 }
 
@@ -171,6 +177,6 @@
 
     /* Body - Mobile */
     --font-size-body-medium: 16px;
-    --font-size-body-small: 12px;
+    --font-size-body-small: 14px;
   }
 }

@@ -15,9 +15,9 @@
         <div class="error-icon">✗</div>
         <h2 class="heading-03">Une erreur s'est produite</h2>
         <p class="error-message">{{ error }}</p>
-        <button @click="goBack" class="btn-secondary">
-          ← Retour au site
-        </button>
+        <BaseButton variant="fill" icon-left="chevron-left" @click="goBack">
+          Retour au site
+        </BaseButton>
       </div>
     </div>
   </div>
@@ -26,6 +26,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import BaseButton from '../components/BaseButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -151,17 +152,4 @@ function goBack() {
   margin-bottom: var(--space-03);
 }
 
-.btn-secondary {
-  background-color: var(--color-brand);
-  color: var(--color-text-contrast);
-  padding: var(--space-03) var(--space-04);
-  border-radius: var(--radius-01);
-  border: none;
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-}
-
-.btn-secondary:hover {
-  opacity: 0.9;
-}
 </style>

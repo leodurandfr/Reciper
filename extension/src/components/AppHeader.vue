@@ -50,22 +50,6 @@
   opacity: 0.8;
 }
 
-:deep(.header-btn) {
-  background: transparent;
-  border: none;
-  color: var(--color-text);
-  cursor: pointer;
-  padding: var(--space-02);
-  display: flex;
-  align-items: center;
-  gap: var(--space-02);
-  transition: opacity var(--transition-fast);
-}
-
-:deep(.header-btn:hover) {
-  opacity: 0.8;
-}
-
 @media (max-width: 1024px) {
   .app-header {
     grid-column: 1 / 13;

@@ -77,12 +77,12 @@
         </div>
 
         <footer class="modal-footer">
-          <button type="button" @click="close" class="btn-cancel body-small">
+          <BaseButton variant="outline" type="button" @click="close">
             Annuler
-          </button>
-          <button type="submit" class="btn-save body-small" :disabled="saving">
+          </BaseButton>
+          <BaseButton variant="fill" type="submit" :disabled="saving">
             {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
-          </button>
+          </BaseButton>
         </footer>
       </form>
     </div>
@@ -92,6 +92,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { updateRecipe } from '../../services/db.js'
+import BaseButton from '../BaseButton.vue'
 
 const props = defineProps({
   isOpen: {
@@ -268,30 +269,6 @@ async function handleSubmit() {
   padding-top: var(--space-04);
   border-top: 1px solid var(--color-text);
   margin-top: var(--space-04);
-}
-
-.btn-cancel,
-.btn-save {
-  padding: var(--space-02) var(--space-04);
-  border-radius: var(--radius-01);
-  cursor: pointer;
-}
-
-.btn-cancel {
-  background: var(--color-background);
-  border: 1px solid var(--color-text);
-  color: var(--color-text);
-}
-
-.btn-save {
-  background: var(--color-brand);
-  color: var(--color-text-contrast);
-  border: none;
-}
-
-.btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

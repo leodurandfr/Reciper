@@ -11,10 +11,9 @@
 
     <div class="col-right">
       <RecipeInstructions :instructions="recipe.parsed_instructions || []" />
+      <RecipeFooter :recipe="recipe" @edit="showEditModal = true"
+        @deleted="handleRecipeDeleted" />
     </div>
-
-    <RecipeFooter :recipe="recipe" class="col-full" @edit="showEditModal = true"
-      @favorite-toggled="handleFavoriteToggled" @deleted="handleRecipeDeleted" />
 
     <RecipeEditModal :is-open="showEditModal" :recipe="recipe" @close="showEditModal = false"
       @updated="handleRecipeUpdated" />
@@ -37,7 +36,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['favorite-toggled', 'recipe-updated', 'recipe-deleted'])
+const emit = defineEmits(['recipe-updated', 'recipe-deleted'])
 
 const showEditModal = ref(false)
 
@@ -66,10 +65,6 @@ watch(
     }
   }
 )
-
-function handleFavoriteToggled(isFavorite) {
-  emit('favorite-toggled', isFavorite)
-}
 
 function handleRecipeUpdated(updatedRecipe) {
   emit('recipe-updated', updatedRecipe)
@@ -133,5 +128,6 @@ function handleRecipeDeleted() {
   .col-right {
     grid-column: 1 / -1;
   }
+
 }
 </style>
