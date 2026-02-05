@@ -1,9 +1,13 @@
 <template>
-  <AppHeader />
+  <AppHeader :large-title="isHomePage" />
   <main>
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <Transition name="page" mode="out-in">
+        <component :is="Component" :key="pageKey" />
+      </Transition>
+    </router-view>
   </main>
-  <AppFooter />
+  <AppFooter :inset="isRecipePage" />
 
   <!-- Debug Grid Toggle -->
   <button @click="toggleGrid" class="grid-toggle" :class="{ active: showGrid }" title="Toggle Grid Overlay">
@@ -19,9 +23,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
+
+const route = useRoute()
+const isRecipePage = computed(() => route.path.startsWith('/recipe/'))
+const isHomePage = computed(() => route.path === '/favorites' || route.path === '/history')
+const pageKey = computed(() => isHomePage.value ? 'home' : route.path)
 
 const showGrid = ref(false)
 
@@ -35,8 +45,8 @@ function toggleGrid() {
 #app {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto 1fr auto;
   column-gap: var(--grid-gutter);
-  align-content: start;
   min-height: 100vh;
   margin: 0 auto;
   padding: 0 var(--grid-margin);
@@ -46,6 +56,7 @@ main {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: subgrid;
+  align-content: start;
 }
 
 /* Classes utilitaires pour la grille 12 colonnes */
@@ -114,6 +125,15 @@ input[type="url"] {
 input:focus {
   outline: none;
   border-color: var(--color-brand);
+}
+
+/* Page transitions — leave only (enter handled by stagger animations) */
+.page-leave-active {
+  transition: opacity var(--transition-fast);
+}
+
+.page-leave-to {
+  opacity: 0;
 }
 
 /* Grid Toggle Button (Debug) */

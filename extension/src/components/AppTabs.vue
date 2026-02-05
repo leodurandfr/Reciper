@@ -31,5 +31,6 @@ const tabs = [
   justify-content: center;
   gap: var(--space-02);
   margin-bottom: var(--space-05);
+  padding-top: var(--space-05);
 }
 </style>

@@ -37,12 +37,9 @@ function handleImageError(e) {
   border-radius: var(--radius-07);
   text-decoration: none;
   color: inherit;
-  transition: transform var(--transition-fast);
+  transition: scale var(--transition-fast);
 }
 
-.recipe-card:hover {
-  transform: translateY(-4px);
-}
 
 .image-container {
   aspect-ratio: 4 / 3;

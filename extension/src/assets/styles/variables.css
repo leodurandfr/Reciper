@@ -77,10 +77,10 @@
 
 
   /* === TRANSITIONS === */
-  --transition-ultra-fast: 100ms ease;
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
-  --transition-slow: 500ms ease;
+  --transition-ultra-fast: 100ms ease-in-out;
+  --transition-fast: 200ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
 
   /* Spring easing - avec fallback */
   --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);

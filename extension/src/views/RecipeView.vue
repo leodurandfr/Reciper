@@ -1,23 +1,22 @@
 <template>
-  <Teleport to="#header-left">
-    <BaseButton variant="outline" icon-left="chevron-left" @click="handleBack">
-      {{ hasInternalHistory ? 'Retour' : 'Mes recettes' }}
-    </BaseButton>
-  </Teleport>
-  <Teleport to="#header-right" v-if="recipe">
-    <BaseButton
-      :variant="isFavorite ? 'fill' : 'outline'"
-      :disabled="togglingFavorite"
-      @click="handleToggleFavorite"
-    >
-      {{ togglingFavorite ? '...' : (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') }}
-    </BaseButton>
-  </Teleport>
   <div class="recipe-view">
-    <div v-if="loading" class="loading">Chargement de la recette...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <Teleport to="#header-left">
+      <BaseButton variant="outline" icon-left="chevron-left" @click="handleBack">
+        {{ hasInternalHistory ? 'Retour' : 'Mes recettes' }}
+      </BaseButton>
+    </Teleport>
+    <Teleport to="#header-right" v-if="recipe">
+      <BaseButton
+        variant="outline"
+        :disabled="togglingFavorite"
+        @click="handleToggleFavorite"
+      >
+        {{ togglingFavorite ? '...' : (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') }}
+      </BaseButton>
+    </Teleport>
+    <div v-if="error" class="error">{{ error }}</div>
     <RecipeDetail
-      v-else
+      v-else-if="recipe"
       :recipe="recipe"
       @recipe-updated="handleRecipeUpdated"
       @recipe-deleted="handleRecipeDeleted"
@@ -36,7 +35,6 @@ import BaseButton from '../components/BaseButton.vue'
 const route = useRoute()
 const router = useRouter()
 const recipe = ref(null)
-const loading = ref(true)
 const error = ref('')
 const togglingFavorite = ref(false)
 const localIsFavorite = ref(null)
@@ -79,8 +77,6 @@ async function fetchRecipe() {
   } catch (err) {
     console.error('Erreur chargement recette:', err)
     error.value = 'Erreur lors du chargement de la recette'
-  } finally {
-    loading.value = false
   }
 }
 
@@ -121,7 +117,6 @@ onMounted(fetchRecipe)
   grid-template-columns: subgrid;
 }
 
-.loading,
 .error {
   text-align: center;
   padding: var(--space-06);

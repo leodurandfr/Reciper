@@ -1,6 +1,6 @@
 <template>
   <footer class="recipe-footer">
-    <BaseButton tag="a" :href="recipe.url" variant="outline">
+    <BaseButton tag="a" :href="recipe.url" variant="outline" @click="handleSourceClick">
       Source: {{ recipe.host }}
     </BaseButton>
 
@@ -30,6 +30,14 @@ const props = defineProps({
 const emit = defineEmits(['edit', 'deleted'])
 
 const deleting = ref(false)
+
+async function handleSourceClick(event) {
+  event.preventDefault()
+  if (chrome?.runtime?.sendMessage) {
+    await chrome.runtime.sendMessage({ type: 'BYPASS_URL', url: props.recipe.url })
+  }
+  window.open(props.recipe.url, '_blank', 'noopener')
+}
 
 async function confirmDelete() {
   if (!confirm('Voulez-vous vraiment supprimer cette recette ?')) return

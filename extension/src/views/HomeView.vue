@@ -1,9 +1,8 @@
 <template>
   <div class="home">
     <AppTabs />
-    <div v-if="loading" class="loading">Chargement des recettes...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <RecipeList v-else :recipes="recipes" :show-favorites-only="favoritesOnly" />
+    <div v-if="error" class="error">{{ error }}</div>
+    <RecipeList v-else-if="!loading" :recipes="recipes" :show-favorites-only="favoritesOnly" />
   </div>
 </template>
 
@@ -49,7 +48,6 @@ onMounted(fetchRecipes)
   grid-template-columns: subgrid;
 }
 
-.loading,
 .error {
   grid-column: 1 / -1;
   text-align: center;

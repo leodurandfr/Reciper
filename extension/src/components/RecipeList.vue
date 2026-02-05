@@ -6,7 +6,7 @@
         : 'Aucune recette sauvegardee. Utilisez l\'extension Chrome pour en ajouter !'
       }}
     </p>
-    <RecipeCard v-for="recipe in recipes" :key="recipe.id" :recipe="recipe" />
+    <RecipeCard v-for="(recipe, index) in recipes" :key="recipe.id" :recipe="recipe" :style="{ '--i': index }" />
   </div>
 </template>
 
@@ -30,12 +30,22 @@ defineProps({
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: subgrid;
+  gap: var(--grid-gutter);
 }
 
 /* xl (>1024px): 4 cards par ligne (span 3 sur 12 colonnes) */
 .recipe-list :deep(.recipe-card) {
   grid-column: span 3;
   min-width: 0;
+  animation: stagger-in 300ms ease-out both;
+  animation-delay: calc(150ms + var(--i) * 50ms);
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
 }
 
 .empty-state {

@@ -5,6 +5,9 @@ const DEFAULT_BACKEND_URL = "https://api-reciper.leodurand.com";
 // Set pour tracker les URLs en cours de traitement
 const processingUrls = new Set();
 
+// Set pour les URLs à ne pas intercepter (bypass depuis le lien source)
+const bypassUrls = new Set();
+
 /**
  * Récupère l'URL du backend depuis les settings
  */
@@ -168,6 +171,12 @@ chrome.webNavigation.onCommitted.addListener(
     // Vérifier si c'est un site supporté
     if (!isSupportedSite(url.hostname)) return;
 
+    // Bypass si demandé (lien source depuis Reciper)
+    if (bypassUrls.has(details.url)) {
+      bypassUrls.delete(details.url);
+      return;
+    }
+
     // Vérifier si le mode autoOpen est activé
     const autoOpen = await getAutoOpenRecipe();
     if (!autoOpen) return; // Laisser onCompleted gérer le mode notification
@@ -203,6 +212,12 @@ chrome.webNavigation.onCompleted.addListener(
 
     // Vérifier si c'est un site supporté
     if (!isSupportedSite(url.hostname)) return;
+
+    // Bypass si demandé (lien source depuis Reciper)
+    if (bypassUrls.has(details.url)) {
+      bypassUrls.delete(details.url);
+      return;
+    }
 
     // Éviter les doubles traitements
     if (processingUrls.has(details.url)) return;
@@ -285,6 +300,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "GET_BACKEND_URL") {
     getBackendUrl().then((url) => sendResponse({ url }));
+    return true;
+  }
+
+  // Bypass d'interception pour le lien source
+  if (message.type === "BYPASS_URL") {
+    bypassUrls.add(message.url);
+    setTimeout(() => bypassUrls.delete(message.url), 10000);
+    sendResponse({ success: true });
     return true;
   }
 

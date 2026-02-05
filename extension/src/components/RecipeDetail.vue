@@ -80,7 +80,18 @@ function handleRecipeDeleted() {
   display: grid;
   grid-template-columns: subgrid;
   grid-column: 2 / 12;
-  gap: var(--space-05);
+  row-gap: var(--grid-gutter);
+}
+
+.recipe-grid > :nth-child(1) { animation: stagger-in 300ms ease-out both; animation-delay: 150ms; }
+.recipe-grid > :nth-child(2) { animation: stagger-in 300ms ease-out both; animation-delay: 200ms; }
+.recipe-grid > :nth-child(3) { animation: stagger-in 300ms ease-out both; animation-delay: 250ms; }
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
 }
 
 .col-left,
