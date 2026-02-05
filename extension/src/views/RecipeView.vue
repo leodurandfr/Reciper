@@ -2,7 +2,7 @@
   <div class="recipe-view">
     <Teleport to="#header-left">
       <BaseButton variant="outline" icon-left="chevron-left" @click="handleBack">
-        {{ hasInternalHistory ? 'Retour' : 'Mes recettes' }}
+        {{ hasInternalHistory ? $t('nav.back') : $t('nav.myRecipes') }}
       </BaseButton>
     </Teleport>
     <Teleport to="#header-right" v-if="recipe">
@@ -11,7 +11,7 @@
         :disabled="togglingFavorite"
         @click="handleToggleFavorite"
       >
-        {{ togglingFavorite ? '...' : (isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris') }}
+        {{ togglingFavorite ? '...' : (isFavorite ? $t('recipe.removeFavorite') : $t('recipe.addFavorite')) }}
       </BaseButton>
     </Teleport>
     <div v-if="error" class="error">{{ error }}</div>
@@ -26,12 +26,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { getRecipe, toggleFavorite } from '../services/db.js'
 import { parseInstructionsWithIngredients } from '../composables/useIngredientMatcher.js'
 import RecipeDetail from '../components/RecipeDetail.vue'
 import BaseButton from '../components/BaseButton.vue'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const recipe = ref(null)
@@ -63,7 +65,7 @@ async function fetchRecipe() {
     const recipeData = await getRecipe(id)
 
     if (!recipeData) {
-      error.value = 'Recette non trouvée'
+      error.value = t('recipe.notFound')
       return
     }
 
@@ -76,7 +78,7 @@ async function fetchRecipe() {
     recipe.value = recipeData
   } catch (err) {
     console.error('Erreur chargement recette:', err)
-    error.value = 'Erreur lors du chargement de la recette'
+    error.value = t('home.errorLoading')
   }
 }
 
@@ -88,7 +90,7 @@ async function handleToggleFavorite() {
     recipe.value.is_favorite = updated.is_favorite
   } catch (err) {
     console.error('Erreur toggle favori:', err)
-    alert('Erreur lors de la mise à jour des favoris')
+    alert(t('errors.favoriteFailed'))
   } finally {
     togglingFavorite.value = false
   }

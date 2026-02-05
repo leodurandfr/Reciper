@@ -8,6 +8,7 @@
 
 <script setup>
 import { ref, onMounted, watch, toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getAllRecipes } from '../services/db.js'
 import RecipeList from '../components/RecipeList.vue'
 import AppTabs from '../components/AppTabs.vue'
@@ -19,6 +20,7 @@ const props = defineProps({
   },
 })
 
+const { t } = useI18n()
 const recipes = ref([])
 const loading = ref(true)
 const error = ref('')
@@ -30,7 +32,7 @@ async function fetchRecipes() {
     recipes.value = await getAllRecipes({ favoritesOnly: props.favoritesOnly })
   } catch (err) {
     console.error('Erreur chargement recettes:', err)
-    error.value = 'Erreur lors du chargement des recettes'
+    error.value = t('home.errorLoading')
   } finally {
     loading.value = false
   }

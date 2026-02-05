@@ -1,23 +1,23 @@
 <template>
-  <BaseModal :open="isOpen" title="Paramètres" @close="$emit('close')">
+  <BaseModal :open="isOpen" :title="$t('settings.title')" @close="$emit('close')">
     <div class="settings-content">
       <!-- Export/Import -->
       <section class="settings-section">
-        <h2 class="heading-03">Données</h2>
-        <p class="body-small text-muted">Exportez vos recettes pour les sauvegarder ou les transférer.</p>
+        <h2 class="heading-03">{{ $t('settings.data.title') }}</h2>
+        <p class="body-small text-muted">{{ $t('settings.data.description') }}</p>
 
         <div class="data-stats">
           <span class="stat-number">{{ recipeCount }}</span>
-          <span class="stat-label">recettes enregistrées</span>
+          <span class="stat-label">{{ $t('settings.data.recipesStored') }}</span>
         </div>
 
         <div class="button-group">
           <BaseButton variant="outline" :disabled="exporting" @click="handleExport">
-            {{ exporting ? 'Export...' : 'Exporter mes recettes' }}
+            {{ exporting ? $t('settings.data.exporting') : $t('settings.data.export') }}
           </BaseButton>
 
           <BaseButton variant="outline" @click="triggerImport">
-            Importer des recettes
+            {{ $t('settings.data.import') }}
           </BaseButton>
           <input
             ref="importInput"
@@ -29,22 +29,22 @@
         </div>
 
         <div v-if="importPreview" class="import-preview">
-          <h4>Aperçu de l'import</h4>
-          <p>{{ importPreview.recipeCount }} recettes à importer</p>
-          <p class="text-muted">Version: {{ importPreview.version }}</p>
+          <h4>{{ $t('settings.data.importPreviewTitle') }}</h4>
+          <p>{{ $t('settings.data.importRecipeCount', { count: importPreview.recipeCount }) }}</p>
+          <p class="text-muted">{{ $t('settings.data.importVersion', { version: importPreview.version }) }}</p>
 
           <div class="import-options">
             <label>
               <input type="checkbox" v-model="importOverwrite">
-              Écraser les recettes existantes (même URL)
+              {{ $t('settings.data.importOverwrite') }}
             </label>
           </div>
 
           <div class="button-group">
             <BaseButton variant="fill" :disabled="importing" @click="confirmImport">
-              {{ importing ? 'Import...' : 'Confirmer l\'import' }}
+              {{ importing ? $t('settings.data.importing') : $t('settings.data.importConfirm') }}
             </BaseButton>
-            <BaseButton variant="outline" @click="cancelImport">Annuler</BaseButton>
+            <BaseButton variant="outline" @click="cancelImport">{{ $t('settings.data.cancel') }}</BaseButton>
           </div>
         </div>
 
@@ -55,7 +55,7 @@
 
       <!-- Thème -->
       <section class="settings-section">
-        <h2 class="heading-03">Apparence</h2>
+        <h2 class="heading-03">{{ $t('settings.appearance.title') }}</h2>
 
         <div class="theme-options">
           <label v-for="option in themeOptions" :key="option.value" class="theme-option">
@@ -70,12 +70,29 @@
         </div>
       </section>
 
+      <!-- Langue -->
+      <section class="settings-section">
+        <h2 class="heading-03">{{ $t('settings.language.title') }}</h2>
+
+        <div class="theme-options">
+          <label v-for="option in languageOptions" :key="option.value" class="theme-option">
+            <input
+              type="radio"
+              :value="option.value"
+              v-model="language"
+              @change="changeLanguage"
+            >
+            <span>{{ option.label }}</span>
+          </label>
+        </div>
+      </section>
+
       <!-- À propos -->
       <section class="settings-section">
-        <h2 class="heading-03">À propos</h2>
+        <h2 class="heading-03">{{ $t('settings.about.title') }}</h2>
         <p class="body-small text-muted">
-          <span class="version-tap" @click="onVersionTap">Reciper v1.0.0</span><br>
-          Save recipes automatically from 600+ cooking websites.
+          <span class="version-tap" @click="onVersionTap">{{ $t('settings.about.version') }}</span><br>
+          {{ $t('settings.about.description') }}
         </p>
         <div class="about-links">
           <BaseButton tag="a" href="https://github.com/leodurandfr/Reciper" variant="outline">
@@ -89,8 +106,8 @@
 
       <!-- Dev: Backend URL (hidden by default, tap version 5x to reveal) -->
       <section v-if="showDevSettings" class="settings-section">
-        <h2 class="heading-03">Serveur</h2>
-        <p class="body-small text-muted">URL du backend de scraping.</p>
+        <h2 class="heading-03">{{ $t('settings.server.title') }}</h2>
+        <p class="body-small text-muted">{{ $t('settings.server.description') }}</p>
 
         <div class="dev-url-group">
           <input
@@ -100,7 +117,7 @@
             class="dev-url-input"
           >
           <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
-            {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+            {{ saving ? $t('settings.server.saving') : $t('settings.server.save') }}
           </BaseButton>
         </div>
 
@@ -113,7 +130,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
 import BaseButton from './BaseButton.vue'
 import { getSettings, saveSettings, applyTheme, BACKEND_URL } from '../stores/settings.js'
@@ -128,6 +146,8 @@ const props = defineProps({
 })
 
 defineEmits(['close'])
+
+const { t, locale } = useI18n()
 
 const recipeCount = ref(0)
 const exporting = ref(false)
@@ -148,10 +168,16 @@ const saving = ref(false)
 const backendStatus = ref(null)
 const defaultUrl = BACKEND_URL
 
-const themeOptions = [
-  { value: 'light', label: 'Clair' },
-  { value: 'dark', label: 'Sombre' },
-  { value: 'system', label: 'Système' },
+const themeOptions = computed(() => [
+  { value: 'light', label: t('settings.appearance.light') },
+  { value: 'dark', label: t('settings.appearance.dark') },
+  { value: 'system', label: t('settings.appearance.system') },
+])
+
+const language = ref('fr')
+const languageOptions = [
+  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'English' },
 ]
 
 // Load data each time the modal opens
@@ -161,6 +187,7 @@ watch(
     if (isOpen) {
       const settings = await getSettings()
       theme.value = settings.theme
+      language.value = settings.language || 'fr'
       recipeCount.value = await getRecipeCount()
 
       backendUrl.value = settings.backendUrl || ''
@@ -184,13 +211,13 @@ async function handleExport() {
     if (result.success) {
       importResult.value = {
         type: 'success',
-        message: `${result.count} recettes exportées`
+        message: t('settings.data.exportSuccess', { count: result.count })
       }
     }
   } catch (error) {
     importResult.value = {
       type: 'error',
-      message: 'Erreur lors de l\'export: ' + error.message
+      message: t('settings.data.exportError', { message: error.message })
     }
   } finally {
     exporting.value = false
@@ -211,13 +238,13 @@ async function handleImportFile(event) {
     } else {
       importResult.value = {
         type: 'error',
-        message: 'Fichier invalide: ' + preview.error
+        message: t('settings.data.invalidFile', { error: preview.error })
       }
     }
   } catch (error) {
     importResult.value = {
       type: 'error',
-      message: 'Erreur lors de la lecture du fichier'
+      message: t('settings.data.fileError')
     }
   }
 
@@ -236,7 +263,7 @@ async function confirmImport() {
 
     importResult.value = {
       type: result.errors.length > 0 ? 'error' : 'success',
-      message: `${result.imported} recettes importées, ${result.skipped} ignorées`
+      message: t('settings.data.importSuccess', { imported: result.imported, skipped: result.skipped })
     }
 
     recipeCount.value = await getRecipeCount()
@@ -245,7 +272,7 @@ async function confirmImport() {
   } catch (error) {
     importResult.value = {
       type: 'error',
-      message: 'Erreur lors de l\'import: ' + error.message
+      message: t('settings.data.importError', { message: error.message })
     }
   } finally {
     importing.value = false
@@ -266,6 +293,11 @@ async function changeTheme() {
   applyTheme(theme.value)
 }
 
+async function changeLanguage() {
+  locale.value = language.value
+  await saveSettings({ language: language.value })
+}
+
 function onVersionTap() {
   devTapCount.value++
   if (devTapCount.value >= 5) {
@@ -280,12 +312,12 @@ async function saveBackendUrl() {
     await saveSettings({ backendUrl: url })
     backendStatus.value = {
       type: 'success',
-      message: url ? 'URL enregistrée' : 'URL réinitialisée (défaut)'
+      message: url ? t('settings.server.saved') : t('settings.server.reset')
     }
   } catch {
     backendStatus.value = {
       type: 'error',
-      message: 'Erreur lors de l\'enregistrement'
+      message: t('settings.server.saveError')
     }
   } finally {
     saving.value = false

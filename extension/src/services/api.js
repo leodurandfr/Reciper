@@ -3,6 +3,9 @@
  */
 
 import { getBackendUrl } from '../stores/settings.js'
+import i18n from '../i18n/index.js'
+
+const t = i18n.global.t
 
 /**
  * Scrape une recette depuis une URL
@@ -20,8 +23,8 @@ export async function scrapeRecipe(url) {
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Erreur inconnue' }))
-    throw new Error(error.detail || `Erreur HTTP ${response.status}`)
+    const error = await response.json().catch(() => ({ detail: t('errors.unknown') }))
+    throw new Error(error.detail || `HTTP ${response.status}`)
   }
 
   return response.json()

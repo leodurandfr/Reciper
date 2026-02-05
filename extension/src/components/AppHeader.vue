@@ -1,21 +1,32 @@
 <template>
   <header class="app-header" :class="{ 'app-header--separator': largeTitle }">
-    <div class="header-left" id="header-left">
+    <div class="header-left" :class="{ 'header-leaving': leaving }" id="header-left">
       <slot name="left"></slot>
     </div>
     <router-link to="/favorites" class="logo" :class="{ 'logo--large': largeTitle }">Reciper</router-link>
-    <div class="header-right" id="header-right">
+    <div class="header-right" :class="{ 'header-leaving': leaving }" id="header-right">
       <slot name="right"></slot>
     </div>
   </header>
 </template>
 
 <script setup>
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
 defineProps({
   largeTitle: {
     type: Boolean,
     default: false,
   },
+})
+
+const route = useRoute()
+const leaving = ref(false)
+
+watch(() => route.path, () => {
+  leaving.value = true
+  setTimeout(() => { leaving.value = false }, 200)
 })
 </script>
 
@@ -53,6 +64,12 @@ defineProps({
 .header-left :deep(> *),
 .header-right :deep(> *) {
   animation: header-btn-in var(--transition-fast) ease;
+  transition: opacity var(--transition-fast);
+}
+
+.header-leaving :deep(> *) {
+  opacity: 0;
+  animation: none;
 }
 
 @keyframes header-btn-in {
@@ -87,7 +104,7 @@ defineProps({
   font-size: 72px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
   .app-header {
     grid-column: 1 / 13;
   }
@@ -97,7 +114,7 @@ defineProps({
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 800px) {
   .app-header {
     grid-column: 1 / -1;
   }

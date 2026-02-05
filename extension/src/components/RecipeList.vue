@@ -2,8 +2,8 @@
   <div class="recipe-list">
     <p v-if="recipes.length === 0" class="empty-state">
       {{ showFavoritesOnly
-        ? 'Aucune recette en favoris. Ajoutez des recettes a vos favoris depuis leur page de detail !'
-        : 'Aucune recette sauvegardee. Utilisez l\'extension Chrome pour en ajouter !'
+        ? $t('home.emptyFavorites')
+        : $t('home.emptyHistory')
       }}
     </p>
     <RecipeCard v-for="(recipe, index) in recipes" :key="recipe.id" :recipe="recipe" :style="{ '--i': index }" />

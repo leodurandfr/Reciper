@@ -1,8 +1,8 @@
 <template>
-  <BaseModal :open="isOpen" title="Modifier la recette" @close="close">
+  <BaseModal :open="isOpen" :title="$t('editModal.title')" @close="close">
     <form @submit.prevent="handleSubmit" class="edit-form">
       <div class="form-group">
-        <label for="title">Titre</label>
+        <label for="title">{{ $t('editModal.titleLabel') }}</label>
         <input
           id="title"
           v-model="form.title"
@@ -12,7 +12,7 @@
       </div>
 
       <div class="form-group">
-        <label for="description">Description</label>
+        <label for="description">{{ $t('editModal.description') }}</label>
         <textarea
           id="description"
           v-model="form.description"
@@ -22,7 +22,7 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="prep_time">Temps de préparation (min)</label>
+          <label for="prep_time">{{ $t('editModal.prepTime') }}</label>
           <input
             id="prep_time"
             v-model.number="form.prep_time"
@@ -32,7 +32,7 @@
         </div>
 
         <div class="form-group">
-          <label for="cook_time">Temps de cuisson (min)</label>
+          <label for="cook_time">{{ $t('editModal.cookTime') }}</label>
           <input
             id="cook_time"
             v-model.number="form.cook_time"
@@ -42,18 +42,18 @@
         </div>
 
         <div class="form-group">
-          <label for="yields">Portions</label>
+          <label for="yields">{{ $t('editModal.yields') }}</label>
           <input
             id="yields"
             v-model="form.yields"
             type="text"
-            placeholder="Ex: 6 personnes"
+            :placeholder="$t('editModal.yieldsPlaceholder')"
           />
         </div>
       </div>
 
       <div class="form-group">
-        <label for="ingredients">Ingrédients (un par ligne)</label>
+        <label for="ingredients">{{ $t('editModal.ingredientsLabel') }}</label>
         <textarea
           id="ingredients"
           v-model="ingredientsText"
@@ -62,7 +62,7 @@
       </div>
 
       <div class="form-group">
-        <label for="instructions">Instructions (une par ligne)</label>
+        <label for="instructions">{{ $t('editModal.instructionsLabel') }}</label>
         <textarea
           id="instructions"
           v-model="instructionsText"
@@ -72,10 +72,10 @@
 
       <div class="form-actions">
         <BaseButton variant="outline" type="button" @click="close">
-          Annuler
+          {{ $t('editModal.cancel') }}
         </BaseButton>
         <BaseButton variant="fill" type="submit" :disabled="saving">
-          {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+          {{ saving ? $t('editModal.saving') : $t('editModal.save') }}
         </BaseButton>
       </div>
     </form>
@@ -84,9 +84,12 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { updateRecipe } from '../../services/db.js'
 import BaseModal from '../BaseModal.vue'
 import BaseButton from '../BaseButton.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   isOpen: {
@@ -172,7 +175,7 @@ async function handleSubmit() {
     close()
   } catch (err) {
     console.error('Erreur mise à jour:', err)
-    alert('Erreur lors de la mise à jour')
+    alert(t('editModal.updateError'))
   } finally {
     saving.value = false
   }

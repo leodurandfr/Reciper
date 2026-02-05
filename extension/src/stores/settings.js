@@ -11,6 +11,7 @@ const SETTINGS_KEY = 'settings'
 const defaultSettings = {
   autoSaveImages: false, // Télécharger et sauver les images localement
   theme: 'light', // 'light', 'dark', 'system'
+  language: 'fr', // 'fr', 'en'
 }
 
 // Reactive settings store for composable

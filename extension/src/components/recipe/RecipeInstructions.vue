@@ -1,10 +1,10 @@
 <template>
   <section class="recipe-instructions">
-    <h2 class="heading-03">Instructions</h2>
+    <h2 class="heading-03">{{ $t('recipe.instructions') }}</h2>
 
     <ol class="instructions-list">
       <li v-for="step in instructions" :key="step.step_number">
-        <span class="step-number body-medium">Etape {{ step.step_number }}</span>
+        <span class="step-number body-medium">{{ $t('recipe.step', { n: step.step_number }) }}</span>
         <p class="step-text body-medium">{{ step.text }}</p>
       </li>
     </ol>

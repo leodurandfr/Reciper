@@ -114,7 +114,7 @@ function handleRecipeDeleted() {
 }
 
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
   .recipe-grid {
     grid-column: 1 / 13;
   }
@@ -129,7 +129,7 @@ function handleRecipeDeleted() {
 }
 
 /* Mobile: empilé */
-@media (max-width: 480px) {
+@media (max-width: 800px) {
   .recipe-grid {
     grid-column: 1 / -1;
   }

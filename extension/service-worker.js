@@ -1,4 +1,5 @@
 import { isSupportedSite } from "./supported-sites.js";
+import { initLocale, t } from "./i18n-lite.js";
 
 const DEFAULT_BACKEND_URL = "https://reciper-api-605923399344.europe-west1.run.app";
 
@@ -88,8 +89,8 @@ async function scrapeRecipe(url) {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: "Erreur" }));
-    throw new Error(error.detail || `Erreur HTTP ${response.status}`);
+    const error = await response.json().catch(() => ({ detail: t("error") }));
+    throw new Error(error.detail || `HTTP ${response.status}`);
   }
 
   return response.json();
@@ -176,5 +177,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 });
 
-// Log au démarrage
-console.log("Reciper: Extension chargée - 606 sites supportés");
+// Initialiser la locale et log au démarrage
+initLocale().then(() => {
+  console.log(t("extensionLoaded"));
+});

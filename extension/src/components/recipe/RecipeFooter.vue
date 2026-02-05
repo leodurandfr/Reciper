@@ -1,15 +1,15 @@
 <template>
   <footer class="recipe-footer">
     <BaseButton tag="a" :href="recipe.url" variant="outline" @click="handleSourceClick">
-      Source: {{ recipe.host }}
+      {{ $t('recipe.source', { host: recipe.host }) }}
     </BaseButton>
 
     <div class="actions">
       <BaseButton variant="outline" @click="$emit('edit')">
-        Modifier
+        {{ $t('recipe.edit') }}
       </BaseButton>
       <BaseButton variant="outline" :disabled="deleting" @click="confirmDelete">
-        {{ deleting ? 'Suppression...' : 'Supprimer' }}
+        {{ deleting ? $t('recipe.deleting') : $t('recipe.delete') }}
       </BaseButton>
     </div>
   </footer>
@@ -17,8 +17,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { deleteRecipe } from '../../services/db.js'
 import BaseButton from '../BaseButton.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   recipe: {
@@ -40,7 +43,7 @@ async function handleSourceClick(event) {
 }
 
 async function confirmDelete() {
-  if (!confirm('Voulez-vous vraiment supprimer cette recette ?')) return
+  if (!confirm(t('recipe.deleteConfirm'))) return
 
   deleting.value = true
   try {
@@ -48,7 +51,7 @@ async function confirmDelete() {
     emit('deleted')
   } catch (err) {
     console.error('Erreur suppression:', err)
-    alert('Erreur lors de la suppression')
+    alert(t('errors.deleteFailed'))
     deleting.value = false
   }
 }

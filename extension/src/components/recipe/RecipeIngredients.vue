@@ -1,7 +1,7 @@
 <template>
   <section class="recipe-ingredients">
     <div class="section-header">
-      <h2 class="heading-03">Ingredients</h2>
+      <h2 class="heading-03">{{ $t('recipe.ingredients') }}</h2>
       <label class="portion-selector">
         <svg class="portion-arrows" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" clip-path="url(#arrows)">

@@ -56,6 +56,7 @@ main {
   display: grid;
   grid-template-columns: subgrid;
   align-content: start;
+  position: relative;
 }
 
 /* Classes utilitaires pour la grille 12 colonnes */
@@ -140,7 +141,6 @@ input:focus {
   #app {
     grid-template-columns: repeat(12, 1fr);
     padding: 0 var(--grid-margin);
-    gap: var(--grid-gutter);
   }
 
 }
@@ -150,7 +150,6 @@ input:focus {
   #app {
     grid-template-columns: repeat(4, 1fr);
     padding: 0 var(--grid-margin);
-    gap: var(--grid-gutter);
   }
 
   .col-full,

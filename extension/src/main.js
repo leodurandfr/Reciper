@@ -9,10 +9,18 @@ import App from './App.vue'
 import HomeView from './views/HomeView.vue'
 import RecipeView from './views/RecipeView.vue'
 import LoadingView from './views/LoadingView.vue'
-import { initTheme } from './stores/settings.js'
+import i18n from './i18n/index.js'
+import { initTheme, getSettings } from './stores/settings.js'
 
 // Initialiser le thème
 initTheme()
+
+// Charger la langue persistée
+getSettings().then(settings => {
+  if (settings.language && i18n.global.availableLocales.includes(settings.language)) {
+    i18n.global.locale.value = settings.language
+  }
+})
 
 const routes = [
   { path: '/', redirect: '/favorites' },
@@ -35,5 +43,6 @@ const router = createRouter({
 })
 
 const app = createApp(App)
+app.use(i18n)
 app.use(router)
 app.mount('#app')

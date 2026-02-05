@@ -1,9 +1,17 @@
 import { isSupportedSite } from './supported-sites.js'
+import { initLocale, t } from './i18n-lite.js'
 
 const recipeCountEl = document.getElementById('recipeCount')
 const openAppBtn = document.getElementById('openApp')
 const addCurrentBtn = document.getElementById('addCurrent')
 const statusEl = document.getElementById('status')
+
+// Appliquer les traductions aux éléments data-i18n
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n)
+  })
+}
 
 // Charger le nombre de recettes depuis chrome.storage.local
 async function loadRecipeCount() {
@@ -44,7 +52,7 @@ addCurrentBtn.addEventListener('click', async () => {
   const url = addCurrentBtn.dataset.url
   if (!url) return
 
-  showStatus('Scraping en cours...', 'info')
+  showStatus(t('scraping'), 'info')
   addCurrentBtn.disabled = true
 
   try {
@@ -55,7 +63,7 @@ addCurrentBtn.addEventListener('click', async () => {
     })
 
     if (response.success) {
-      showStatus('Recette ajoutée !', 'success')
+      showStatus(t('recipeAdded'), 'success')
       loadRecipeCount()
 
       // Ouvrir la recette après un court délai
@@ -66,11 +74,11 @@ addCurrentBtn.addEventListener('click', async () => {
         window.close()
       }, 1000)
     } else {
-      showStatus(response.error || 'Erreur lors de l\'ajout', 'error')
+      showStatus(response.error || t('addError'), 'error')
       addCurrentBtn.disabled = false
     }
   } catch (error) {
-    showStatus('Erreur: ' + error.message, 'error')
+    showStatus(t('errorPrefix') + error.message, 'error')
     addCurrentBtn.disabled = false
   }
 })
@@ -82,5 +90,11 @@ function showStatus(message, type) {
 }
 
 // Initialisation
-loadRecipeCount()
-checkCurrentPage()
+async function init() {
+  await initLocale()
+  applyTranslations()
+  loadRecipeCount()
+  checkCurrentPage()
+}
+
+init()

@@ -3,6 +3,8 @@
  * Persiste meme quand l'utilisateur vide le cache/cookies du navigateur
  */
 
+import i18n from '../i18n/index.js'
+
 const INDEX_KEY = 'recipes_index'
 
 // Cache memoire de l'index pour eviter les lectures repetees
@@ -159,7 +161,7 @@ export async function getAllRecipes(options = {}) {
 export async function updateRecipe(id, updates) {
   const existing = await getRecipe(id)
   if (!existing) {
-    throw new Error('Recette non trouvée')
+    throw new Error(i18n.global.t('errors.recipeNotFound'))
   }
 
   const updatedRecipe = {
@@ -211,7 +213,7 @@ export async function deleteRecipe(id) {
 export async function toggleFavorite(id) {
   const recipe = await getRecipe(id)
   if (!recipe) {
-    throw new Error('Recette non trouvée')
+    throw new Error(i18n.global.t('errors.recipeNotFound'))
   }
   return updateRecipe(id, { is_favorite: !recipe.is_favorite })
 }

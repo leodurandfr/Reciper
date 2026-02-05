@@ -2,12 +2,12 @@
   <router-link :to="`/recipe/${recipe.id}`" class="recipe-card">
     <div class="image-container">
       <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.title" @error="handleImageError" />
-      <div v-else class="placeholder-image">Pas d'image</div>
+      <div v-else class="placeholder-image">{{ $t('recipe.noImage') }}</div>
     </div>
     <h3 class="heading-03">{{ recipe.title }}</h3>
     <div class="meta">
-      <Tag v-if="recipe.prep_time" label="Préparation" :value="`${recipe.prep_time}min`" />
-      <Tag v-if="recipe.cook_time" label="Cuisson" :value="`${recipe.cook_time}min`" />
+      <Tag v-if="recipe.prep_time" :label="$t('recipe.prepTime')" :value="`${recipe.prep_time}min`" />
+      <Tag v-if="recipe.cook_time" :label="$t('recipe.cookTime')" :value="`${recipe.cook_time}min`" />
     </div>
   </router-link>
 </template>

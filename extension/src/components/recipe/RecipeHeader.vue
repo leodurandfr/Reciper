@@ -4,8 +4,8 @@
       <h1 class="heading-01">{{ recipe.title }}</h1>
 
       <div class="times" v-if="recipe.prep_time || recipe.cook_time">
-        <Tag v-if="recipe.prep_time" label="Préparation" :value="`${recipe.prep_time}min`" size="body-medium" />
-        <Tag v-if="recipe.cook_time" label="Cuisson" :value="`${recipe.cook_time}min`" size="body-medium" />
+        <Tag v-if="recipe.prep_time" :label="$t('recipe.prepTime')" :value="`${recipe.prep_time}min`" size="body-medium" />
+        <Tag v-if="recipe.cook_time" :label="$t('recipe.cookTime')" :value="`${recipe.cook_time}min`" size="body-medium" />
       </div>
     </div>
 
@@ -70,13 +70,18 @@ defineProps({
 }
 
 /* Mobile: empilé */
-@media (max-width: 480px) {
+@media (max-width: 800px) {
+  .recipe-header {
+    gap: var(--space-03);
+  }
+
   .recipe-info {
     grid-column: 1 / -1;
   }
 
   .image-container {
     grid-column: 1 / -1;
+    order: -1;
   }
 }
 </style>

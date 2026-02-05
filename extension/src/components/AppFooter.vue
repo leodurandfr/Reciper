@@ -1,9 +1,9 @@
 <template>
   <footer class="app-footer body-small" :class="{ 'app-footer--inset': inset }">
-    <button @click="openSettings" class="footer-link">Paramètres</button>
+    <button @click="openSettings" class="footer-link">{{ $t('footer.settings') }}</button>
     <span class="footer-separator">·</span>
     <a href="https://www.leodurand.com" target="_blank" rel="noopener" class="footer-link">
-      Reciper par leodurand.com
+      {{ $t('footer.madeBy') }}
     </a>
   </footer>
 </template>

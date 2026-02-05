@@ -7,7 +7,7 @@
       :to="tab.to"
       :variant="route.path === tab.to ? 'fill' : 'outline'"
     >
-      {{ tab.label }}
+      {{ $t(tab.labelKey) }}
     </BaseButton>
   </nav>
 </template>
@@ -19,8 +19,8 @@ import BaseButton from './BaseButton.vue'
 const route = useRoute()
 
 const tabs = [
-  { to: '/favorites', label: 'Favoris' },
-  { to: '/history', label: 'Historique' }
+  { to: '/favorites', labelKey: 'tabs.favorites' },
+  { to: '/history', labelKey: 'tabs.history' }
 ]
 </script>
 

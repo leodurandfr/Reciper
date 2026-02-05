@@ -34,6 +34,12 @@ function extensionPlugin() {
         resolve(distDir, 'supported-sites.js')
       )
 
+      // Copier i18n-lite.js
+      copyFileSync(
+        resolve(__dirname, 'i18n-lite.js'),
+        resolve(distDir, 'i18n-lite.js')
+      )
+
       // Copier popup.html et popup.js
       copyFileSync(
         resolve(__dirname, 'popup.html'),

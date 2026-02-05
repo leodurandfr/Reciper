@@ -8,7 +8,7 @@
               <slot name="header">
                 <h2 class="heading-03">{{ title }}</h2>
               </slot>
-              <button @click="$emit('close')" class="modal-close" aria-label="Fermer">
+              <button @click="$emit('close')" class="modal-close" :aria-label="$t('modal.close')">
                 &times;
               </button>
             </header>

@@ -4,6 +4,9 @@
  */
 
 import { exportRecipes, importRecipes, clearAllRecipes } from './db.js'
+import i18n from '../i18n/index.js'
+
+const t = i18n.global.t
 
 const EXPORT_VERSION = '2.0'
 
@@ -56,7 +59,7 @@ export async function importRecipesFromFile(file, options = {}) {
 
     // Vérifier le format
     if (!data.recipes || !Array.isArray(data.recipes)) {
-      throw new Error('Format de fichier invalide: pas de tableau "recipes"')
+      throw new Error(t('errors.invalidExportFormat'))
     }
 
     // Vider la base si demandé
@@ -93,7 +96,7 @@ export async function previewImportFile(file) {
     const data = JSON.parse(text)
 
     if (!data.recipes || !Array.isArray(data.recipes)) {
-      throw new Error('Format invalide')
+      throw new Error(t('errors.invalidFormat'))
     }
 
     return {
@@ -160,13 +163,13 @@ export async function restoreFromAutoBackup() {
     }
 
     if (!backup || !backup.recipes) {
-      throw new Error('Aucune sauvegarde trouvée')
+      throw new Error(t('errors.noBackupFound'))
     }
 
     const result = await importRecipes(backup.recipes, false)
     return result
   } catch (error) {
-    throw new Error(`Restauration impossible: ${error.message}`)
+    throw new Error(t('errors.restoreFailed', { message: error.message }))
   }
 }
 
