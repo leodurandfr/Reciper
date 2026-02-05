@@ -44,7 +44,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { BACKEND_URL } from '@/stores/settings'
+import { useSettings, BACKEND_URL } from '@/stores/settings'
 
 const props = defineProps({
   ingredients: {
@@ -71,6 +71,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:current-portions'])
 
+const settings = useSettings()
+
 const portions = computed({
   get: () => props.currentPortions,
   set: (val) => emit('update:current-portions', val),
@@ -94,7 +96,8 @@ function getIngredientImageUrl(index) {
     return null
   }
 
-  return `${BACKEND_URL}/api/ingredients/images/${enriched.image_id}`
+  const baseUrl = import.meta.env.DEV ? '' : (settings.backendUrl || BACKEND_URL)
+  return `${baseUrl}/api/ingredients/images/${enriched.image_id}`
 }
 </script>
 

@@ -5,7 +5,9 @@
 
 import { reactive, watch } from 'vue'
 
-export const BACKEND_URL = 'https://reciper-api-605923399344.europe-west1.run.app'
+export const BACKEND_URL = import.meta.env.DEV
+  ? ''
+  : 'https://reciper-api-605923399344.europe-west1.run.app'
 const SETTINGS_KEY = 'settings'
 
 const defaultSettings = {
@@ -61,6 +63,7 @@ export async function saveSettings(settings) {
  * @returns {Promise<string>}
  */
 export async function getBackendUrl() {
+  if (import.meta.env.DEV) return ''
   const settings = await getSettings()
   return settings.backendUrl || BACKEND_URL
 }
