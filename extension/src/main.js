@@ -8,7 +8,6 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
 import HomeView from './views/HomeView.vue'
 import RecipeView from './views/RecipeView.vue'
-import SettingsView from './views/SettingsView.vue'
 import LoadingView from './views/LoadingView.vue'
 import { initTheme } from './stores/settings.js'
 
@@ -20,7 +19,6 @@ const routes = [
   { path: '/favorites', component: HomeView, props: { favoritesOnly: true } },
   { path: '/history', component: HomeView, props: { favoritesOnly: false } },
   { path: '/recipe/:id', component: RecipeView, props: true },
-  { path: '/settings', component: SettingsView },
   { path: '/loading', component: LoadingView },
 ]
 

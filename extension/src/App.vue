@@ -9,6 +9,8 @@
   </main>
   <AppFooter :inset="isRecipePage" />
 
+  <SettingsModal :is-open="isSettingsModalOpen" @close="closeSettings" />
+
   <!-- Debug Grid Toggle -->
   <button @click="toggleGrid" class="grid-toggle" :class="{ active: showGrid }" title="Toggle Grid Overlay">
     {{ showGrid ? '⊞' : '⊡' }}
@@ -23,15 +25,29 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
+import SettingsModal from './components/SettingsModal.vue'
+import { useSettingsModal } from './composables/useSettingsModal.js'
 
 const route = useRoute()
 const isRecipePage = computed(() => route.path.startsWith('/recipe/'))
 const isHomePage = computed(() => route.path === '/favorites' || route.path === '/history')
 const pageKey = computed(() => isHomePage.value ? 'home' : route.path)
+
+const { isSettingsModalOpen, closeSettings } = useSettingsModal()
+
+// Close settings modal on route change
+watch(
+  () => route.path,
+  () => {
+    if (isSettingsModalOpen.value) {
+      closeSettings()
+    }
+  }
+)
 
 const showGrid = ref(false)
 

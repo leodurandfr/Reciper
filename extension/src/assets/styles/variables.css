@@ -12,6 +12,7 @@
   /* Texte */
   --color-text: #2E2B25; /*OK*/
   --color-text-50: #2E2B2580; /*OK*/
+  --color--contrast-50: rgba(46, 43, 37, 0.5);
 
   /* Fonds */
   --color-background: #f8f6f2;

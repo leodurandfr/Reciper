@@ -1,135 +1,145 @@
 <template>
-  <div class="col-full settings-view">
-    <h1 class="heading-02">Paramètres</h1>
+  <BaseModal :open="isOpen" title="Paramètres" @close="$emit('close')">
+    <div class="settings-content">
+      <!-- Backend URL -->
+      <section class="settings-section">
+        <h2 class="heading-03">Serveur de scraping</h2>
+        <p class="body-small text-muted">URL du backend qui extrait les recettes des sites web.</p>
 
-    <!-- Backend URL -->
-    <section class="settings-section">
-      <h2 class="heading-03">Serveur de scraping</h2>
-      <p class="body-small text-muted">URL du backend qui extrait les recettes des sites web.</p>
-
-      <div class="input-group">
-        <input
-          v-model="backendUrl"
-          type="url"
-          placeholder="https://api-reciper.leodurand.com"
-          class="input-url"
-        >
-        <BaseButton variant="outline" :disabled="testing" @click="testConnection">
-          {{ testing ? 'Test...' : 'Tester' }}
-        </BaseButton>
-      </div>
-
-      <div v-if="connectionStatus" :class="['status-message', connectionStatus.type]">
-        {{ connectionStatus.message }}
-      </div>
-
-      <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
-        {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
-      </BaseButton>
-    </section>
-
-    <!-- Export/Import -->
-    <section class="settings-section">
-      <h2 class="heading-03">Données</h2>
-      <p class="body-small text-muted">Exportez vos recettes pour les sauvegarder ou les transférer.</p>
-
-      <div class="data-stats">
-        <span class="stat-number">{{ recipeCount }}</span>
-        <span class="stat-label">recettes enregistrées</span>
-      </div>
-
-      <div class="button-group">
-        <BaseButton variant="outline" :disabled="exporting" @click="handleExport">
-          {{ exporting ? 'Export...' : 'Exporter mes recettes' }}
-        </BaseButton>
-
-        <label class="import-btn">
-          Importer des recettes
+        <div class="input-group">
           <input
-            type="file"
-            accept=".json"
-            @change="handleImportFile"
-            style="display: none;"
+            v-model="backendUrl"
+            type="url"
+            placeholder="https://api-reciper.leodurand.com"
+            class="input-url"
           >
-        </label>
-      </div>
+          <BaseButton variant="outline" :disabled="testing" @click="testConnection">
+            {{ testing ? 'Test...' : 'Tester' }}
+          </BaseButton>
+        </div>
 
-      <div v-if="importPreview" class="import-preview">
-        <h4>Aperçu de l'import</h4>
-        <p>{{ importPreview.recipeCount }} recettes à importer</p>
-        <p class="text-muted">Version: {{ importPreview.version }}</p>
+        <div v-if="connectionStatus" :class="['status-message', connectionStatus.type]">
+          {{ connectionStatus.message }}
+        </div>
 
-        <div class="import-options">
-          <label>
-            <input type="checkbox" v-model="importOverwrite">
-            Écraser les recettes existantes (même URL)
-          </label>
+        <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
+          {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+        </BaseButton>
+      </section>
+
+      <!-- Export/Import -->
+      <section class="settings-section">
+        <h2 class="heading-03">Données</h2>
+        <p class="body-small text-muted">Exportez vos recettes pour les sauvegarder ou les transférer.</p>
+
+        <div class="data-stats">
+          <span class="stat-number">{{ recipeCount }}</span>
+          <span class="stat-label">recettes enregistrées</span>
         </div>
 
         <div class="button-group">
-          <BaseButton variant="fill" :disabled="importing" @click="confirmImport">
-            {{ importing ? 'Import...' : 'Confirmer l\'import' }}
+          <BaseButton variant="outline" :disabled="exporting" @click="handleExport">
+            {{ exporting ? 'Export...' : 'Exporter mes recettes' }}
           </BaseButton>
-          <BaseButton variant="outline" @click="cancelImport">Annuler</BaseButton>
+
+          <label class="import-btn">
+            Importer des recettes
+            <input
+              type="file"
+              accept=".json"
+              @change="handleImportFile"
+              style="display: none;"
+            >
+          </label>
         </div>
-      </div>
 
-      <div v-if="importResult" :class="['status-message', importResult.type]">
-        {{ importResult.message }}
-      </div>
-    </section>
+        <div v-if="importPreview" class="import-preview">
+          <h4>Aperçu de l'import</h4>
+          <p>{{ importPreview.recipeCount }} recettes à importer</p>
+          <p class="text-muted">Version: {{ importPreview.version }}</p>
 
-    <!-- Comportement -->
-    <section class="settings-section">
-      <h2 class="heading-03">Comportement</h2>
+          <div class="import-options">
+            <label>
+              <input type="checkbox" v-model="importOverwrite">
+              Écraser les recettes existantes (même URL)
+            </label>
+          </div>
 
-      <label class="toggle-option">
-        <input
-          type="checkbox"
-          v-model="autoOpenRecipe"
-          @change="changeAutoOpenRecipe"
-        >
-        <div class="toggle-content">
-          <span class="toggle-label">Ouvrir automatiquement les recettes</span>
-          <span class="toggle-description text-muted">Accéder directement à la recette dans Reciper après le scraping, sans afficher la notification.</span>
+          <div class="button-group">
+            <BaseButton variant="fill" :disabled="importing" @click="confirmImport">
+              {{ importing ? 'Import...' : 'Confirmer l\'import' }}
+            </BaseButton>
+            <BaseButton variant="outline" @click="cancelImport">Annuler</BaseButton>
+          </div>
         </div>
-      </label>
-    </section>
 
-    <!-- Thème -->
-    <section class="settings-section">
-      <h2 class="heading-03">Apparence</h2>
+        <div v-if="importResult" :class="['status-message', importResult.type]">
+          {{ importResult.message }}
+        </div>
+      </section>
 
-      <div class="theme-options">
-        <label v-for="option in themeOptions" :key="option.value" class="theme-option">
+      <!-- Comportement -->
+      <section class="settings-section">
+        <h2 class="heading-03">Comportement</h2>
+
+        <label class="toggle-option">
           <input
-            type="radio"
-            :value="option.value"
-            v-model="theme"
-            @change="changeTheme"
+            type="checkbox"
+            v-model="autoOpenRecipe"
+            @change="changeAutoOpenRecipe"
           >
-          <span>{{ option.label }}</span>
+          <div class="toggle-content">
+            <span class="toggle-label">Ouvrir automatiquement les recettes</span>
+            <span class="toggle-description text-muted">Accéder directement à la recette dans Reciper après le scraping, sans afficher la notification.</span>
+          </div>
         </label>
-      </div>
-    </section>
+      </section>
 
-    <!-- À propos -->
-    <section class="settings-section">
-      <h2 class="heading-03">À propos</h2>
-      <p class="body-small text-muted">
-        Reciper v2.0.0<br>
-        Chrome extension to save your favorite recipes.
-      </p>
-    </section>
-  </div>
+      <!-- Thème -->
+      <section class="settings-section">
+        <h2 class="heading-03">Apparence</h2>
+
+        <div class="theme-options">
+          <label v-for="option in themeOptions" :key="option.value" class="theme-option">
+            <input
+              type="radio"
+              :value="option.value"
+              v-model="theme"
+              @change="changeTheme"
+            >
+            <span>{{ option.label }}</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- À propos -->
+      <section class="settings-section">
+        <h2 class="heading-03">À propos</h2>
+        <p class="body-small text-muted">
+          Reciper v2.0.0<br>
+          Chrome extension to save your favorite recipes.
+        </p>
+      </section>
+    </div>
+  </BaseModal>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import BaseButton from '../components/BaseButton.vue'
+import { ref, watch } from 'vue'
+import BaseModal from './BaseModal.vue'
+import BaseButton from './BaseButton.vue'
 import { getSettings, saveSettings, testBackendConnection, applyTheme } from '../stores/settings.js'
 import { getRecipeCount } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
+
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+defineEmits(['close'])
 
 const backendUrl = ref('')
 const testing = ref(false)
@@ -152,14 +162,26 @@ const themeOptions = [
   { value: 'system', label: 'Système' },
 ]
 
-onMounted(async () => {
-  const settings = await getSettings()
-  backendUrl.value = settings.backendUrl
-  theme.value = settings.theme
-  autoOpenRecipe.value = settings.autoOpenRecipe
+// Load data each time the modal opens
+watch(
+  () => props.isOpen,
+  async (isOpen) => {
+    if (isOpen) {
+      const settings = await getSettings()
+      backendUrl.value = settings.backendUrl
+      theme.value = settings.theme
+      autoOpenRecipe.value = settings.autoOpenRecipe
+      recipeCount.value = await getRecipeCount()
 
-  recipeCount.value = await getRecipeCount()
-})
+      // Reset transient states
+      connectionStatus.value = null
+      importPreview.value = null
+      importFile.value = null
+      importResult.value = null
+    }
+  },
+  { immediate: true }
+)
 
 async function testConnection() {
   testing.value = true
@@ -290,16 +312,15 @@ async function changeAutoOpenRecipe() {
 </script>
 
 <style scoped>
-.settings-view {
-  max-width: 600px;
-  padding: var(--space-04) 0;
-}
-
 .settings-section {
   background: var(--color-background-neutral);
   border-radius: var(--radius-02);
   padding: var(--space-05);
   margin-bottom: var(--space-05);
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
 }
 
 .settings-section h2 {

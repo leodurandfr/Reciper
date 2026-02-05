@@ -1,6 +1,6 @@
 <template>
   <footer class="app-footer body-small" :class="{ 'app-footer--inset': inset }">
-    <router-link to="/settings" class="footer-link">Paramètres</router-link>
+    <button @click="openSettings" class="footer-link">Paramètres</button>
     <span class="footer-separator">·</span>
     <a href="https://www.leodurand.com" target="_blank" rel="noopener" class="footer-link">
       Reciper par leodurand.com
@@ -9,12 +9,16 @@
 </template>
 
 <script setup>
+import { useSettingsModal } from '../composables/useSettingsModal.js'
+
 defineProps({
   inset: {
     type: Boolean,
     default: false,
   },
 })
+
+const { openSettings } = useSettingsModal()
 </script>
 
 <style scoped>
@@ -48,6 +52,14 @@ defineProps({
 
 .footer-link:hover {
   color: var(--color-brand);
+}
+
+button.footer-link {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
 }
 
 .footer-separator {

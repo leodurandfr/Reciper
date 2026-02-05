@@ -1,97 +1,91 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click.self="close">
-    <div class="modal">
-      <header class="modal-header">
-        <h2 class="heading-03">Modifier la recette</h2>
-        <button @click="close" class="btn-close">&times;</button>
-      </header>
+  <BaseModal :open="isOpen" title="Modifier la recette" @close="close">
+    <form @submit.prevent="handleSubmit" class="edit-form">
+      <div class="form-group">
+        <label for="title">Titre</label>
+        <input
+          id="title"
+          v-model="form.title"
+          type="text"
+          required
+        />
+      </div>
 
-      <form @submit.prevent="handleSubmit" class="modal-body">
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          v-model="form.description"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
-          <label for="title">Titre</label>
+          <label for="prep_time">Temps de préparation (min)</label>
           <input
-            id="title"
-            v-model="form.title"
-            type="text"
-            required
+            id="prep_time"
+            v-model.number="form.prep_time"
+            type="number"
+            min="0"
           />
         </div>
 
         <div class="form-group">
-          <label for="description">Description</label>
-          <textarea
-            id="description"
-            v-model="form.description"
-            rows="3"
-          ></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="prep_time">Temps de préparation (min)</label>
-            <input
-              id="prep_time"
-              v-model.number="form.prep_time"
-              type="number"
-              min="0"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="cook_time">Temps de cuisson (min)</label>
-            <input
-              id="cook_time"
-              v-model.number="form.cook_time"
-              type="number"
-              min="0"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="yields">Portions</label>
-            <input
-              id="yields"
-              v-model="form.yields"
-              type="text"
-              placeholder="Ex: 6 personnes"
-            />
-          </div>
+          <label for="cook_time">Temps de cuisson (min)</label>
+          <input
+            id="cook_time"
+            v-model.number="form.cook_time"
+            type="number"
+            min="0"
+          />
         </div>
 
         <div class="form-group">
-          <label for="ingredients">Ingrédients (un par ligne)</label>
-          <textarea
-            id="ingredients"
-            v-model="ingredientsText"
-            rows="8"
-          ></textarea>
+          <label for="yields">Portions</label>
+          <input
+            id="yields"
+            v-model="form.yields"
+            type="text"
+            placeholder="Ex: 6 personnes"
+          />
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="instructions">Instructions (une par ligne)</label>
-          <textarea
-            id="instructions"
-            v-model="instructionsText"
-            rows="10"
-          ></textarea>
-        </div>
+      <div class="form-group">
+        <label for="ingredients">Ingrédients (un par ligne)</label>
+        <textarea
+          id="ingredients"
+          v-model="ingredientsText"
+          rows="8"
+        ></textarea>
+      </div>
 
-        <footer class="modal-footer">
-          <BaseButton variant="outline" type="button" @click="close">
-            Annuler
-          </BaseButton>
-          <BaseButton variant="fill" type="submit" :disabled="saving">
-            {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
-          </BaseButton>
-        </footer>
-      </form>
-    </div>
-  </div>
+      <div class="form-group">
+        <label for="instructions">Instructions (une par ligne)</label>
+        <textarea
+          id="instructions"
+          v-model="instructionsText"
+          rows="10"
+        ></textarea>
+      </div>
+
+      <div class="form-actions">
+        <BaseButton variant="outline" type="button" @click="close">
+          Annuler
+        </BaseButton>
+        <BaseButton variant="fill" type="submit" :disabled="saving">
+          {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+        </BaseButton>
+      </div>
+    </form>
+  </BaseModal>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { updateRecipe } from '../../services/db.js'
+import BaseModal from '../BaseModal.vue'
 import BaseButton from '../BaseButton.vue'
 
 const props = defineProps({
@@ -186,50 +180,6 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--color--contrast-50);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--space-04);
-}
-
-.modal {
-  background: var(--color-background);
-  border-radius: var(--radius-02);
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-04) var(--space-05);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.modal-header h2 {
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--color-text);
-}
-
-.modal-body {
-  padding: var(--space-05);
-}
-
 .form-group {
   margin-bottom: var(--space-04);
 }
@@ -262,12 +212,12 @@ async function handleSubmit() {
   gap: var(--space-04);
 }
 
-.modal-footer {
+.form-actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-02);
   padding-top: var(--space-04);
-  border-top: 1px solid var(--color-text);
+  border-top: 1px solid var(--color-border);
   margin-top: var(--space-04);
 }
 
