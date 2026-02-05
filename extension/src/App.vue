@@ -2,7 +2,10 @@
   <AppHeader :large-title="isHomePage" />
   <main>
     <router-view v-slot="{ Component }">
-      <Transition name="page" mode="out-in">
+      <Transition
+        name="page"
+        mode="out-in"
+      >
         <component :is="Component" :key="pageKey" />
       </Transition>
     </router-view>

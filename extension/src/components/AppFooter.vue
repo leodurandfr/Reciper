@@ -38,7 +38,7 @@ const { openSettings } = useSettingsModal()
   grid-column: 2 / 12;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 1280px) {
   .app-footer--inset {
     grid-column: 1 / -1;
   }

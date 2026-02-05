@@ -1,18 +1,36 @@
 <template>
-  <header class="app-header" :class="{ 'app-header--separator': largeTitle }">
-    <div class="header-left" :class="{ 'header-leaving': leaving }" id="header-left">
-      <slot name="left"></slot>
+  <header class="app-header">
+    <div class="header-left" :class="{ 'header-slots-hidden': largeTitle }">
+      <Transition name="header-fade">
+        <BaseButton
+          v-if="leftButton"
+          variant="outline"
+          :icon-left="leftButton.iconLeft"
+          @click="leftButton.handler"
+        >
+          {{ leftButton.label }}
+        </BaseButton>
+      </Transition>
     </div>
     <router-link to="/favorites" class="logo" :class="{ 'logo--large': largeTitle }">Reciper</router-link>
-    <div class="header-right" :class="{ 'header-leaving': leaving }" id="header-right">
-      <slot name="right"></slot>
+    <div class="header-right" :class="{ 'header-slots-hidden': largeTitle }">
+      <Transition name="header-fade">
+        <BaseButton
+          v-if="rightButton"
+          variant="outline"
+          :disabled="rightButton.disabled"
+          @click="rightButton.handler"
+        >
+          {{ rightButton.label }}
+        </BaseButton>
+      </Transition>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import BaseButton from './BaseButton.vue'
+import { useHeaderButtons } from '../composables/useHeaderButtons.js'
 
 defineProps({
   largeTitle: {
@@ -21,13 +39,7 @@ defineProps({
   },
 })
 
-const route = useRoute()
-const leaving = ref(false)
-
-watch(() => route.path, () => {
-  leaving.value = true
-  setTimeout(() => { leaving.value = false }, 200)
-})
+const { leftButton, rightButton } = useHeaderButtons()
 </script>
 
 <style scoped>
@@ -37,13 +49,6 @@ watch(() => route.path, () => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-04) 0;
-  border-bottom: 2px solid transparent;
-  transition: border-bottom-color var(--transition-normal);
-}
-
-.app-header--separator {
-  grid-column: 1 / -1;
-  border-bottom-color: var(--color-border);
 }
 
 .header-left,
@@ -52,28 +57,10 @@ watch(() => route.path, () => {
   min-height: 40px;
   display: flex;
   align-items: center;
-  transition: opacity var(--transition-fast);
 }
 
-.app-header--separator .header-left,
-.app-header--separator .header-right {
-  opacity: 0;
+.header-slots-hidden {
   pointer-events: none;
-}
-
-.header-left :deep(> *),
-.header-right :deep(> *) {
-  animation: header-btn-in var(--transition-fast) ease;
-  transition: opacity var(--transition-fast);
-}
-
-.header-leaving :deep(> *) {
-  opacity: 0;
-  animation: none;
-}
-
-@keyframes header-btn-in {
-  from { opacity: 0; }
 }
 
 .header-left {
@@ -84,6 +71,16 @@ watch(() => route.path, () => {
 .header-right {
   display: flex;
   justify-content: flex-end;
+}
+
+.header-fade-enter-active,
+.header-fade-leave-active {
+  transition: opacity var(--transition-fast);
+}
+
+.header-fade-enter-from,
+.header-fade-leave-to {
+  opacity: 0;
 }
 
 .logo {

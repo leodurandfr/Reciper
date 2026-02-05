@@ -32,5 +32,10 @@ const tabs = [
   gap: var(--space-02);
   margin-bottom: var(--space-05);
   padding-top: var(--space-05);
+  border-top: 2px solid var(--color-border);
+}
+
+.app-tabs :deep(.base-btn--fill) {
+  pointer-events: none;
 }
 </style>
