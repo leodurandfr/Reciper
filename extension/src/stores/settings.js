@@ -5,14 +5,12 @@
 
 import { reactive, watch } from 'vue'
 
-const DEFAULT_BACKEND_URL = 'https://api-reciper.leodurand.com'
+export const BACKEND_URL = 'https://reciper-api-605923399344.europe-west1.run.app'
 const SETTINGS_KEY = 'settings'
 
 const defaultSettings = {
-  backendUrl: DEFAULT_BACKEND_URL,
   autoSaveImages: false, // Télécharger et sauver les images localement
-  theme: 'system', // 'light', 'dark', 'system'
-  autoOpenRecipe: false, // Ouvrir automatiquement la recette après scraping
+  theme: 'light', // 'light', 'dark', 'system'
 }
 
 // Reactive settings store for composable
@@ -58,40 +56,12 @@ export async function saveSettings(settings) {
 }
 
 /**
- * Récupère l'URL du backend
+ * Récupère l'URL du backend (custom ou défaut)
  * @returns {Promise<string>}
  */
 export async function getBackendUrl() {
   const settings = await getSettings()
-  return settings.backendUrl
-}
-
-/**
- * Modifie l'URL du backend
- * @param {string} url - La nouvelle URL
- * @returns {Promise<void>}
- */
-export async function setBackendUrl(url) {
-  await saveSettings({ backendUrl: url })
-}
-
-/**
- * Teste la connexion au backend
- * @param {string} url - L'URL à tester (optionnel, utilise l'URL configurée sinon)
- * @returns {Promise<boolean>}
- */
-export async function testBackendConnection(url = null) {
-  const backendUrl = url || (await getBackendUrl())
-
-  try {
-    const response = await fetch(`${backendUrl}/api/health`, {
-      method: 'GET',
-      signal: AbortSignal.timeout(5000),
-    })
-    return response.ok
-  } catch {
-    return false
-  }
+  return settings.backendUrl || BACKEND_URL
 }
 
 /**

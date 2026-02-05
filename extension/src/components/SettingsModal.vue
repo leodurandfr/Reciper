@@ -1,32 +1,6 @@
 <template>
   <BaseModal :open="isOpen" title="Paramètres" @close="$emit('close')">
     <div class="settings-content">
-      <!-- Backend URL -->
-      <section class="settings-section">
-        <h2 class="heading-03">Serveur de scraping</h2>
-        <p class="body-small text-muted">URL du backend qui extrait les recettes des sites web.</p>
-
-        <div class="input-group">
-          <input
-            v-model="backendUrl"
-            type="url"
-            placeholder="https://api-reciper.leodurand.com"
-            class="input-url"
-          >
-          <BaseButton variant="outline" :disabled="testing" @click="testConnection">
-            {{ testing ? 'Test...' : 'Tester' }}
-          </BaseButton>
-        </div>
-
-        <div v-if="connectionStatus" :class="['status-message', connectionStatus.type]">
-          {{ connectionStatus.message }}
-        </div>
-
-        <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
-          {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
-        </BaseButton>
-      </section>
-
       <!-- Export/Import -->
       <section class="settings-section">
         <h2 class="heading-03">Données</h2>
@@ -42,15 +16,16 @@
             {{ exporting ? 'Export...' : 'Exporter mes recettes' }}
           </BaseButton>
 
-          <label class="import-btn">
+          <BaseButton variant="outline" @click="triggerImport">
             Importer des recettes
-            <input
-              type="file"
-              accept=".json"
-              @change="handleImportFile"
-              style="display: none;"
-            >
-          </label>
+          </BaseButton>
+          <input
+            ref="importInput"
+            type="file"
+            accept=".json"
+            @change="handleImportFile"
+            style="display: none;"
+          >
         </div>
 
         <div v-if="importPreview" class="import-preview">
@@ -78,23 +53,6 @@
         </div>
       </section>
 
-      <!-- Comportement -->
-      <section class="settings-section">
-        <h2 class="heading-03">Comportement</h2>
-
-        <label class="toggle-option">
-          <input
-            type="checkbox"
-            v-model="autoOpenRecipe"
-            @change="changeAutoOpenRecipe"
-          >
-          <div class="toggle-content">
-            <span class="toggle-label">Ouvrir automatiquement les recettes</span>
-            <span class="toggle-description text-muted">Accéder directement à la recette dans Reciper après le scraping, sans afficher la notification.</span>
-          </div>
-        </label>
-      </section>
-
       <!-- Thème -->
       <section class="settings-section">
         <h2 class="heading-03">Apparence</h2>
@@ -116,9 +74,39 @@
       <section class="settings-section">
         <h2 class="heading-03">À propos</h2>
         <p class="body-small text-muted">
-          Reciper v2.0.0<br>
-          Chrome extension to save your favorite recipes.
+          <span class="version-tap" @click="onVersionTap">Reciper v1.0.0</span><br>
+          Save recipes automatically from 600+ cooking websites.
         </p>
+        <div class="about-links">
+          <BaseButton tag="a" href="https://github.com/leodurandfr/Reciper" variant="outline">
+            GitHub
+          </BaseButton>
+          <BaseButton tag="a" href="https://www.leodurand.com" variant="outline">
+            leodurand.com
+          </BaseButton>
+        </div>
+      </section>
+
+      <!-- Dev: Backend URL (hidden by default, tap version 5x to reveal) -->
+      <section v-if="showDevSettings" class="settings-section">
+        <h2 class="heading-03">Serveur</h2>
+        <p class="body-small text-muted">URL du backend de scraping.</p>
+
+        <div class="dev-url-group">
+          <input
+            v-model="backendUrl"
+            type="url"
+            :placeholder="defaultUrl"
+            class="dev-url-input"
+          >
+          <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
+            {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+          </BaseButton>
+        </div>
+
+        <div v-if="backendStatus" :class="['status-message', backendStatus.type]">
+          {{ backendStatus.message }}
+        </div>
       </section>
     </div>
   </BaseModal>
@@ -128,7 +116,7 @@
 import { ref, watch } from 'vue'
 import BaseModal from './BaseModal.vue'
 import BaseButton from './BaseButton.vue'
-import { getSettings, saveSettings, testBackendConnection, applyTheme } from '../stores/settings.js'
+import { getSettings, saveSettings, applyTheme, BACKEND_URL } from '../stores/settings.js'
 import { getRecipeCount } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
 
@@ -141,21 +129,25 @@ const props = defineProps({
 
 defineEmits(['close'])
 
-const backendUrl = ref('')
-const testing = ref(false)
-const saving = ref(false)
-const connectionStatus = ref(null)
-
 const recipeCount = ref(0)
 const exporting = ref(false)
 const importing = ref(false)
 const importPreview = ref(null)
+const importInput = ref(null)
 const importFile = ref(null)
 const importOverwrite = ref(false)
 const importResult = ref(null)
 
 const theme = ref('system')
-const autoOpenRecipe = ref(false)
+
+// Hidden dev settings (tap version 5x to reveal)
+const devTapCount = ref(0)
+const showDevSettings = ref(false)
+const backendUrl = ref('')
+const saving = ref(false)
+const backendStatus = ref(null)
+const defaultUrl = BACKEND_URL
+
 const themeOptions = [
   { value: 'light', label: 'Clair' },
   { value: 'dark', label: 'Sombre' },
@@ -168,13 +160,15 @@ watch(
   async (isOpen) => {
     if (isOpen) {
       const settings = await getSettings()
-      backendUrl.value = settings.backendUrl
       theme.value = settings.theme
-      autoOpenRecipe.value = settings.autoOpenRecipe
       recipeCount.value = await getRecipeCount()
 
+      backendUrl.value = settings.backendUrl || ''
+
       // Reset transient states
-      connectionStatus.value = null
+      devTapCount.value = 0
+      showDevSettings.value = false
+      backendStatus.value = null
       importPreview.value = null
       importFile.value = null
       importResult.value = null
@@ -182,44 +176,6 @@ watch(
   },
   { immediate: true }
 )
-
-async function testConnection() {
-  testing.value = true
-  connectionStatus.value = null
-
-  try {
-    const isOk = await testBackendConnection(backendUrl.value)
-    connectionStatus.value = {
-      type: isOk ? 'success' : 'error',
-      message: isOk ? 'Connexion réussie !' : 'Impossible de se connecter au serveur'
-    }
-  } catch {
-    connectionStatus.value = {
-      type: 'error',
-      message: 'Erreur lors du test de connexion'
-    }
-  } finally {
-    testing.value = false
-  }
-}
-
-async function saveBackendUrl() {
-  saving.value = true
-  try {
-    await saveSettings({ backendUrl: backendUrl.value })
-    connectionStatus.value = {
-      type: 'success',
-      message: 'URL enregistrée'
-    }
-  } catch {
-    connectionStatus.value = {
-      type: 'error',
-      message: 'Erreur lors de l\'enregistrement'
-    }
-  } finally {
-    saving.value = false
-  }
-}
 
 async function handleExport() {
   exporting.value = true
@@ -296,6 +252,10 @@ async function confirmImport() {
   }
 }
 
+function triggerImport() {
+  importInput.value?.click()
+}
+
 function cancelImport() {
   importPreview.value = null
   importFile.value = null
@@ -306,9 +266,32 @@ async function changeTheme() {
   applyTheme(theme.value)
 }
 
-async function changeAutoOpenRecipe() {
-  await saveSettings({ autoOpenRecipe: autoOpenRecipe.value })
+function onVersionTap() {
+  devTapCount.value++
+  if (devTapCount.value >= 5) {
+    showDevSettings.value = true
+  }
 }
+
+async function saveBackendUrl() {
+  saving.value = true
+  try {
+    const url = backendUrl.value.trim() || undefined
+    await saveSettings({ backendUrl: url })
+    backendStatus.value = {
+      type: 'success',
+      message: url ? 'URL enregistrée' : 'URL réinitialisée (défaut)'
+    }
+  } catch {
+    backendStatus.value = {
+      type: 'error',
+      message: 'Erreur lors de l\'enregistrement'
+    }
+  } finally {
+    saving.value = false
+  }
+}
+
 </script>
 
 <style scoped>
@@ -333,16 +316,6 @@ async function changeAutoOpenRecipe() {
 
 .text-muted {
   color: var(--color-text);
-}
-
-.input-group {
-  display: flex;
-  gap: var(--space-03);
-  margin-bottom: var(--space-04);
-}
-
-.input-url {
-  flex: 1;
 }
 
 .status-message {
@@ -385,29 +358,6 @@ async function changeAutoOpenRecipe() {
   flex-wrap: wrap;
 }
 
-.import-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-02);
-  cursor: pointer;
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  font-family: var(--font-family-body);
-  letter-spacing: var(--letter-spacing-body);
-  line-height: var(--line-height-body);
-  font-size: var(--font-size-body-small);
-  padding: var(--space-02) var(--space-04);
-  border-radius: var(--radius-01);
-  background-color: transparent;
-  color: var(--color-brand);
-  box-shadow: inset 0 0 0 1px var(--color-border-strong);
-}
-
-.import-btn:hover {
-  box-shadow: inset 0 0 0 1px var(--color-brand);
-}
-
 .import-preview {
   background: var(--color-background);
   border: 1px solid var(--color-text);
@@ -443,31 +393,23 @@ async function changeAutoOpenRecipe() {
   cursor: pointer;
 }
 
-.toggle-option {
+.about-links {
   display: flex;
-  align-items: flex-start;
   gap: var(--space-03);
-  cursor: pointer;
 }
 
-.toggle-option input[type="checkbox"] {
-  margin-top: 2px;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
+.version-tap {
+  cursor: default;
+  user-select: none;
 }
 
-.toggle-content {
+.dev-url-group {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-01);
+  gap: var(--space-03);
+  margin-bottom: var(--space-04);
 }
 
-.toggle-label {
-  font-weight: 500;
-}
-
-.toggle-description {
-  font-size: var(--font-size-body-small);
+.dev-url-input {
+  flex: 1;
 }
 </style>

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,25 +8,19 @@ from .scraper import scrape_recipe, ScraperError, UnsupportedWebsiteError, Fetch
 
 
 app = FastAPI(
-    title="RecettesScrapper API",
+    title="Reciper API",
     description="API de scraping de recettes de cuisine",
     version="2.0.0",
 )
 
-# CORS configuration
-cors_origins = os.getenv("CORS_ORIGINS", "*")
-if cors_origins == "*":
-    allow_origins = ["*"]
-else:
-    allow_origins = [origin.strip() for origin in cors_origins.split(",")]
-
+# CORS: only allow Chrome extension origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=[],
     allow_origin_regex=r"^chrome-extension://.*$",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 

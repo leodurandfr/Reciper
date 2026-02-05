@@ -1,15 +1,9 @@
 import { isSupportedSite } from "./supported-sites.js";
 
-const DEFAULT_BACKEND_URL = "https://api-reciper.leodurand.com";
-
-// Set pour tracker les URLs en cours de traitement
-const processingUrls = new Set();
-
-// Set pour les URLs à ne pas intercepter (bypass depuis le lien source)
-const bypassUrls = new Set();
+const DEFAULT_BACKEND_URL = "https://reciper-api-605923399344.europe-west1.run.app";
 
 /**
- * Récupère l'URL du backend depuis les settings
+ * Récupère l'URL du backend (custom ou défaut)
  */
 async function getBackendUrl() {
   try {
@@ -20,17 +14,11 @@ async function getBackendUrl() {
   }
 }
 
-/**
- * Récupère le paramètre autoOpenRecipe depuis les settings
- */
-async function getAutoOpenRecipe() {
-  try {
-    const result = await chrome.storage.local.get("settings");
-    return result.settings?.autoOpenRecipe || false;
-  } catch {
-    return false;
-  }
-}
+// Set pour tracker les URLs en cours de traitement
+const processingUrls = new Set();
+
+// Set pour les URLs à ne pas intercepter (bypass depuis le lien source)
+const bypassUrls = new Set();
 
 /**
  * Recupere l'index des recettes depuis chrome.storage.local
@@ -93,7 +81,6 @@ async function addRecipe(recipe) {
  */
 async function scrapeRecipe(url) {
   const backendUrl = await getBackendUrl();
-
   const response = await fetch(`${backendUrl}/api/scrape`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -128,37 +115,8 @@ async function scrapeAndSave(url) {
 }
 
 /**
- * Injecte le content script et affiche la notification de chargement
- */
-async function injectContentScript(tabId) {
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ["content-script.js"],
-    });
-    return true;
-  } catch (error) {
-    console.log("Reciper: Injection failed -", error.message);
-    return false;
-  }
-}
-
-/**
- * Envoie un message au content script
- */
-async function sendToContentScript(tabId, message) {
-  try {
-    await chrome.tabs.sendMessage(tabId, message);
-    return true;
-  } catch (error) {
-    console.log("Reciper: Message failed -", error.message);
-    return false;
-  }
-}
-
-/**
- * Interception rapide pour le mode autoOpen (avant affichage de la page)
- * Utilise onCommitted qui se déclenche dès que la navigation est engagée
+ * Intercepte les navigations vers les sites de recettes supportés
+ * Redirige vers la page de chargement Reciper avant l'affichage du site
  */
 chrome.webNavigation.onCommitted.addListener(
   async (details) => {
@@ -176,10 +134,6 @@ chrome.webNavigation.onCommitted.addListener(
       bypassUrls.delete(details.url);
       return;
     }
-
-    // Vérifier si le mode autoOpen est activé
-    const autoOpen = await getAutoOpenRecipe();
-    if (!autoOpen) return; // Laisser onCompleted gérer le mode notification
 
     // Éviter les doubles traitements
     if (processingUrls.has(details.url)) return;
@@ -200,93 +154,7 @@ chrome.webNavigation.onCommitted.addListener(
 );
 
 /**
- * Intercepte les navigations pour le mode notification
- * Utilise onCompleted pour attendre que la page soit chargée (nécessaire pour le content script)
- */
-chrome.webNavigation.onCompleted.addListener(
-  async (details) => {
-    // Ignorer les iframes
-    if (details.frameId !== 0) return;
-
-    const url = new URL(details.url);
-
-    // Vérifier si c'est un site supporté
-    if (!isSupportedSite(url.hostname)) return;
-
-    // Bypass si demandé (lien source depuis Reciper)
-    if (bypassUrls.has(details.url)) {
-      bypassUrls.delete(details.url);
-      return;
-    }
-
-    // Éviter les doubles traitements
-    if (processingUrls.has(details.url)) return;
-    processingUrls.add(details.url);
-
-    try {
-      // Vérifier si le mode autoOpen est activé (déjà géré par onCommitted)
-      const autoOpen = await getAutoOpenRecipe();
-      if (autoOpen) return;
-
-      // Mode notification : comportement classique
-      const backendUrl = await getBackendUrl();
-
-      // Vérifier si le backend est accessible
-      const healthCheck = await fetch(`${backendUrl}/api/health`, {
-        method: "GET",
-        signal: AbortSignal.timeout(2000),
-      });
-
-      if (!healthCheck.ok) {
-        throw new Error("Backend non disponible");
-      }
-
-      // Injecter le content script et afficher le loading
-      const injected = await injectContentScript(details.tabId);
-      if (!injected) {
-        throw new Error("Injection impossible");
-      }
-
-      // Petit délai pour laisser le script s'initialiser
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Afficher la notification de chargement
-      await sendToContentScript(details.tabId, {
-        type: "RECIPER_SHOW_LOADING",
-      });
-
-      // Scraper et sauvegarder
-      const result = await scrapeAndSave(details.url);
-
-      // Afficher le succès avec le lien vers la recette
-      const extensionUrl = chrome.runtime.getURL(
-        `index.html#/recipe/${result.recipeId}`
-      );
-      await sendToContentScript(details.tabId, {
-        type: "RECIPER_SHOW_SUCCESS",
-        recipeId: result.recipeId,
-        extensionUrl,
-      });
-    } catch (error) {
-      // Afficher l'erreur si le content script est injecté
-      await sendToContentScript(details.tabId, {
-        type: "RECIPER_SHOW_ERROR",
-        error: error.message,
-      });
-      console.log("Reciper: Error -", error.message);
-    } finally {
-      setTimeout(() => {
-        processingUrls.delete(details.url);
-      }, 5000);
-    }
-  },
-  {
-    url: [{ schemes: ["http", "https"] }],
-  }
-);
-
-/**
- * Gestionnaire de messages (pour le popup et content script)
+ * Gestionnaire de messages (pour le popup et la page de chargement)
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SCRAPE_AND_SAVE") {
@@ -298,11 +166,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === "GET_BACKEND_URL") {
-    getBackendUrl().then((url) => sendResponse({ url }));
-    return true;
-  }
-
   // Bypass d'interception pour le lien source
   if (message.type === "BYPASS_URL") {
     bypassUrls.add(message.url);
@@ -311,13 +174,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // Ouvrir la page de recette (demandé par le content script)
-  if (message.type === "OPEN_RECIPE") {
-    const url = chrome.runtime.getURL(`index.html#/recipe/${message.recipeId}`);
-    chrome.tabs.update(sender.tab.id, { url });
-    sendResponse({ success: true });
-    return true;
-  }
 });
 
 // Log au démarrage

@@ -1,14 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Reciper",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Save recipes automatically from 600+ cooking websites",
   "permissions": [
     "webNavigation",
     "tabs",
     "storage",
-    "unlimitedStorage",
-    "scripting"
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "<all_urls>"

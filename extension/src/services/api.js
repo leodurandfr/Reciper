@@ -11,7 +11,6 @@ import { getBackendUrl } from '../stores/settings.js'
  */
 export async function scrapeRecipe(url) {
   const backendUrl = await getBackendUrl()
-
   const response = await fetch(`${backendUrl}/api/scrape`, {
     method: 'POST',
     headers: {
@@ -34,7 +33,6 @@ export async function scrapeRecipe(url) {
  */
 export async function checkHealth() {
   const backendUrl = await getBackendUrl()
-
   try {
     const response = await fetch(`${backendUrl}/api/health`, {
       method: 'GET',
