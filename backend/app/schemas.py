@@ -16,7 +16,6 @@ class ScrapedRecipe(BaseModel):
     """Response model for a scraped recipe."""
     url: str
     title: str
-    description: str | None = None
     image_url: str | None = None
     ingredients: list[str]  # Kept for backward compatibility
     enriched_ingredients: list[EnrichedIngredient] = []  # NEW: Ingredients with image IDs

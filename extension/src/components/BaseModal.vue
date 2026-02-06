@@ -9,7 +9,7 @@
                 <h2 class="heading-03">{{ title }}</h2>
               </slot>
               <button @click="$emit('close')" class="modal-close" :aria-label="$t('modal.close')">
-                &times;
+                <Icon name="close" size="md" />
               </button>
             </header>
 
@@ -29,6 +29,7 @@
 
 <script setup>
 import { watch, onBeforeUnmount } from 'vue'
+import Icon from './Icon.vue'
 
 const props = defineProps({
   open: {
@@ -114,11 +115,10 @@ onBeforeUnmount(() => {
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
   color: var(--color-text);
   padding: var(--space-02);
-  line-height: 1;
+  line-height: 0;
   border-radius: var(--radius-01);
   transition: background-color var(--transition-fast);
 }

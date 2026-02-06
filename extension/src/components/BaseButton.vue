@@ -16,14 +16,14 @@
     :disabled="tag === 'button' ? disabled || undefined : undefined"
     v-bind="$attrs"
   >
-    <svg v-if="iconLeft === 'chevron-left'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 19.5L7.5 12L15 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+<Icon v-if="iconLeft === 'chevron-left'" name="chevron-left" size="sm" />
     <slot />
   </component>
 </template>
 
 <script setup>
+import Icon from './Icon.vue'
+
 const props = defineProps({
   variant: {
     type: String,
@@ -92,7 +92,7 @@ const props = defineProps({
 }
 
 .base-btn--outline:hover:not(.base-btn--disabled) {
-  box-shadow: inset 0 0 0 1px var(--color-brand);
+  box-shadow: inset 0 0 0 1.5px var(--color-brand);
 }
 
 /* --- Icon left padding --- */

@@ -28,6 +28,12 @@ export default {
     emptyFavorites: 'Aucune recette en favoris. Ajoutez des recettes à vos favoris depuis leur page de détail !',
     emptyHistory: "Aucune recette sauvegardée. Utilisez l'extension Chrome pour en ajouter !",
   },
+  search: {
+    button: 'Rechercher',
+    placeholder: 'Rechercher...',
+    close: 'Fermer',
+    noResults: 'Aucune recette trouvée',
+  },
   loading: {
     connectingServer: 'Connexion au serveur...',
     fetchingRecipe: 'Récupération de la recette...',
@@ -86,7 +92,6 @@ export default {
   editModal: {
     title: 'Modifier la recette',
     titleLabel: 'Titre',
-    description: 'Description',
     prepTime: 'Temps de préparation (min)',
     cookTime: 'Temps de cuisson (min)',
     yields: 'Portions',

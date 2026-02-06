@@ -28,6 +28,12 @@ export default {
     emptyFavorites: 'No favorite recipes. Add recipes to your favorites from their detail page!',
     emptyHistory: 'No saved recipes. Use the Chrome extension to add some!',
   },
+  search: {
+    button: 'Search',
+    placeholder: 'Search for a recipe...',
+    close: 'Close',
+    noResults: 'No recipes found',
+  },
   loading: {
     connectingServer: 'Connecting to server...',
     fetchingRecipe: 'Fetching recipe...',
@@ -86,7 +92,6 @@ export default {
   editModal: {
     title: 'Edit recipe',
     titleLabel: 'Title',
-    description: 'Description',
     prepTime: 'Prep time (min)',
     cookTime: 'Cook time (min)',
     yields: 'Servings',

@@ -5,6 +5,7 @@
       <Transition
         name="page"
         mode="out-in"
+        @after-leave="handleAfterLeave"
       >
         <component :is="Component" :key="pageKey" />
       </Transition>
@@ -22,13 +23,20 @@ import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
 import SettingsModal from './components/SettingsModal.vue'
 import { useSettingsModal } from './composables/useSettingsModal.js'
+import { useScrollPosition } from './composables/useScrollPosition.js'
 
 const route = useRoute()
+const { restorePosition } = useScrollPosition()
 const isRecipePage = computed(() => route.path.startsWith('/recipe/'))
 const isHomePage = computed(() => route.path === '/favorites' || route.path === '/history')
 const pageKey = computed(() => isHomePage.value ? 'home' : route.path)
 
 const { isSettingsModalOpen, closeSettings } = useSettingsModal()
+
+// Handle scroll after page transition leave (before enter)
+function handleAfterLeave() {
+  restorePosition(route.path)
+}
 
 // Close settings modal on route change
 watch(

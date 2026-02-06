@@ -55,11 +55,6 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
     title = scraper.title() or "Sans titre"
 
     try:
-        description = scraper.description()
-    except (AttributeError, NotImplementedError):
-        description = None
-
-    try:
         image_url = scraper.image()
     except (AttributeError, NotImplementedError):
         image_url = None
@@ -114,7 +109,6 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
     return ScrapedRecipe(
         url=url,
         title=title,
-        description=description,
         image_url=image_url,
         ingredients=ingredients,
         enriched_ingredients=enriched_ingredients,

@@ -17,6 +17,7 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { getRecipe, toggleFavorite } from '../services/db.js'
 import { parseInstructionsWithIngredients } from '../composables/useIngredientMatcher.js'
 import { useHeaderButtons } from '../composables/useHeaderButtons.js'
+import { useScrollPosition } from '../composables/useScrollPosition.js'
 import RecipeDetail from '../components/RecipeDetail.vue'
 
 const { t } = useI18n()
@@ -37,7 +38,11 @@ const hasInternalHistory = computed(() => {
   return back && !back.includes('/loading')
 })
 
+// Scroll position restoration
+const { markForRestore } = useScrollPosition()
+
 function handleBack() {
+  markForRestore()
   if (hasInternalHistory.value) {
     router.back()
   } else {

@@ -2,14 +2,15 @@
   <div class="home">
     <AppTabs />
     <div v-if="error" class="error">{{ error }}</div>
-    <RecipeList v-else-if="!loading" :recipes="recipes" :show-favorites-only="favoritesOnly" />
+    <RecipeList v-else-if="!loading" :recipes="filteredRecipes" :show-favorites-only="favoritesOnly" :search-query="searchQuery" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, toRef } from 'vue'
+import { ref, computed, onMounted, watch, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAllRecipes } from '../services/db.js'
+import { useSearch } from '../composables/useSearch.js'
 import RecipeList from '../components/RecipeList.vue'
 import AppTabs from '../components/AppTabs.vue'
 
@@ -24,6 +25,20 @@ const { t } = useI18n()
 const recipes = ref([])
 const loading = ref(true)
 const error = ref('')
+
+// Search integration
+const { searchQuery } = useSearch()
+
+// Filter recipes based on search query
+const filteredRecipes = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return recipes.value
+  }
+  const query = searchQuery.value.toLowerCase().trim()
+  return recipes.value.filter(recipe =>
+    recipe.title?.toLowerCase().includes(query)
+  )
+})
 
 async function fetchRecipes() {
   loading.value = true

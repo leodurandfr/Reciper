@@ -2,12 +2,18 @@
 English ingredient to image ID mapping.
 
 For English ingredients, we map common ingredient names and their variations
-directly to image IDs. Since English is the target language for images,
-this is mostly about recognizing variations (plural/singular, synonyms).
+directly to image IDs.
+
+REGROUPEMENT STRATEGY (same as French):
+- Similar ingredients are grouped under a single image ID
+- Example: tagliatelle, farfalle, fusilli → 'pasta'
+- Example: salmon, tuna, cod → 'fish'
 """
 
 EN_INGREDIENTS = {
-    # Vegetables
+    # ============================================================
+    # VEGETABLES
+    # ============================================================
     'tomato': 'tomato',
     'tomatoes': 'tomato',
     'onion': 'onion',
@@ -18,19 +24,21 @@ EN_INGREDIENTS = {
     'carrot': 'carrot',
     'carrots': 'carrot',
     'bell': 'bell-pepper',
-    'pepper': 'bell-pepper',  # Context-dependent, but bell pepper is common
+    'pepper': 'bell-pepper',
     'peppers': 'bell-pepper',
     'celery': 'celery',
-    'lettuce': 'lettuce',
     'cucumber': 'cucumber',
     'zucchini': 'zucchini',
+    'courgette': 'zucchini',
     'eggplant': 'eggplant',
-    'aubergine': 'eggplant',  # British English
+    'aubergine': 'eggplant',
     'broccoli': 'broccoli',
     'cauliflower': 'cauliflower',
     'spinach': 'spinach',
     'mushroom': 'mushroom',
     'mushrooms': 'mushroom',
+    'shiitake': 'mushroom',
+    'portobello': 'mushroom',
     'corn': 'corn',
     'pea': 'pea',
     'peas': 'pea',
@@ -41,143 +49,400 @@ EN_INGREDIENTS = {
     'chickpeas': 'chickpea',
     'lentil': 'lentil',
     'lentils': 'lentil',
-
-    # Proteins
-    'chicken': 'chicken',
-    'beef': 'beef',
-    'pork': 'pork',
-    'lamb': 'lamb',
-    'fish': 'fish',
-    'salmon': 'salmon',
-    'tuna': 'tuna',
-    'cod': 'cod',
-    'shrimp': 'shrimp',
-    'prawn': 'shrimp',  # British English
-    'prawns': 'shrimp',
-    'egg': 'egg',
-    'eggs': 'egg',
-    'bacon': 'bacon',
-    'ham': 'ham',
-    'sausage': 'sausage',
-    'turkey': 'turkey',
-
-    # Grains & Starches
-    'flour': 'flour',
-    'rice': 'rice',
-    'pasta': 'pasta',
-    'bread': 'bread',
-    'noodle': 'noodle',
-    'noodles': 'noodle',
-    'oat': 'oat',
-    'oats': 'oat',
-    'quinoa': 'quinoa',
-
-    # Dairy
-    'milk': 'milk',
-    'cream': 'cream',
-    'butter': 'butter',
-    'cheese': 'cheese',
-    'yogurt': 'yogurt',
-    'yoghurt': 'yogurt',  # British English
-    'parmesan': 'parmesan',
-    'mozzarella': 'mozzarella',
-    'cheddar': 'cheese',
-
-    # Oils & Fats
-    'oil': 'oil',
-    'olive': 'olive',
-    'vegetable': 'oil',
-    'canola': 'oil',
-
-    # Herbs & Spices
-    'basil': 'basil',
-    'parsley': 'parsley',
-    'cilantro': 'cilantro',
-    'coriander': 'cilantro',  # British English for the herb
-    'thyme': 'thyme',
-    'rosemary': 'rosemary',
-    'oregano': 'oregano',
-    'mint': 'mint',
-    'sage': 'sage',
-    'dill': 'dill',
-    'chive': 'chive',
-    'chives': 'chive',
-    'bay': 'bay-leaf',
-    'cinnamon': 'cinnamon',
-    'paprika': 'paprika',
-    'cumin': 'cumin',
-    'turmeric': 'turmeric',
+    'leek': 'leek',
+    'leeks': 'leek',
+    'shallot': 'shallot',
+    'shallots': 'shallot',
+    'turnip': 'turnip',
+    'beet': 'beet',
+    'beetroot': 'beet',
+    'squash': 'squash',
+    'pumpkin': 'pumpkin',
+    'asparagus': 'asparagus',
+    'artichoke': 'artichoke',
+    'endive': 'endive',
+    'chard': 'chard',
+    'avocado': 'avocado',
+    'avocados': 'avocado',
+    'chili': 'chili',
     'ginger': 'ginger',
-    'nutmeg': 'nutmeg',
-    'vanilla': 'vanilla',
+    'olive': 'olive',
+    'olives': 'olive',
+    'cabbage': 'cabbage',
+    'fennel': 'fennel',
+    'radish': 'radish',
 
-    # Fruits
+    # === SALADS → lettuce ===
+    'lettuce': 'lettuce',
+    'salad': 'lettuce',
+    'arugula': 'lettuce',
+    'rocket': 'lettuce',
+    'mesclun': 'lettuce',
+    'iceberg': 'lettuce',
+    'romaine': 'lettuce',
+    'kale': 'lettuce',
+
+    # ============================================================
+    # FRUITS
+    # ============================================================
     'apple': 'apple',
     'apples': 'apple',
+    'pear': 'pear',
+    'pears': 'pear',
     'banana': 'banana',
     'bananas': 'banana',
-    'orange': 'orange',
-    'oranges': 'orange',
+    'kiwi': 'kiwi',
+    'mango': 'mango',
+    'mangoes': 'mango',
+    'pineapple': 'pineapple',
+    'papaya': 'papaya',
+    'fig': 'fig',
+    'figs': 'fig',
+    'date': 'date',
+    'dates': 'date',
+    'apricot': 'apricot',
+    'apricots': 'apricot',
+    'peach': 'peach',
+    'peaches': 'peach',
+    'nectarine': 'nectarine',
+    'plum': 'plum',
+    'plums': 'plum',
+    'rhubarb': 'rhubarb',
+    'lychee': 'lychee',
+    'melon': 'melon',
+    'watermelon': 'watermelon',
+    'coconut': 'coconut',
+    'pomegranate': 'pomegranate',
+
+    # === LEMON (distinct) ===
     'lemon': 'lemon',
     'lemons': 'lemon',
-    'lime': 'lime',
-    'limes': 'lime',
+    'lime': 'lemon',
+    'limes': 'lemon',
+
+    # === CITRUS → orange (except lemon) ===
+    'orange': 'orange',
+    'oranges': 'orange',
+    'grapefruit': 'orange',
+    'mandarin': 'orange',
+    'tangerine': 'orange',
+    'clementine': 'orange',
+
+    # === BERRIES ===
     'strawberry': 'strawberry',
     'strawberries': 'strawberry',
     'blueberry': 'blueberry',
     'blueberries': 'blueberry',
     'raspberry': 'raspberry',
     'raspberries': 'raspberry',
+    'blackberry': 'blackberry',
+    'blackberries': 'blackberry',
     'cherry': 'cherry',
     'cherries': 'cherry',
     'grape': 'grape',
     'grapes': 'grape',
-    'pear': 'pear',
-    'pears': 'pear',
-    'peach': 'peach',
-    'peaches': 'peach',
-    'mango': 'mango',
-    'mangoes': 'mango',
-    'pineapple': 'pineapple',
-    'watermelon': 'watermelon',
-    'avocado': 'avocado',
-    'avocados': 'avocado',
+    'cranberry': 'redcurrant',
+    'currant': 'redcurrant',
 
-    # Nuts & Seeds
-    'almond': 'almond',
-    'almonds': 'almond',
-    'walnut': 'walnut',
-    'walnuts': 'walnut',
-    'peanut': 'peanut',
-    'peanuts': 'peanut',
-    'cashew': 'cashew',
-    'cashews': 'cashew',
-    'pistachio': 'pistachio',
-    'pistachios': 'pistachio',
-    'pecan': 'pecan',
-    'pecans': 'pecan',
-    'hazelnut': 'hazelnut',
-    'hazelnuts': 'hazelnut',
-    'coconut': 'coconut',
+    # ============================================================
+    # POULTRY → chicken
+    # ============================================================
+    'chicken': 'chicken',
+    'turkey': 'chicken',
+    'poultry': 'chicken',
+    'hen': 'chicken',
+    'quail': 'chicken',
 
-    # Condiments & Sauces
-    'salt': 'salt',
-    'pepper': 'pepper',  # Can also mean bell pepper - context dependent
+    # ============================================================
+    # RED MEAT → beef
+    # ============================================================
+    'beef': 'beef',
+    'steak': 'beef',
+    'veal': 'beef',
+    'lamb': 'beef',
+    'mutton': 'beef',
+    'roast': 'beef',
+
+    # ============================================================
+    # PORK (distinct)
+    # ============================================================
+    'pork': 'pork',
+    'tenderloin': 'pork',
+
+    # ============================================================
+    # DUCK (distinct)
+    # ============================================================
+    'duck': 'duck',
+
+    # ============================================================
+    # CURED MEATS → ham
+    # ============================================================
+    'ham': 'ham',
+    'prosciutto': 'ham',
+    'bacon': 'bacon',
+    'pancetta': 'bacon',
+    'sausage': 'sausage',
+    'chorizo': 'sausage',
+    'salami': 'sausage',
+
+    # ============================================================
+    # FISH → fish
+    # ============================================================
+    'fish': 'fish',
+    'salmon': 'fish',
+    'tuna': 'fish',
+    'cod': 'fish',
+    'haddock': 'fish',
+    'halibut': 'fish',
+    'trout': 'fish',
+    'mackerel': 'fish',
+    'sardine': 'fish',
+    'sardines': 'fish',
+    'anchovy': 'fish',
+    'anchovies': 'fish',
+    'sole': 'fish',
+    'bass': 'fish',
+    'tilapia': 'fish',
+
+    # ============================================================
+    # SHELLFISH → shrimp
+    # ============================================================
+    'shrimp': 'shrimp',
+    'prawn': 'shrimp',
+    'prawns': 'shrimp',
+    'lobster': 'shrimp',
+    'crab': 'shrimp',
+    'crayfish': 'shrimp',
+    'langoustine': 'shrimp',
+
+    # ============================================================
+    # MOLLUSKS → mussel
+    # ============================================================
+    'mussel': 'mussel',
+    'mussels': 'mussel',
+    'oyster': 'mussel',
+    'oysters': 'mussel',
+    'clam': 'mussel',
+    'clams': 'mussel',
+    'scallop': 'mussel',
+    'scallops': 'mussel',
+    'squid': 'mussel',
+    'calamari': 'mussel',
+    'octopus': 'mussel',
+    'cuttlefish': 'mussel',
+
+    # ============================================================
+    # DAIRY
+    # ============================================================
+    'milk': 'milk',
+    'butter': 'butter',
+    'yogurt': 'yogurt',
+    'yoghurt': 'yogurt',
+    'egg': 'egg',
+    'eggs': 'egg',
+
+    # === CREAM (+ creamy cheeses) → cream ===
+    'cream': 'cream',
+    'ricotta': 'cream',
+    'mascarpone': 'cream',
+    'cottage': 'cream',
+
+    # === GRUYERE (distinct - common in recipes) ===
+    'gruyere': 'gruyere',
+    'gruyère': 'gruyere',
+
+    # === CHEESE → cheese ===
+    'cheese': 'cheese',
+    'parmesan': 'cheese',
+    'mozzarella': 'cheese',
+    'cheddar': 'cheese',
+    'brie': 'cheese',
+    'camembert': 'cheese',
+    'feta': 'cheese',
+    'gouda': 'cheese',
+    'gorgonzola': 'cheese',
+    'goat': 'cheese',
+    'pecorino': 'cheese',
+    'roquefort': 'cheese',
+    'swiss': 'cheese',
+    'provolone': 'cheese',
+    'manchego': 'cheese',
+    'halloumi': 'cheese',
+
+    # ============================================================
+    # PASTA → pasta
+    # ============================================================
+    'pasta': 'pasta',
+    'spaghetti': 'pasta',
+    'tagliatelle': 'pasta',
+    'fettuccine': 'pasta',
+    'linguine': 'pasta',
+    'penne': 'pasta',
+    'rigatoni': 'pasta',
+    'fusilli': 'pasta',
+    'farfalle': 'pasta',
+    'macaroni': 'pasta',
+    'lasagna': 'pasta',
+    'lasagne': 'pasta',
+    'ravioli': 'pasta',
+    'tortellini': 'pasta',
+    'gnocchi': 'pasta',
+    'orzo': 'pasta',
+    'noodle': 'pasta',
+    'noodles': 'pasta',
+    'vermicelli': 'pasta',
+    'cannelloni': 'pasta',
+    'orecchiette': 'pasta',
+    'papardelle': 'pasta',
+    'bucatini': 'pasta',
+
+    # ============================================================
+    # GRAINS & STARCHES
+    # ============================================================
+    'rice': 'rice',
+    'basmati': 'rice',
+    'arborio': 'rice',
+    'jasmine': 'rice',
+    'quinoa': 'quinoa',
+    'bulgur': 'bulgur',
+    'couscous': 'couscous',
+    'oat': 'oat',
+    'oats': 'oat',
+    'oatmeal': 'oat',
+    'bread': 'bread',
+    'breadcrumb': 'breadcrumb',
+    'breadcrumbs': 'breadcrumb',
+    'cracker': 'cracker',
+    'crackers': 'cracker',
+
+    # ============================================================
+    # FLOUR & LEAVENING
+    # ============================================================
+    'flour': 'flour',
+    'cornstarch': 'cornstarch',
+    'starch': 'starch',
+    'yeast': 'yeast',
+    'baking': 'baking-soda',
+
+    # ============================================================
+    # SWEETENERS
+    # ============================================================
     'sugar': 'sugar',
     'honey': 'honey',
+    'syrup': 'syrup',
+    'maple': 'maple-syrup',
+    'molasses': 'brown-sugar',
+    'jam': 'jam',
+    'jelly': 'jam',
+    'chocolate': 'chocolate',
+    'cocoa': 'cocoa',
+
+    # ============================================================
+    # NUTS → nuts
+    # ============================================================
+    'almond': 'nuts',
+    'almonds': 'nuts',
+    'walnut': 'nuts',
+    'walnuts': 'nuts',
+    'peanut': 'nuts',
+    'peanuts': 'nuts',
+    'cashew': 'nuts',
+    'cashews': 'nuts',
+    'pistachio': 'nuts',
+    'pistachios': 'nuts',
+    'pecan': 'nuts',
+    'pecans': 'nuts',
+    'hazelnut': 'nuts',
+    'hazelnuts': 'nuts',
+    'macadamia': 'nuts',
+    'pine': 'nuts',
+
+    # Seeds (distinct)
+    'sesame': 'sesame',
+    'sunflower': 'sunflower-seed',
+    'flax': 'flax-seed',
+    'chia': 'chia-seed',
+    'poppy': 'poppy-seed',
+
+    # ============================================================
+    # HERBS → herbs
+    # ============================================================
+    'basil': 'herbs',
+    'parsley': 'herbs',
+    'cilantro': 'herbs',
+    'coriander': 'herbs',
+    'thyme': 'herbs',
+    'rosemary': 'herbs',
+    'oregano': 'herbs',
+    'mint': 'herbs',
+    'sage': 'herbs',
+    'dill': 'herbs',
+    'chive': 'herbs',
+    'chives': 'herbs',
+    'bay': 'herbs',
+    'tarragon': 'herbs',
+    'herb': 'herbs',
+    'herbs': 'herbs',
+    'marjoram': 'herbs',
+
+    # ============================================================
+    # SPICES
+    # ============================================================
+    'salt': 'salt',
+    'cinnamon': 'cinnamon',
+    'paprika': 'paprika',
+    'cumin': 'cumin',
+    'turmeric': 'turmeric',
+    'nutmeg': 'nutmeg',
+    'vanilla': 'vanilla',
+    'clove': 'clove',
+    'cloves': 'clove',
+    'cardamom': 'cardamom',
+    'saffron': 'saffron',
+    'cayenne': 'cayenne',
+    'curry': 'curry',
+
+    # ============================================================
+    # OILS → oil
+    # ============================================================
+    'oil': 'oil',
+    'vegetable': 'oil',
+    'canola': 'oil',
+    'sunflower': 'oil',
+
+    # ============================================================
+    # CONDIMENTS & SAUCES
+    # ============================================================
     'vinegar': 'vinegar',
-    'soy': 'soy-sauce',
     'mustard': 'mustard',
     'ketchup': 'ketchup',
     'mayonnaise': 'mayonnaise',
     'mayo': 'mayonnaise',
+    'soy': 'soy-sauce',
+    'worcestershire': 'worcestershire-sauce',
+    'tabasco': 'tabasco',
+    'wine': 'wine',
+    'stock': 'broth',
+    'broth': 'broth',
+    'pesto': 'pesto',
+    'harissa': 'harissa',
+    'tahini': 'tahini',
+    'miso': 'miso',
+    'pickle': 'pickle',
+    'pickles': 'pickle',
+    'caper': 'caper',
+    'capers': 'caper',
 
-    # Other
-    'chocolate': 'chocolate',
+    # ============================================================
+    # BEVERAGES
+    # ============================================================
     'coffee': 'coffee',
     'tea': 'tea',
-    'wine': 'wine',
-    'stock': 'stock',
-    'broth': 'broth',
+
+    # ============================================================
+    # OTHER
+    # ============================================================
     'tofu': 'tofu',
+    'tempeh': 'tofu',
+    'seitan': 'tofu',
 }

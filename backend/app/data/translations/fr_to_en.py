@@ -2,28 +2,29 @@
 French to English translation dictionary for ingredient matching.
 
 All images are named in English (e.g., tomato.png, onion.png).
-This dictionary maps French ingredient names to their English equivalents.
+This dictionary maps French ingredient names to their English image IDs.
 
-Generated from user-provided list of ~275 common cooking ingredients.
+REGROUPEMENT STRATEGY:
+- Similar ingredients are grouped under a single image ID
+- Example: tagliatelle, farfalle, fusilli → 'pasta'
+- Exception: gruyère kept distinct (very common in French recipes)
 """
 
 # Main translation dictionary FR → EN
 FR_TO_EN = {
-    # === LÉGUMES (~45 ingrédients) ===
+    # ============================================================
+    # LÉGUMES
+    # ============================================================
     'tomate': 'tomato',
     'tomates': 'tomato',
-    # Note: 'pomme' removed - too ambiguous (apple vs potato)
-    # Use specific forms only
     'patate': 'potato',
     'patates': 'potato',
-    'terre': 'potato',  # Only in context "pomme de terre"
+    'terre': 'potato',  # "pomme de terre"
     'carotte': 'carrot',
     'carottes': 'carrot',
     'oignon': 'onion',
     'oignons': 'onion',
     'ail': 'garlic',
-    # Note: 'gousse' removed - too ambiguous (garlic clove vs vanilla bean)
-    # 'ail' alone is enough for matching
     'échalote': 'shallot',
     'échalotes': 'shallot',
     'chalote': 'shallot',
@@ -38,29 +39,15 @@ FR_TO_EN = {
     'poivrons': 'bell-pepper',
     'concombre': 'cucumber',
     'concombres': 'cucumber',
-    'salade': 'lettuce',
-    'laitue': 'lettuce',
-    'roquette': 'arugula',
-    'épinard': 'spinach',
-    'épinards': 'spinach',
-    'epinard': 'spinach',
-    'epinards': 'spinach',
-    'brocoli': 'broccoli',
-    'brocolis': 'broccoli',
-    'chou-fleur': 'cauliflower',
-    'choufleur': 'cauliflower',
-    'chou': 'cabbage',
-    'choux': 'cabbage',
-    'bruxelles': 'brussels-sprout',
-    'haricot': 'green-bean',
-    'haricots': 'green-bean',
-    # Note: 'petit/petits' removed - too generic, only keep 'pois'
-    'pois': 'pea',
-    'maïs': 'corn',
-    'mais': 'corn',
     'champignon': 'mushroom',
     'champignons': 'mushroom',
-    'shiitake': 'shiitake',
+    'shiitake': 'mushroom',
+    'cèpe': 'mushroom',
+    'cèpes': 'mushroom',
+    'girolle': 'mushroom',
+    'girolles': 'mushroom',
+    'pleurote': 'mushroom',
+    'pleurotes': 'mushroom',
     'céleri': 'celery',
     'celeri': 'celery',
     'fenouil': 'fennel',
@@ -70,12 +57,11 @@ FR_TO_EN = {
     'betterave': 'beet',
     'betteraves': 'beet',
     'courge': 'squash',
-    'butternut': 'butternut',
+    'butternut': 'squash',
     'potiron': 'pumpkin',
     'potirons': 'pumpkin',
     'citrouille': 'pumpkin',
     'citrouilles': 'pumpkin',
-    # Note: 'douce' removed - too generic (sweet), only in context "patate douce"
     'asperge': 'asparagus',
     'asperges': 'asparagus',
     'artichaut': 'artichoke',
@@ -88,54 +74,49 @@ FR_TO_EN = {
     'avocats': 'avocado',
     'piment': 'chili',
     'piments': 'chili',
+    'chili': 'chili',
     'gingembre': 'ginger',
     'olive': 'olive',
     'olives': 'olive',
+    'maïs': 'corn',
+    'mais': 'corn',
+    'brocoli': 'broccoli',
+    'brocolis': 'broccoli',
+    'chou-fleur': 'cauliflower',
+    'choufleur': 'cauliflower',
+    'chou': 'cabbage',
+    'choux': 'cabbage',
+    'bruxelles': 'brussels-sprout',
+    'haricot': 'green-bean',
+    'haricots': 'green-bean',
+    'pois': 'pea',
+    'edamame': 'edamame',
 
-    # === FRUITS (~35 ingrédients) ===
-    # Add apple specifically
-    'pomme': 'apple',  # Real apple (not potato)
+    # === SALADES → lettuce ===
+    'salade': 'lettuce',
+    'laitue': 'lettuce',
+    'batavia': 'lettuce',
+    'frisée': 'lettuce',
+    'frisee': 'lettuce',
+    'iceberg': 'lettuce',
+    'mâche': 'lettuce',
+    'mache': 'lettuce',
+    'mesclun': 'lettuce',
+    'roquette': 'lettuce',
+    'épinard': 'spinach',
+    'épinards': 'spinach',
+    'epinard': 'spinach',
+    'epinards': 'spinach',
+
+    # ============================================================
+    # FRUITS
+    # ============================================================
+    'pomme': 'apple',
     'pommes': 'apple',
     'poire': 'pear',
     'poires': 'pear',
     'banane': 'banana',
     'bananes': 'banana',
-    'orange': 'orange',
-    'oranges': 'orange',
-    'citron': 'lemon',
-    'citrons': 'lemon',
-    # Note: 'vert/verts' removed - too generic (green)
-    # Only keep explicit 'lime' or 'citron vert' (handled by context)
-    'lime': 'lime',
-    'limes': 'lime',
-    'pamplemousse': 'grapefruit',
-    'pamplemousses': 'grapefruit',
-    'mandarine': 'mandarin',
-    'mandarines': 'mandarin',
-    'clémentine': 'clementine',
-    'clémentines': 'clementine',
-    'clementine': 'clementine',
-    'clementines': 'clementine',
-    'fraise': 'strawberry',
-    'fraises': 'strawberry',
-    'framboise': 'raspberry',
-    'framboises': 'raspberry',
-    'myrtille': 'blueberry',
-    'myrtilles': 'blueberry',
-    'mûre': 'blackberry',
-    'mûres': 'blackberry',
-    'mure': 'blackberry',
-    'mures': 'blackberry',
-    'cerise': 'cherry',
-    'cerises': 'cherry',
-    'raisin': 'grape',
-    'raisins': 'grape',
-    'pastèque': 'watermelon',
-    'pastèques': 'watermelon',
-    'pasteque': 'watermelon',
-    'pasteques': 'watermelon',
-    'melon': 'melon',
-    'melons': 'melon',
     'kiwi': 'kiwi',
     'kiwis': 'kiwi',
     'mangue': 'mango',
@@ -161,204 +142,316 @@ FR_TO_EN = {
     'prune': 'plum',
     'prunes': 'plum',
     'rhubarbe': 'rhubarb',
+    'litchi': 'lychee',
+    'litchis': 'lychee',
+    'melon': 'melon',
+    'melons': 'melon',
+    'pastèque': 'watermelon',
+    'pastèques': 'watermelon',
+    'pasteque': 'watermelon',
+    'pasteques': 'watermelon',
+    'coco': 'coconut',
+
+    # === CITRON (distinct) ===
+    'citron': 'lemon',
+    'citrons': 'lemon',
+    'lime': 'lemon',
+    'limes': 'lemon',
+
+    # === AGRUMES → orange (sauf citron) ===
+    'orange': 'orange',
+    'oranges': 'orange',
+    'pamplemousse': 'orange',
+    'pamplemousses': 'orange',
+    'mandarine': 'orange',
+    'mandarines': 'orange',
+    'clémentine': 'orange',
+    'clémentines': 'orange',
+    'clementine': 'orange',
+    'clementines': 'orange',
+
+    # === BAIES → berry ===
+    'fraise': 'strawberry',
+    'fraises': 'strawberry',
+    'framboise': 'raspberry',
+    'framboises': 'raspberry',
+    'myrtille': 'blueberry',
+    'myrtilles': 'blueberry',
+    'mûre': 'blackberry',
+    'mûres': 'blackberry',
+    'mure': 'blackberry',
+    'mures': 'blackberry',
+    'cerise': 'cherry',
+    'cerises': 'cherry',
+    'raisin': 'grape',
+    'raisins': 'grape',
     'groseille': 'redcurrant',
     'groseilles': 'redcurrant',
     'cassis': 'blackcurrant',
-    'coco': 'coconut',
-    # Note: 'noix' removed - too ambiguous (walnut vs coconut)
-    'litchi': 'lychee',
-    'litchis': 'lychee',
 
-    # === VIANDES (~20 ingrédients) ===
+    # ============================================================
+    # VOLAILLE → chicken
+    # ============================================================
     'poulet': 'chicken',
     'poulets': 'chicken',
-    # Note: 'cuisse/cuisses' removed - this is a CUT, not an ingredient
-    'dinde': 'turkey',
-    'dindes': 'turkey',
-    'canard': 'duck',
-    'canards': 'duck',
-    'magret': 'duck-breast',
-    'magrets': 'duck-breast',
-    # Note: 'foie/gras' removed individually - too generic
-    # Keep only specific products like 'foie-gras' as compound
-    'foie-gras': 'foie-gras',
+    'dinde': 'chicken',
+    'dindes': 'chicken',
+    'pintade': 'chicken',
+    'pintades': 'chicken',
+    'caille': 'chicken',
+    'cailles': 'chicken',
+    'chapon': 'chicken',
+    'chapons': 'chicken',
+    'coq': 'chicken',
+
+    # ============================================================
+    # VIANDE ROUGE → beef
+    # ============================================================
     'bœuf': 'beef',
     'boeuf': 'beef',
-    'steak': 'steak',
-    'steaks': 'steak',
-    'rôti': 'roast-beef',
-    'veau': 'veal',
-    # Note: 'côtelette/cotelette' removed - this is a CUT, not an ingredient
-    'agneau': 'lamb',
-    'gigot': 'leg-of-lamb',
+    'steak': 'beef',
+    'steaks': 'beef',
+    'rôti': 'beef',
+    'roti': 'beef',
+    'entrecôte': 'beef',
+    'entrecote': 'beef',
+    'bavette': 'beef',
+    'rumsteck': 'beef',
+    'veau': 'beef',
+    'escalope': 'beef',
+    'escalopes': 'beef',
+    'agneau': 'beef',
+    'gigot': 'beef',
+    'souris': 'beef',
+
+    # ============================================================
+    # PORC (distinct)
+    # ============================================================
     'porc': 'pork',
+    'filet-mignon': 'pork',
+
+    # ============================================================
+    # CANARD (distinct)
+    # ============================================================
+    'canard': 'duck',
+    'canards': 'duck',
+    'magret': 'duck',
+    'magrets': 'duck',
+
+    # ============================================================
+    # CHARCUTERIE → ham
+    # ============================================================
     'jambon': 'ham',
     'jambons': 'ham',
-    # Note: 'cru' removed - too generic (raw), context-dependent
-    'prosciutto': 'prosciutto',  # Explicit only
+    'prosciutto': 'ham',
     'bacon': 'bacon',
     'lardon': 'bacon',
     'lardons': 'bacon',
+    'lard': 'bacon',
     'saucisse': 'sausage',
     'saucisses': 'sausage',
-    'merguez': 'merguez',
+    'merguez': 'sausage',
+    'chorizo': 'sausage',
+    'saucisson': 'sausage',
+    'andouille': 'sausage',
+    'andouillette': 'sausage',
 
-    # === POISSONS & FRUITS DE MER (~25 ingrédients) ===
-    'saumon': 'salmon',
-    'saumons': 'salmon',
-    'thon': 'tuna',
-    'thons': 'tuna',
-    'cabillaud': 'cod',
-    'cabillauds': 'cod',
-    'dorade': 'sea-bream',
-    'dorades': 'sea-bream',
-    'bar': 'sea-bass',
-    'bars': 'sea-bass',
-    'sole': 'sole',
-    'soles': 'sole',
-    'truite': 'trout',
-    'truites': 'trout',
-    'maquereau': 'mackerel',
-    'maquereaux': 'mackerel',
-    'sardine': 'sardine',
-    'sardines': 'sardine',
-    'anchois': 'anchovy',
+    # ============================================================
+    # POISSONS → fish
+    # ============================================================
+    'poisson': 'fish',
+    'poissons': 'fish',
+    'saumon': 'fish',
+    'saumons': 'fish',
+    'thon': 'fish',
+    'thons': 'fish',
+    'cabillaud': 'fish',
+    'cabillauds': 'fish',
+    'colin': 'fish',
+    'colins': 'fish',
+    'lieu': 'fish',
+    'merlu': 'fish',
+    'dorade': 'fish',
+    'dorades': 'fish',
+    'bar': 'fish',
+    'bars': 'fish',
+    'sole': 'fish',
+    'soles': 'fish',
+    'truite': 'fish',
+    'truites': 'fish',
+    'maquereau': 'fish',
+    'maquereaux': 'fish',
+    'sardine': 'fish',
+    'sardines': 'fish',
+    'anchois': 'fish',
+    'flétan': 'fish',
+    'fletan': 'fish',
+    'églefin': 'fish',
+    'eglefin': 'fish',
+    'limande': 'fish',
+
+    # ============================================================
+    # CRUSTACÉS → shrimp
+    # ============================================================
     'crevette': 'shrimp',
     'crevettes': 'shrimp',
-    'gamba': 'prawn',
-    'gambas': 'prawn',
-    'homard': 'lobster',
-    'homards': 'lobster',
-    'crabe': 'crab',
-    'crabes': 'crab',
-    'langoustine': 'langoustine',
-    'langoustines': 'langoustine',
+    'gamba': 'shrimp',
+    'gambas': 'shrimp',
+    'langoustine': 'shrimp',
+    'langoustines': 'shrimp',
+    'homard': 'shrimp',
+    'homards': 'shrimp',
+    'crabe': 'shrimp',
+    'crabes': 'shrimp',
+    'langouste': 'shrimp',
+    'langoustes': 'shrimp',
+
+    # ============================================================
+    # MOLLUSQUES → mussel
+    # ============================================================
     'moule': 'mussel',
     'moules': 'mussel',
-    'huître': 'oyster',
-    'huîtres': 'oyster',
-    'huitre': 'oyster',
-    'huitres': 'oyster',
-    'saint-jacques': 'scallop',
-    'coquille': 'scallop',
-    'coquilles': 'scallop',
-    'calamar': 'squid',
-    'calamars': 'squid',
-    'seiche': 'cuttlefish',
-    'seiches': 'cuttlefish',
-    'poulpe': 'octopus',
-    'poulpes': 'octopus',
+    'huître': 'mussel',
+    'huîtres': 'mussel',
+    'huitre': 'mussel',
+    'huitres': 'mussel',
+    'saint-jacques': 'mussel',
+    'coquille': 'mussel',
+    'coquilles': 'mussel',
+    'calamar': 'mussel',
+    'calamars': 'mussel',
+    'seiche': 'mussel',
+    'seiches': 'mussel',
+    'poulpe': 'mussel',
+    'poulpes': 'mussel',
+    'encornet': 'mussel',
+    'encornets': 'mussel',
+    'palourde': 'mussel',
+    'palourdes': 'mussel',
+
+    # Autres fruits de mer
     'surimi': 'surimi',
     'surimis': 'surimi',
     'caviar': 'caviar',
-    'lump': 'lumpfish-roe',
 
-    # === PRODUITS LAITIERS & CRÉMERIE (~25 ingrédients) ===
+    # ============================================================
+    # PRODUITS LAITIERS
+    # ============================================================
     'lait': 'milk',
-    # Note: 'entier' removed - too generic (whole/entire)
-    'demi-écrémé': 'semi-skimmed-milk',
-    'demi-ecreme': 'semi-skimmed-milk',
-    'crème': 'cream',
-    'creme': 'cream',
-    # Note: 'fraîche/fraiche/liquide/épaisse/epaisse' removed - too generic adjectives
-    # Keep only base 'crème' which is clear enough
     'beurre': 'butter',
-    # Note: 'demi-sel' removed - too specific, keep only 'beurre'
-    # Note: 'ghee' removed per user feedback (too specific)
     'yaourt': 'yogurt',
     'yaourts': 'yogurt',
-    # Note: 'grec' removed - too generic (Greek)
-    'fromage': 'cheese',
-    'fromages': 'cheese',
-    'faisselle': 'faisselle',
-    'ricotta': 'ricotta',
-    'mascarpone': 'mascarpone',
-    'mozzarella': 'mozzarella',
-    'parmesan': 'parmesan',
-    'gruyère': 'gruyere',
-    'gruyere': 'gruyere',
-    'comté': 'comte',
-    'comte': 'comte',
-    'emmental': 'emmental',
-    'chèvre': 'goat-cheese',
-    'chevre': 'goat-cheese',
-    'roquefort': 'roquefort',
-    'camembert': 'camembert',
-    'brie': 'brie',
+    'yogourt': 'yogurt',
     'œuf': 'egg',
     'œufs': 'egg',
     'oeuf': 'egg',
     'oeufs': 'egg',
 
-    # === ÉPICERIE & PRODUITS SECS (~50 ingrédients) ===
-    'farine': 'flour',
-    'farines': 'flour',
-    # Note: 'blé/ble' removed - too ambiguous (wheat grain vs flour)
-    # Note: 'complète/complete' removed - too generic adjective
-    'épeautre': 'spelt-flour',
-    'epeautre': 'spelt-flour',
-    'fécule': 'starch',
-    'fecule': 'starch',
-    'maïzena': 'cornstarch',
-    'maizena': 'cornstarch',
-    'levure': 'yeast',
-    'levures': 'yeast',
-    # Note: 'chimique/boulanger' removed - too generic, keep only 'levure'
-    'bicarbonate': 'baking-soda',
-    'sucre': 'sugar',
-    'sucres': 'sugar',
-    # Note: 'roux' removed - too ambiguous (brown/roux sauce)
-    'cassonade': 'brown-sugar',
-    # Note: 'glace' removed - too ambiguous (ice/glaze/powdered sugar)
-    'miel': 'honey',
-    'sirop': 'syrup',
-    'érable': 'maple-syrup',
-    'erable': 'maple-syrup',
-    'confiture': 'jam',
-    'confitures': 'jam',
-    # Note: 'pâte/tartiner' removed - too generic (dough/paste/spread)
-    'chocolat': 'chocolate',
-    'chocolats': 'chocolate',
-    # Note: 'noir/noire/laitier' removed - too generic adjectives
-    'cacao': 'cocoa',
-    # Note: 'poudre' removed - too generic (powder)
-    'pépite': 'chocolate-chip',
-    'pépites': 'chocolate-chip',
-    'amande': 'almond',
-    'amandes': 'almond',
-    'noisette': 'hazelnut',
-    'noisettes': 'hazelnut',
-    'pistache': 'pistachio',
-    'pistaches': 'pistachio',
-    'cacahuète': 'peanut',
-    'cacahuètes': 'peanut',
-    'cacahuete': 'peanut',
-    'cacahuetes': 'peanut',
-    'cajou': 'cashew',
-    'cajous': 'cashew',
-    # Note: 'graine/graines' removed - too generic (seed)
-    'tournesol': 'sunflower-seed',
-    'lin': 'flax-seed',
-    'chia': 'chia-seed',
-    'sésame': 'sesame',
-    'sesame': 'sesame',
+    # === CRÈME (+ fromages crémeux) → cream ===
+    'crème': 'cream',
+    'creme': 'cream',
+    'ricotta': 'cream',
+    'mascarpone': 'cream',
+    'faisselle': 'cream',
+
+    # === GRUYÈRE (distinct car très fréquent en FR) ===
+    'gruyère': 'gruyere',
+    'gruyere': 'gruyere',
+
+    # === FROMAGES → cheese ===
+    'fromage': 'cheese',
+    'fromages': 'cheese',
+    'parmesan': 'cheese',
+    'mozzarella': 'cheese',
+    'comté': 'cheese',
+    'comte': 'cheese',
+    'emmental': 'cheese',
+    'chèvre': 'cheese',
+    'chevre': 'cheese',
+    'roquefort': 'cheese',
+    'camembert': 'cheese',
+    'brie': 'cheese',
+    'feta': 'cheese',
+    'gorgonzola': 'cheese',
+    'pecorino': 'cheese',
+    'reblochon': 'cheese',
+    'raclette': 'cheese',
+    'cheddar': 'cheese',
+    'gouda': 'cheese',
+    'beaufort': 'cheese',
+    'cantal': 'cheese',
+    'mimolette': 'cheese',
+    'maroilles': 'cheese',
+    'munster': 'cheese',
+    'boursin': 'cheese',
+    'chavignol': 'cheese',
+    'crottin': 'cheese',
+
+    # ============================================================
+    # PÂTES → pasta
+    # ============================================================
     'pâtes': 'pasta',
     'pates': 'pasta',
-    'spaghetti': 'spaghetti',
+    'spaghetti': 'pasta',
+    'spaghettis': 'pasta',
+    'tagliatelle': 'pasta',
+    'tagliatelles': 'pasta',
+    'farfalle': 'pasta',
+    'farfalles': 'pasta',
+    'fusilli': 'pasta',
+    'fusillis': 'pasta',
+    'penne': 'pasta',
+    'pennes': 'pasta',
+    'rigatoni': 'pasta',
+    'rigatonis': 'pasta',
+    'macaroni': 'pasta',
+    'macaronis': 'pasta',
+    'linguine': 'pasta',
+    'linguines': 'pasta',
+    'fettuccine': 'pasta',
+    'fettuccines': 'pasta',
+    'orecchiette': 'pasta',
+    'orecchiettes': 'pasta',
+    'tortellini': 'pasta',
+    'tortellinis': 'pasta',
+    'ravioli': 'pasta',
+    'raviolis': 'pasta',
+    'lasagne': 'pasta',
+    'lasagnes': 'pasta',
+    'cannelloni': 'pasta',
+    'cannellonis': 'pasta',
+    'gnocchi': 'pasta',
+    'gnocchis': 'pasta',
+    'nouille': 'pasta',
+    'nouilles': 'pasta',
+    'vermicelle': 'pasta',
+    'vermicelles': 'pasta',
+    'coquillette': 'pasta',
+    'coquillettes': 'pasta',
+    'conchiglie': 'pasta',
+    'papardelle': 'pasta',
+    'papardelles': 'pasta',
+    'bucatini': 'pasta',
+
+    # ============================================================
+    # FÉCULENTS & CÉRÉALES
+    # ============================================================
     'riz': 'rice',
-    'basmati': 'basmati-rice',
+    'basmati': 'rice',
+    'arborio': 'rice',
     'quinoa': 'quinoa',
     'boulgour': 'bulgur',
+    'boulghour': 'bulgur',
     'couscous': 'couscous',
+    'semoule': 'couscous',
     'lentille': 'lentil',
     'lentilles': 'lentil',
-    'corail': 'red-lentil',
+    'corail': 'lentil',
     'pois-chiche': 'chickpea',
     'pois-chiches': 'chickpea',
-    # Note: 'rouge/rouges' removed - too generic (red color), causes false positives
-    # Use compound pattern 'haricot rouge' in ingredient_image_matcher.py instead
-    # Note: 'flocon/flocons' removed - too generic (flake)
     'avoine': 'oat',
+    'flocon': 'oat',
+    'flocons': 'oat',
     'pain': 'bread',
     'pains': 'bread',
     'chapelure': 'breadcrumb',
@@ -366,40 +459,109 @@ FR_TO_EN = {
     'biscottes': 'rusk',
     'cracker': 'cracker',
     'crackers': 'cracker',
-    # Note: 'feuilletée/brisée/sablée' removed - these are adjectives for 'pâte'
-    # Keep only explicit terms like 'pâte feuilletée' as compounds
 
-    # === HERBES & ÉPICES (~40 ingrédients) ===
-    'basilic': 'basil',
-    'persil': 'parsley',
-    # Note: 'plat/frisé/frise' removed - too generic adjectives
-    'ciboulette': 'chive',
-    'ciboulettes': 'chive',
-    'coriandre': 'cilantro',
-    'menthe': 'mint',
-    'thym': 'thyme',
-    'romarin': 'rosemary',
-    'origan': 'oregano',
-    'estragon': 'tarragon',
-    'laurier': 'bay-leaf',
-    'aneth': 'dill',
-    'sauge': 'sage',
-    # Note: 'herbe/herbes' removed - too generic
-    'provence': 'herbes-de-provence',
+    # ============================================================
+    # FARINES & LEVURES
+    # ============================================================
+    'farine': 'flour',
+    'farines': 'flour',
+    'épeautre': 'flour',
+    'epeautre': 'flour',
+    'sarrasin': 'flour',
+    'fécule': 'starch',
+    'fecule': 'starch',
+    'maïzena': 'cornstarch',
+    'maizena': 'cornstarch',
+    'levure': 'yeast',
+    'levures': 'yeast',
+    'bicarbonate': 'baking-soda',
+
+    # ============================================================
+    # SUCRES & DOUCEURS
+    # ============================================================
+    'sucre': 'sugar',
+    'sucres': 'sugar',
+    'cassonade': 'brown-sugar',
+    'vergeoise': 'brown-sugar',
+    'miel': 'honey',
+    'sirop': 'syrup',
+    'érable': 'maple-syrup',
+    'erable': 'maple-syrup',
+    'confiture': 'jam',
+    'confitures': 'jam',
+    'chocolat': 'chocolate',
+    'chocolats': 'chocolate',
+    'cacao': 'cocoa',
+    'pépite': 'chocolate-chip',
+    'pépites': 'chocolate-chip',
+
+    # ============================================================
+    # NOIX & FRUITS SECS → nuts
+    # ============================================================
+    'amande': 'nuts',
+    'amandes': 'nuts',
+    'noisette': 'nuts',
+    'noisettes': 'nuts',
+    'noix': 'nuts',
+    'pistache': 'nuts',
+    'pistaches': 'nuts',
+    'cacahuète': 'nuts',
+    'cacahuètes': 'nuts',
+    'cacahuete': 'nuts',
+    'cacahuetes': 'nuts',
+    'cajou': 'nuts',
+    'cajous': 'nuts',
+    'pécan': 'nuts',
+    'pecan': 'nuts',
+    'pignon': 'nuts',
+    'pignons': 'nuts',
+    'macadamia': 'nuts',
+
+    # Graines (distinctes)
+    'tournesol': 'sunflower-seed',
+    'lin': 'flax-seed',
+    'chia': 'chia-seed',
+    'sésame': 'sesame',
+    'sesame': 'sesame',
+    'pavot': 'poppy-seed',
+
+    # ============================================================
+    # HERBES → herbs
+    # ============================================================
+    'basilic': 'herbs',
+    'persil': 'herbs',
+    'ciboulette': 'herbs',
+    'ciboulettes': 'herbs',
+    'coriandre': 'herbs',
+    'menthe': 'herbs',
+    'thym': 'herbs',
+    'romarin': 'herbs',
+    'origan': 'herbs',
+    'estragon': 'herbs',
+    'laurier': 'herbs',
+    'aneth': 'herbs',
+    'sauge': 'herbs',
+    'cerfeuil': 'herbs',
+    'sarriette': 'herbs',
+    'marjolaine': 'herbs',
+    'herbe': 'herbs',
+    'herbes': 'herbs',
+    'provence': 'herbs',
+    'fines-herbes': 'herbs',
+
+    # ============================================================
+    # ÉPICES
+    # ============================================================
     'sel': 'salt',
-    # Note: 'fleur' removed - too generic (flower)
     'poivre': 'pepper',
     'paprika': 'paprika',
-    'espelette': 'espelette-pepper',
+    'espelette': 'paprika',
     'curry': 'curry',
     'curcuma': 'turmeric',
     'cumin': 'cumin',
-    # Note: 'moulue' removed - this is a PREPARATION (ground), not an ingredient
     'cannelle': 'cinnamon',
     'muscade': 'nutmeg',
     'vanille': 'vanilla',
-    # Note: 'gousse' removed (conflicts with garlic), 'extrait' removed (too generic)
-    # Keep only 'vanille' which is clear
     'clou': 'clove',
     'clous': 'clove',
     'girofle': 'clove',
@@ -408,50 +570,39 @@ FR_TO_EN = {
     'etoile': 'star-anise',
     'safran': 'saffron',
     'cardamome': 'cardamom',
+    'cayenne': 'cayenne',
     'ras-el-hanout': 'ras-el-hanout',
-    'cinq-épices': 'five-spice',
-    'cinq-epices': 'five-spice',
-    # Note: 'italien/italienne' removed - too generic (Italian)
     'zaatar': 'zaatar',
     'sumac': 'sumac',
-    'cayenne': 'cayenne',
 
-    # === AUTRES / CONDIMENTS / LIQUIDES (~35 ingrédients) ===
+    # ============================================================
+    # HUILES → oil
+    # ============================================================
     'huile': 'oil',
     'huiles': 'oil',
-    # Specific oils (after apostrophe replacement 'd\'olive' → 'd olive' → 'olive')
-    'olive-oil': 'olive-oil',  # Explicit compound
-    "huile-d'olive": 'olive-oil',
-    "huile-d-olive": 'olive-oil',
-    'huile-olive': 'olive-oil',
+
+    # ============================================================
+    # CONDIMENTS & SAUCES
+    # ============================================================
     'vinaigre': 'vinegar',
     'vinaigres': 'vinegar',
-    # Note: 'balsamique/cidre' removed - these are adjectives for 'vinaigre'
     'moutarde': 'mustard',
     'moutardes': 'mustard',
-    # Note: 'dijon' removed - brand/region name
-    # Note: 'ancienne' removed - too generic (old)
     'ketchup': 'ketchup',
     'mayonnaise': 'mayonnaise',
     'mayo': 'mayonnaise',
     'soja': 'soy-sauce',
     'worcestershire': 'worcestershire-sauce',
     'tabasco': 'tabasco',
-    # Note: 'pimentée/pimentee' removed - adjective (spiced/hot)
     'vin': 'wine',
     'vins': 'wine',
     'bouillon': 'broth',
     'bouillons': 'broth',
-    # Note: 'légume/légumes' removed - too generic (vegetable)
-    # Note: 'concentré/concentre' removed - too generic (concentrate)
     'coulis': 'tomato-sauce',
-    # Note: 'concassée/concassees/concassee' removed - this is a PREPARATION (crushed)
     'nuoc-mâm': 'fish-sauce',
     'nuoc-mam': 'fish-sauce',
     'miso': 'miso',
     'tahini': 'tahini',
-    # Note: This 'cacahuète' is duplicate - already defined as 'peanut' above
-    # Remove this entry (peanut butter should be explicit)
     'cornichon': 'pickle',
     'cornichons': 'pickle',
     'câpre': 'caper',
@@ -461,24 +612,21 @@ FR_TO_EN = {
     'pesto': 'pesto',
     'harissa': 'harissa',
     'wasabi': 'wasabi',
+    'béchamel': 'bechamel',
+    'bechamel': 'bechamel',
+
+    # ============================================================
+    # BOISSONS
+    # ============================================================
     'café': 'coffee',
     'cafe': 'coffee',
     'thé': 'tea',
     'the': 'tea',
-    'tofu': 'tofu',
-    # Sauces
-    'béchamel': 'bechamel',
-    'bechamel': 'bechamel',
-}
 
-# Categories for potential fallback
-CATEGORIES = {
-    'vegetable': ['légume', 'légumes', 'legume', 'legumes'],
-    'fruit': ['fruit', 'fruits'],
-    'meat': ['viande', 'viandes'],
-    'fish': ['poisson', 'poissons'],
-    'dairy': ['laitier', 'laitiers', 'fromage', 'fromages'],
-    'grain': ['céréale', 'céréales', 'féculent', 'féculents'],
-    'spice': ['épice', 'épices', 'herbe', 'herbes'],
-    'condiment': ['condiment', 'condiments', 'sauce', 'sauces'],
+    # ============================================================
+    # AUTRES
+    # ============================================================
+    'tofu': 'tofu',
+    'tempeh': 'tofu',
+    'seitan': 'tofu',
 }

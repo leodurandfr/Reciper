@@ -11,6 +11,7 @@ import RecipeView from './views/RecipeView.vue'
 import LoadingView from './views/LoadingView.vue'
 import i18n from './i18n/index.js'
 import { initTheme, getSettings } from './stores/settings.js'
+import { useScrollPosition } from './composables/useScrollPosition.js'
 
 // Initialiser le thème
 initTheme()
@@ -34,12 +35,28 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    }
-    return { top: 0 }
-  },
+  // Scroll is handled manually via useScrollPosition for smooth transitions
+})
+
+// Scroll position management
+const { savePosition, markForRestore } = useScrollPosition()
+
+// Disable browser's native scroll restoration (we handle it manually after transitions)
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual'
+}
+
+// Save scroll position before leaving a route
+router.beforeEach((to, from) => {
+  // Save current scroll position for the route we're leaving
+  if (from.path) {
+    savePosition(from.path)
+  }
+})
+
+// Detect back/forward navigation to restore scroll
+window.addEventListener('popstate', () => {
+  markForRestore()
 })
 
 const app = createApp(App)

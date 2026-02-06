@@ -11,15 +11,6 @@
         />
       </div>
 
-      <div class="form-group">
-        <label for="description">{{ $t('editModal.description') }}</label>
-        <textarea
-          id="description"
-          v-model="form.description"
-          rows="3"
-        ></textarea>
-      </div>
-
       <div class="form-row">
         <div class="form-group">
           <label for="prep_time">{{ $t('editModal.prepTime') }}</label>
@@ -108,7 +99,6 @@ const saving = ref(false)
 
 const form = ref({
   title: '',
-  description: '',
   prep_time: null,
   cook_time: null,
   yields: '',
@@ -124,7 +114,6 @@ watch(
     if (props.isOpen && props.recipe) {
       form.value = {
         title: props.recipe.title || '',
-        description: props.recipe.description || '',
         prep_time: props.recipe.prep_time,
         cook_time: props.recipe.cook_time,
         yields: props.recipe.yields || '',
@@ -161,7 +150,6 @@ async function handleSubmit() {
 
     const data = {
       title: form.value.title,
-      description: form.value.description || null,
       prep_time: form.value.prep_time || null,
       cook_time: form.value.cook_time || null,
       total_time: totalTime,

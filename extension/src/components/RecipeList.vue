@@ -1,19 +1,18 @@
 <template>
   <div class="recipe-list">
     <p v-if="recipes.length === 0" class="empty-state">
-      {{ showFavoritesOnly
-        ? $t('home.emptyFavorites')
-        : $t('home.emptyHistory')
-      }}
+      {{ emptyMessage }}
     </p>
     <RecipeCard v-for="(recipe, index) in recipes" :key="recipe.id" :recipe="recipe" :style="{ '--i': index }" />
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import RecipeCard from './RecipeCard.vue'
 
-defineProps({
+const props = defineProps({
   recipes: {
     type: Array,
     required: true,
@@ -22,6 +21,21 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  searchQuery: {
+    type: String,
+    default: '',
+  },
+})
+
+const { t } = useI18n()
+
+const emptyMessage = computed(() => {
+  if (props.searchQuery.trim()) {
+    return t('search.noResults')
+  }
+  return props.showFavoritesOnly
+    ? t('home.emptyFavorites')
+    : t('home.emptyHistory')
 })
 </script>
 

@@ -1,20 +1,35 @@
 """
 Ingredient image matching service for multilingual ingredient recognition.
 
-SIMPLIFIED APPROACH:
-- Detects language from domain (internal, not exposed in API)
-- Uses language-specific dictionaries to match ingredients to image IDs
-- Same matching logic for all languages (LAST match strategy)
+MODULAR APPROACH:
+- Each language has its own dictionary (word → image_id mappings)
+- Each language has its own patterns file (compound patterns + exclusions)
+- Generic matching logic applies to all languages
 
 Supported languages:
-- French (FR) → Uses FR_TO_EN dictionary
-- English (EN) → Uses EN_INGREDIENTS dictionary
+- French (FR) → fr_to_en.py (dictionary) + fr_patterns.py (patterns)
+- English (EN) → en_ingredients.py (dictionary) + en_patterns.py (patterns)
 - Other languages → Returns None (no dictionary available)
 """
 
 from typing import Optional
 from .data.translations.fr_to_en import FR_TO_EN
 from .data.translations.en_ingredients import EN_INGREDIENTS
+from .data.translations import fr_patterns, en_patterns
+
+# Language configuration: dictionary + patterns for each supported language
+LANGUAGE_CONFIG = {
+    'fr': {
+        'dictionary': FR_TO_EN,
+        'compound_patterns': fr_patterns.COMPOUND_PATTERNS,
+        'exclusion_patterns': fr_patterns.EXCLUSION_PATTERNS,
+    },
+    'en': {
+        'dictionary': EN_INGREDIENTS,
+        'compound_patterns': en_patterns.COMPOUND_PATTERNS,
+        'exclusion_patterns': en_patterns.EXCLUSION_PATTERNS,
+    },
+}
 
 
 def normalize_text(text: str) -> str:
@@ -64,15 +79,17 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
     """
     Get the image ID for an ingredient based on detected language.
 
-    ULTRA-SIMPLE LOGIC (same for all languages):
-    1. Check for multi-word compounds (language-specific patterns)
-    2. Extract ALL keywords from the ingredient
-    3. Check each keyword against the language dictionary
-    4. Return the LAST match found
+    MATCHING LOGIC (same for all languages):
+    1. Load language-specific config (dictionary + patterns)
+    2. Check for compound patterns (e.g., "pâte feuilletée" → dough)
+    3. Determine excluded keywords based on exclusion patterns
+    4. Extract ALL keywords from the ingredient
+    5. Check each keyword against the dictionary (skip excluded ones)
+    6. Return the LAST match found
 
     Supported languages:
-    - "fr": French → Uses FR_TO_EN dictionary
-    - "en": English → Uses EN_INGREDIENTS dictionary
+    - "fr": French → Uses FR_TO_EN dictionary + fr_patterns
+    - "en": English → Uses EN_INGREDIENTS dictionary + en_patterns
     - Other: Returns None (no dictionary available)
 
     Examples:
@@ -80,7 +97,9 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
         >>> get_ingredient_image_id("200g de farine", "fr")
         "flour"
         >>> get_ingredient_image_id("huile d'olive", "fr")
-        "olive-oil"
+        "oil"
+        >>> get_ingredient_image_id("1 pâte feuilletée", "fr")
+        "dough"
 
         # English
         >>> get_ingredient_image_id("2 cups flour", "en")
@@ -101,40 +120,36 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
     """
     import re
 
-    # STEP 1: Choose dictionary based on language
-    if language == "fr":
-        dictionary = FR_TO_EN
-    elif language == "en":
-        dictionary = EN_INGREDIENTS
-    else:
-        # No dictionary for this language
+    # STEP 1: Load language configuration
+    config = LANGUAGE_CONFIG.get(language)
+    if not config:
         return None
 
-    # STEP 2: Check for multi-word compounds (only for French for now)
-    if language == "fr":
-        normalized_ingredient = ingredient.lower()
+    dictionary = config['dictionary']
+    compound_patterns = config['compound_patterns']
+    exclusion_patterns = config['exclusion_patterns']
 
-        # French compound patterns
-        compound_patterns = [
-            (r'huile.{0,10}olive', 'olive-oil'),
-            (r'pomme.{0,10}terre', 'potato'),
-            (r'citron.{0,10}vert', 'lime'),
-            (r'noix.{0,10}coco', 'coconut'),
-            (r'pâte.{0,10}tartiner', 'spread'),
-            (r'pate.{0,10}tartiner', 'spread'),
-            (r'haricot.{0,10}rouge', 'kidney-bean'),
-        ]
+    normalized_ingredient = ingredient.lower()
 
-        for pattern, image_id in compound_patterns:
-            if re.search(pattern, normalized_ingredient):
-                return image_id
+    # STEP 2: Check compound patterns first (highest priority)
+    for pattern, image_id in compound_patterns:
+        if re.search(pattern, normalized_ingredient):
+            return image_id
 
-    # STEP 3: Extract ALL keywords
+    # STEP 3: Determine which keywords should be excluded
+    excluded_keywords = set()
+    for pattern, keyword_to_exclude in exclusion_patterns:
+        if re.search(pattern, normalized_ingredient):
+            excluded_keywords.add(keyword_to_exclude.lower())
+
+    # STEP 4: Extract ALL keywords
     keywords = extract_keywords(ingredient)
 
-    # STEP 4: Find matches and return LAST (simple strategy for all)
+    # STEP 5: Find matches, skipping excluded keywords
     last_match = None
     for keyword in keywords:
+        if keyword in excluded_keywords:
+            continue
         result = _lookup_single_keyword(keyword, dictionary)
         if result:
             last_match = result

@@ -1,6 +1,7 @@
 <template>
-  <header class="app-header">
-    <div class="header-left" :class="{ 'header-slots-hidden': largeTitle }">
+  <header class="app-header" :class="{ 'app-header--large': largeTitle }">
+    <!-- Left Button -->
+    <div class="header-left" :class="{ 'header-slots-hidden': largeTitle && !leftButton }">
       <Transition name="header-fade">
         <BaseButton
           v-if="leftButton"
@@ -12,8 +13,12 @@
         </BaseButton>
       </Transition>
     </div>
+
+    <!-- Logo -->
     <router-link to="/favorites" class="logo" :class="{ 'logo--large': largeTitle }">Reciper</router-link>
-    <div class="header-right" :class="{ 'header-slots-hidden': largeTitle }">
+
+    <!-- Right Button -->
+    <div class="header-right" :class="{ 'header-slots-hidden': largeTitle && !rightButton }">
       <Transition name="header-fade">
         <BaseButton
           v-if="rightButton"
@@ -49,6 +54,11 @@ const { leftButton, rightButton } = useHeaderButtons()
   justify-content: space-between;
   align-items: center;
   padding: var(--space-04) 0;
+  transition: padding var(--transition-normal);
+}
+
+.app-header--large {
+  padding: var(--space-06) 0;
 }
 
 .header-left,
@@ -64,12 +74,10 @@ const { leftButton, rightButton } = useHeaderButtons()
 }
 
 .header-left {
-  display: flex;
   justify-content: flex-start;
 }
 
 .header-right {
-  display: flex;
   justify-content: flex-end;
 }
 
