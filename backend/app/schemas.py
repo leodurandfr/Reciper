@@ -25,3 +25,23 @@ class ScrapedRecipe(BaseModel):
     total_time: int | None = None
     yields: str | None = None
     host: str
+
+
+class ShareRequest(BaseModel):
+    """Request body for sharing a recipe."""
+    title: str
+    image_url: str | None = None
+    ingredients: list[str]
+    enriched_ingredients: list[EnrichedIngredient] = []
+    instructions: list[str]
+    prep_time: int | None = None
+    cook_time: int | None = None
+    total_time: int | None = None
+    yields: str | None = None
+    host: str
+    url: str
+
+
+class ShareResponse(BaseModel):
+    """Response model for a shared recipe."""
+    url: str

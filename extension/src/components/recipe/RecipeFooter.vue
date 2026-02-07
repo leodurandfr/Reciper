@@ -5,6 +5,9 @@
     </BaseButton>
 
     <div class="actions">
+      <BaseButton variant="outline" :disabled="sharing" @click="handleShare">
+        {{ shareLabel }}
+      </BaseButton>
       <BaseButton variant="outline" @click="$emit('edit')">
         {{ $t('recipe.edit') }}
       </BaseButton>
@@ -16,9 +19,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteRecipe } from '../../services/db.js'
+import { shareRecipe } from '../../services/api.js'
 import BaseButton from '../BaseButton.vue'
 
 const { t } = useI18n()
@@ -33,6 +37,29 @@ const props = defineProps({
 const emit = defineEmits(['edit', 'deleted'])
 
 const deleting = ref(false)
+const sharing = ref(false)
+const shareCopied = ref(false)
+
+const shareLabel = computed(() => {
+  if (shareCopied.value) return t('recipe.shareCopied')
+  if (sharing.value) return t('recipe.sharing')
+  return t('recipe.share')
+})
+
+async function handleShare() {
+  sharing.value = true
+  try {
+    const { url } = await shareRecipe(props.recipe)
+    await navigator.clipboard.writeText(url)
+    shareCopied.value = true
+    setTimeout(() => { shareCopied.value = false }, 3000)
+  } catch (err) {
+    console.error('Erreur partage:', err)
+    alert(t('recipe.shareError'))
+  } finally {
+    sharing.value = false
+  }
+}
 
 async function handleSourceClick(event) {
   event.preventDefault()

@@ -46,16 +46,6 @@ function extensionPlugin() {
         resolve(distDir, 'i18n-lite.js')
       )
 
-      // Copier popup.html et popup.js
-      copyFileSync(
-        resolve(__dirname, 'popup.html'),
-        resolve(distDir, 'popup.html')
-      )
-      copyFileSync(
-        resolve(__dirname, 'popup.js'),
-        resolve(distDir, 'popup.js')
-      )
-
       // Copier le dossier icons
       const iconsDir = resolve(distDir, 'icons')
       if (!existsSync(iconsDir)) {

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ recipe.title }} — Reciper</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{ recipe.title }}">
+  <meta property="og:type" content="article">
+  {% if recipe.image_url %}
+  <meta property="og:image" content="{{ recipe.image_url }}">
+  {% endif %}
+  <meta property="og:description" content="Recette de {{ recipe.host }} — {{ recipe.yields or '' }}{% if recipe.ingredients %} · {{ recipe.ingredients | length }} ingrédients{% endif %}">
+
+  <style>
+    /* === FONTS === */
+    @font-face {
+      font-family: 'Recoleta';
+      src: url('/static/fonts/Recoleta-SemiBold.woff2') format('woff2');
+      font-weight: 600;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Neue Montreal';
+      src: url('/static/fonts/NeueMontreal-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+    }
+
+    /* === RESET === */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    ul, ol { list-style: none; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* === DESIGN TOKENS === */
+    :root {
+      --color-brand: #FF5500;
+      --color-brand-hover: #e55a24;
+      --color-text: #2E2B25;
+      --color-text-50: rgba(46, 43, 37, 0.5);
+      --color-background: #f8f6f2;
+      --color-background-strong: #F2EEE5;
+      --color-background-neutral: #ffffff;
+      --color-text-contrast: #FFF;
+      --color-border: rgba(46, 43, 37, 0.04);
+      --color-border-strong: rgba(46, 43, 37, 0.12);
+
+      --grid-gutter: 16px;
+      --grid-margin: 64px;
+
+      --space-01: 4px;
+      --space-02: 8px;
+      --space-03: 12px;
+      --space-04: 16px;
+      --space-05: 24px;
+      --space-06: 32px;
+      --space-07: 48px;
+
+      --font-family-heading: 'Recoleta', Georgia, serif;
+      --font-family-body: 'Neue Montreal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+      --font-size-heading-01: 48px;
+      --font-size-heading-02: 36px;
+      --font-size-heading-03: 28px;
+      --font-size-body-medium: 18px;
+      --font-size-body-small: 16px;
+
+      --line-height-heading: 100%;
+      --line-height-body: 140%;
+      --letter-spacing-body: 0.01em;
+
+      --radius-03: 12px;
+      --radius-05: 20px;
+      --radius-07: 32px;
+    }
+
+    /* === RESPONSIVE TOKENS === */
+    @media (max-width: 1024px) {
+      :root {
+        --grid-margin: 32px;
+        --space-05: 16px;
+        --space-06: 24px;
+        --space-07: 32px;
+        --font-size-heading-01: 42px;
+        --font-size-heading-02: 32px;
+        --font-size-heading-03: 26px;
+        --font-size-body-medium: 17px;
+        --font-size-body-small: 14px;
+      }
+    }
+    @media (max-width: 480px) {
+      :root {
+        --grid-margin: 16px;
+        --grid-gutter: 8px;
+        --font-size-heading-01: 36px;
+        --font-size-heading-02: 26px;
+        --font-size-heading-03: 22px;
+        --font-size-body-medium: 16px;
+        --font-size-body-small: 14px;
+      }
+    }
+
+    /* === BASE === */
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body {
+      font-family: var(--font-family-body);
+      font-size: var(--font-size-body-medium);
+      line-height: var(--line-height-body);
+      letter-spacing: var(--letter-spacing-body);
+      color: var(--color-text);
+      background-color: var(--color-background-strong);
+    }
+
+    /* === TYPOGRAPHY === */
+    .heading-01 {
+      font-family: var(--font-family-heading);
+      font-size: var(--font-size-heading-01);
+      line-height: var(--line-height-heading);
+      font-weight: 600;
+    }
+    .heading-03 {
+      font-family: var(--font-family-heading);
+      font-size: var(--font-size-heading-03);
+      line-height: var(--line-height-heading);
+      font-weight: 600;
+    }
+
+    /* === LOGO === */
+    .app-header {
+      grid-column: 1 / -1;
+      padding: var(--space-05) 0;
+      text-align: center;
+    }
+    .logo {
+      color: var(--color-brand);
+      text-decoration: none;
+      font-family: var(--font-family-heading);
+      font-size: var(--font-size-heading-02);
+      line-height: 1;
+      font-weight: 600;
+    }
+
+    /* === APP GRID (mirrors App.vue) === */
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: var(--grid-gutter);
+      min-height: 100vh;
+      padding: 0 var(--grid-margin);
+      overflow-x: hidden;
+    }
+    @media (max-width: 480px) {
+      .app-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    /* === MAIN (mirrors App.vue main) === */
+    .app-main {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      align-content: start;
+    }
+
+    /* === RECIPE GRID (mirrors RecipeDetail.vue) === */
+    .recipe-grid {
+      grid-column: 2 / 12;
+      display: grid;
+      grid-template-columns: subgrid;
+      row-gap: var(--grid-gutter);
+      padding-bottom: var(--space-07);
+    }
+    @media (max-width: 1280px) {
+      .recipe-grid { grid-column: 1 / 13; }
+    }
+    @media (max-width: 800px) {
+      .recipe-grid { grid-column: 1 / -1; }
+    }
+
+    /* === COL LAYOUT === */
+    .col-full { grid-column: 1 / -1; }
+    .col-left {
+      grid-column: 1 / 4;
+      padding: var(--space-06);
+      background: var(--color-background-neutral);
+      border-radius: var(--radius-07);
+    }
+    .col-right {
+      grid-column: 4 / -1;
+      padding: var(--space-06);
+      background: var(--color-background-neutral);
+      border-radius: var(--radius-07);
+    }
+    @media (max-width: 1280px) {
+      .col-left { grid-column: 1 / 5; }
+      .col-right { grid-column: 5 / -1; }
+    }
+    @media (max-width: 800px) {
+      .col-full, .col-left, .col-right { grid-column: 1 / -1; }
+    }
+
+    /* === RECIPE HEADER (mirrors RecipeHeader.vue) === */
+    .recipe-header {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      align-items: stretch;
+      padding: var(--space-03);
+      background: var(--color-background-neutral);
+      border-radius: var(--radius-07);
+      overflow: hidden;
+    }
+    .recipe-info {
+      grid-column: 1 / 7;
+      display: flex;
+      flex-direction: column;
+      padding: calc(var(--space-06) - var(--space-03)) 0 calc(var(--space-06) - var(--space-03)) calc(var(--space-06) - var(--space-03));
+      min-width: 0;
+    }
+    .recipe-header h1 { margin: 0 0 var(--space-03) 0; word-wrap: break-word; }
+    .times {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-01);
+      margin-top: auto;
+    }
+    .image-container {
+      grid-column: 7 / -1;
+      aspect-ratio: 6 / 4;
+      overflow: hidden;
+      border-radius: var(--radius-05);
+      min-width: 0;
+    }
+    .recipe-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    @media (max-width: 1280px) {
+      .image-container { grid-column: 8 / -1; }
+    }
+    @media (max-width: 800px) {
+      .recipe-header { gap: var(--space-03); }
+      .recipe-info { grid-column: 1 / -1; }
+      .image-container { grid-column: 1 / -1; order: -1; }
+    }
+
+    /* === TAG (mirrors Tag.vue) === */
+    .tag {
+      padding: 6px var(--space-03);
+      background: var(--color-background);
+      border-radius: var(--radius-03);
+      display: inline-flex;
+      gap: var(--space-01);
+      font-size: var(--font-size-body-medium);
+    }
+    .tag-label { color: var(--color-text-50); }
+    .tag-value { color: var(--color-brand); font-weight: 500; }
+
+    /* === INGREDIENTS (mirrors RecipeIngredients.vue) === */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-05);
+    }
+    .section-header h2 { margin: 0; }
+
+    .portion-selector {
+      position: relative;
+      display: flex;
+      align-items: center;
+      border: none;
+      cursor: pointer;
+      color: var(--color-brand);
+      user-select: none;
+      gap: 2px;
+    }
+    .portion-selector svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .portion-value {
+      min-width: 1.2em;
+      text-align: center;
+      font-size: var(--font-size-body-medium);
+    }
+    .portion-native-select {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .ingredients-list li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-02);
+      padding: var(--space-02) 0;
+      border-bottom: 2px solid var(--color-border);
+    }
+    .ingredients-list li:first-child {
+      border-top: 2px solid var(--color-border);
+    }
+    .ingredients-list li:last-child {
+      border-bottom: none;
+    }
+    .ingredient-image {
+      width: 36px;
+      height: 36px;
+      margin-left: -4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .ingredient-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .ingredient-content { line-height: 1.4; }
+    .ingredient-quantity {
+      color: var(--color-brand);
+      margin-right: var(--space-02);
+    }
+
+    /* === INSTRUCTIONS (mirrors RecipeInstructions.vue) === */
+    .recipe-instructions h2 { margin: 0 0 var(--space-05) 0; }
+    .instructions-list li {
+      padding: var(--space-05) 0;
+      border-bottom: 2px solid var(--color-border);
+    }
+    .instructions-list li:first-child {
+      border-top: 2px solid var(--color-border);
+    }
+    .instructions-list li:last-child {
+      border-bottom: none;
+    }
+    .step-number {
+      display: block;
+      color: var(--color-text-50);
+      margin-bottom: var(--space-03);
+      font-size: var(--font-size-body-medium);
+    }
+    .step-text { margin: 0; }
+
+    /* === FOOTER (mirrors RecipeFooter.vue) === */
+    .recipe-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: var(--space-05);
+      border-top: 2px solid var(--color-border);
+      gap: var(--space-04);
+    }
+    .source-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-02);
+      text-decoration: none;
+      border-radius: var(--radius-03);
+      font-size: var(--font-size-body-small);
+      padding: var(--space-02) var(--space-04);
+      font-family: var(--font-family-body);
+      letter-spacing: var(--letter-spacing-body);
+      color: var(--color-brand);
+      box-shadow: inset 0 0 0 1px var(--color-border-strong);
+      transition: box-shadow 0.2s ease-in-out;
+    }
+    .source-btn:hover {
+      box-shadow: inset 0 0 0 1.5px var(--color-brand);
+    }
+    @media (max-width: 768px) {
+      .recipe-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    /* === SHARE FOOTER === */
+    .share-footer {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: var(--space-05) 0 var(--space-07);
+      font-size: var(--font-size-body-small);
+      color: var(--color-text-50);
+    }
+    .expire-notice {
+      display: inline-block;
+      background: var(--color-background-neutral);
+      padding: 6px var(--space-04);
+      border-radius: 9999px;
+      margin-bottom: var(--space-02);
+      font-size: var(--font-size-body-small);
+    }
+
+    /* === ANIMATIONS === */
+    .recipe-grid > :nth-child(1) { animation: stagger-in 300ms ease-out both; animation-delay: 150ms; }
+    .recipe-grid > :nth-child(2) { animation: stagger-in 300ms ease-out both; animation-delay: 200ms; }
+    .recipe-grid > :nth-child(3) { animation: stagger-in 300ms ease-out both; animation-delay: 250ms; }
+    .recipe-grid > :nth-child(4) { animation: stagger-in 300ms ease-out both; animation-delay: 300ms; }
+    @keyframes stagger-in {
+      from { opacity: 0; transform: translateY(16px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-grid">
+    <!-- LOGO -->
+    <header class="app-header">
+      <span class="logo">Reciper</span>
+    </header>
+
+    <!-- MAIN -->
+    <main class="app-main">
+      <article class="recipe-grid">
+
+        <!-- HEADER -->
+        <header class="recipe-header">
+          <div class="recipe-info">
+            <h1 class="heading-01">{{ recipe.title }}</h1>
+            {% if recipe.prep_time or recipe.cook_time %}
+            <div class="times">
+              {% if recipe.prep_time %}
+              <span class="tag">
+                <span class="tag-label">Prép.</span>
+                <span class="tag-value">{{ recipe.prep_time }}min</span>
+              </span>
+              {% endif %}
+              {% if recipe.cook_time %}
+              <span class="tag">
+                <span class="tag-label">Cuisson</span>
+                <span class="tag-value">{{ recipe.cook_time }}min</span>
+              </span>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+          {% if recipe.image_url %}
+          <div class="image-container">
+            <img class="recipe-image" src="{{ recipe.image_url }}" alt="{{ recipe.title }}">
+          </div>
+          {% endif %}
+        </header>
+
+        <!-- INGREDIENTS (left column) -->
+        <div class="col-left">
+          <section class="recipe-ingredients">
+            <div class="section-header">
+              <h2 class="heading-03">Ingrédients</h2>
+              {% if recipe.yields %}
+              <label class="portion-selector">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 14.4L12 18l-3.6-3.6M8.4 9.6L12 6l3.6 3.6"/></svg>
+                <span class="portion-value" id="portion-display"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 3.75v4.5M7.5 12v9M19.5 15.75h-5.25s0-9.75 5.25-12V21M4.2 3.75l-.45 4.5a3.75 3.75 0 0 0 7.5 0l-.45-4.5"/></svg>
+                <select class="portion-native-select" id="portion-select"></select>
+              </label>
+              {% endif %}
+            </div>
+            <ul class="ingredients-list" id="ingredients-list">
+              {% for ingredient in recipe.ingredients %}
+              <li data-original="{{ ingredient }}">
+                {% set enriched = recipe.enriched_ingredients[loop.index0] if recipe.enriched_ingredients and loop.index0 < recipe.enriched_ingredients | length else none %}
+                <div class="ingredient-image">
+                  <img src="/api/ingredients/images/{{ enriched.image_id if enriched and enriched.image_id else 'placeholder' }}"
+                       alt="" width="36" height="36"
+                       onerror="this.src='/api/ingredients/images/placeholder'">
+                </div>
+                <div class="ingredient-content">
+                  <span class="ingredient-quantity"></span><span class="ingredient-text">{{ ingredient }}</span>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </section>
+        </div>
+
+        <!-- INSTRUCTIONS (right column) -->
+        <div class="col-right">
+          <section class="recipe-instructions">
+            <h2 class="heading-03">Instructions</h2>
+            <ol class="instructions-list">
+              {% for instruction in recipe.instructions %}
+              <li>
+                <span class="step-number">Étape {{ loop.index }}</span>
+                <p class="step-text">{{ instruction }}</p>
+              </li>
+              {% endfor %}
+            </ol>
+          </section>
+
+          <!-- FOOTER -->
+          <footer class="recipe-footer">
+            {% if recipe.url %}
+            <a class="source-btn" href="{{ recipe.url }}" target="_blank" rel="noopener">
+              Source : {{ recipe.host }}
+            </a>
+            {% endif %}
+            <span class="expire-notice">Ce lien expire dans 24h</span>
+          </footer>
+        </div>
+
+        <!-- SHARE NOTICE -->
+        <div class="share-footer">
+          <p>Partagé depuis <strong>Reciper</strong></p>
+        </div>
+
+      </article>
+    </main>
+  </div>
+
+  <script>
+  (function() {
+    var RE = /^(\d+[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]|\d+[.,]\d+|\d+|[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])(\s*(?:kg|mg|cl|dl|ml|g|l)\b)?/;
+    window._splitQty = function(text) {
+      var m = text.match(RE);
+      if (m) return { qty: m[0], rest: text.slice(m[0].length).trimStart() };
+      return { qty: '', rest: text };
+    };
+    document.querySelectorAll('#ingredients-list li').forEach(function(li) {
+      var p = window._splitQty(li.getAttribute('data-original'));
+      li.querySelector('.ingredient-quantity').textContent = p.qty;
+      li.querySelector('.ingredient-text').textContent = p.rest;
+    });
+  })();
+  </script>
+
+  {% if recipe.yields %}
+  <script>
+  (function() {
+    // --- Portion Calculator (from usePortionCalculator.js) ---
+    const FRACTION_MAP = {
+      0.25: '\u00BC', 0.5: '\u00BD', 0.75: '\u00BE',
+      0.333: '\u2153', 0.667: '\u2154',
+      0.125: '\u215B', 0.375: '\u215C', 0.625: '\u215D', 0.875: '\u215E',
+    };
+    const UNICODE_FRACTIONS = {
+      '\u00BD': 0.5, '\u2153': 1/3, '\u2154': 2/3, '\u00BC': 0.25, '\u00BE': 0.75,
+      '\u2155': 0.2, '\u2156': 0.4, '\u2157': 0.6, '\u2158': 0.8,
+      '\u2159': 1/6, '\u215A': 5/6, '\u215B': 0.125, '\u215C': 0.375, '\u215D': 0.625, '\u215E': 0.875,
+    };
+
+    function extractQuantity(ingredient) {
+      const original = ingredient.trim();
+      const pattern = /^(\d+\s*)?([½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])|^(\d+)\s+(\d+)\/(\d+)|^(\d+)\/(\d+)|^(\d+[.,]\d+)|^(\d+)/;
+      const match = original.match(pattern);
+      if (!match) return { quantity: null, rest: original };
+      let quantity = null;
+      const matchLength = match[0].length;
+      if (match[2]) {
+        const fraction = UNICODE_FRACTIONS[match[2]] || 0;
+        const whole = match[1] ? parseInt(match[1].trim(), 10) : 0;
+        quantity = whole + fraction;
+      } else if (match[3] && match[4] && match[5]) {
+        quantity = parseInt(match[3], 10) + parseInt(match[4], 10) / parseInt(match[5], 10);
+      } else if (match[6] && match[7]) {
+        quantity = parseInt(match[6], 10) / parseInt(match[7], 10);
+      } else if (match[8]) {
+        quantity = parseFloat(match[8].replace(',', '.'));
+      } else if (match[9]) {
+        quantity = parseInt(match[9], 10);
+      }
+      return { quantity, rest: original.slice(matchLength).trim() };
+    }
+
+    function formatQuantity(q) {
+      if (q === null || q === undefined) return '';
+      if (Number.isInteger(q)) return q.toString();
+      const whole = Math.floor(q);
+      const frac = Math.round((q - whole) * 1000) / 1000;
+      for (const [dec, sym] of Object.entries(FRACTION_MAP)) {
+        if (Math.abs(frac - parseFloat(dec)) < 0.01) return whole > 0 ? whole + sym : sym;
+      }
+      const rounded = Math.round(q * 10) / 10;
+      return rounded.toString().replace(/\.0$/, '');
+    }
+
+    function scaleIngredient(ingredient, originalPortions, newPortions) {
+      if (!originalPortions) return ingredient;
+      const { quantity, rest } = extractQuantity(ingredient);
+      if (quantity === null) return ingredient;
+      const scaled = quantity * (newPortions / originalPortions);
+      return (formatQuantity(scaled) + ' ' + rest).trim();
+    }
+
+    // --- Init ---
+    const yieldsStr = {{ recipe.yields | tojson }};
+    const yieldsMatch = yieldsStr ? yieldsStr.match(/(\d+)/) : null;
+    const originalPortions = yieldsMatch ? parseInt(yieldsMatch[1], 10) : null;
+    if (!originalPortions) return;
+
+    let currentPortions = originalPortions;
+    const select = document.getElementById('portion-select');
+    const display = document.getElementById('portion-display');
+    const items = document.querySelectorAll('#ingredients-list li');
+
+    // Build options
+    const max = Math.max(12, originalPortions);
+    for (let i = 1; i <= max; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      if (i === originalPortions) opt.selected = true;
+      select.appendChild(opt);
+    }
+
+    display.textContent = originalPortions;
+
+    select.addEventListener('change', function() {
+      currentPortions = parseInt(this.value, 10);
+      display.textContent = currentPortions;
+      items.forEach(function(li) {
+        const original = li.getAttribute('data-original');
+        const scaled = scaleIngredient(original, originalPortions, currentPortions);
+        var p = window._splitQty(scaled);
+        li.querySelector('.ingredient-quantity').textContent = p.qty;
+        li.querySelector('.ingredient-text').textContent = p.rest;
+      });
+    });
+  })();
+  </script>
+  {% endif %}
+</body>
+</html>

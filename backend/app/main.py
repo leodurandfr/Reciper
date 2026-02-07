@@ -1,11 +1,26 @@
+import json
+import os
+import secrets
+import string
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 
-from .schemas import ScrapeRequest, ScrapedRecipe
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from google.cloud import storage
+from jinja2 import Environment, FileSystemLoader
+
+from .schemas import ScrapeRequest, ScrapedRecipe, ShareRequest, ShareResponse
 from .scraper import scrape_recipe, ScraperError, UnsupportedWebsiteError, FetchError
 
+GCS_BUCKET = os.getenv("GCS_SHARED_BUCKET", "reciper-shared-recipes")
+
+gcs_client = storage.Client()
+gcs_bucket = gcs_client.bucket(GCS_BUCKET)
+
+templates_dir = Path(__file__).parent / "templates"
+jinja_env = Environment(loader=FileSystemLoader(str(templates_dir)), autoescape=True)
 
 app = FastAPI(
     title="Reciper API",
@@ -64,3 +79,47 @@ async def get_ingredient_image(image_id: str):
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=31536000"}  # Cache 1 year
     )
+
+
+def _generate_share_id(length: int = 8) -> str:
+    """Generate a short URL-safe share ID."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+
+@app.post("/api/share", response_model=ShareResponse)
+async def share_recipe(request: Request, data: ShareRequest):
+    """Store a recipe in GCS and return a shareable URL."""
+    share_id = _generate_share_id()
+
+    blob = gcs_bucket.blob(f"{share_id}.json")
+    blob.upload_from_string(
+        data.model_dump_json(),
+        content_type="application/json",
+    )
+
+    base_url = str(request.base_url).rstrip("/")
+    share_url = f"{base_url}/share/{share_id}"
+    return ShareResponse(url=share_url)
+
+
+@app.get("/share/{share_id}", response_class=HTMLResponse)
+async def view_shared_recipe(share_id: str):
+    """Serve a shared recipe as a responsive HTML page."""
+    # Security: only allow alphanumeric IDs
+    if not share_id.isalnum() or len(share_id) > 16:
+        raise HTTPException(status_code=400, detail="Invalid share ID")
+
+    blob = gcs_bucket.blob(f"{share_id}.json")
+
+    if not blob.exists():
+        raise HTTPException(status_code=404, detail="Recipe not found or link expired")
+
+    recipe_data = json.loads(blob.download_as_text())
+    template = jinja_env.get_template("share.html")
+    html = template.render(recipe=recipe_data)
+    return HTMLResponse(content=html)
+
+
+# Static files mount (fonts, etc.) — must be after all routes
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
