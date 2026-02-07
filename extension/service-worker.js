@@ -210,6 +210,13 @@ chrome.webNavigation.onCommitted.addListener(
       return;
     }
 
+    // Bypass les navigations back/forward du navigateur
+    // (filet de sécurité pour les cas cross-origin où replaceState ne fonctionne pas)
+    if (details.transitionQualifiers?.includes("forward_back")) {
+      chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+      return;
+    }
+
     // Éviter les doubles traitements
     if (processingUrls.has(details.url)) return;
     processingUrls.add(details.url);
@@ -234,6 +241,21 @@ chrome.webNavigation.onCommitted.addListener(
       // Récupérer l'URL de la page précédente (capturée par onBeforeNavigate)
       const referrerUrl = preNavigationUrls.get(details.tabId) || "";
       preNavigationUrls.delete(details.tabId);
+
+      // Remplacer l'entrée d'historique de la page recette par l'URL précédente
+      // pour que le bouton retour du navigateur ne revienne pas sur cette page interceptée
+      if (referrerUrl) {
+        try {
+          const referrerOrigin = new URL(referrerUrl).origin;
+          if (url.origin === referrerOrigin) {
+            await chrome.scripting.executeScript({
+              target: { tabId: details.tabId },
+              func: (replaceUrl) => history.replaceState(null, "", replaceUrl),
+              args: [referrerUrl],
+            });
+          }
+        } catch {}
+      }
 
       const encodedUrl = encodeURIComponent(details.url);
       const encodedReferrer = encodeURIComponent(referrerUrl);
