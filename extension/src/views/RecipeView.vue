@@ -41,6 +41,9 @@ const hasInternalHistory = computed(() => {
 // Scroll position restoration
 const { markForRestore } = useScrollPosition()
 
+// URL de la page précédente (transmise depuis le service worker via la loading page)
+const referrerUrl = route.query.referrerUrl
+
 function handleBack() {
   markForRestore()
   if (hasInternalHistory.value) {
@@ -48,6 +51,10 @@ function handleBack() {
   } else {
     router.push('/favorites')
   }
+}
+
+function handleBackToSite() {
+  window.location.href = referrerUrl
 }
 
 async function fetchRecipe() {
@@ -103,11 +110,9 @@ function handleRecipeDeleted() {
 // Header buttons via composable (rendered by AppHeader)
 const { leftButton, rightButton } = useHeaderButtons()
 
-leftButton.value = {
-  label: hasInternalHistory.value ? t('nav.back') : t('nav.myRecipes'),
-  iconLeft: 'chevron-left',
-  handler: handleBack,
-}
+leftButton.value = referrerUrl
+  ? { label: t('nav.back'), iconLeft: 'chevron-left', handler: handleBackToSite }
+  : { label: hasInternalHistory.value ? t('nav.back') : t('nav.myRecipes'), iconLeft: 'chevron-left', handler: handleBack }
 
 watchEffect(() => {
   if (recipe.value) {

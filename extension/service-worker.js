@@ -1,4 +1,4 @@
-import { isSupportedSite } from "./supported-sites.js";
+import { isSupportedSite, SUPPORTED_SITES } from "./supported-sites.js";
 import { initLocale, t } from "./i18n-lite.js";
 
 const DEFAULT_BACKEND_URL = "https://reciper-api-605923399344.europe-west1.run.app";
@@ -20,6 +20,12 @@ const processingUrls = new Set();
 
 // Set pour les URLs à ne pas intercepter (bypass depuis le lien source)
 const bypassUrls = new Set();
+
+// Map pour stocker l'URL de la page précédente par tabId
+const preNavigationUrls = new Map();
+
+// Map pour stocker les promises de pre-fetch (détection recipe)
+const pendingRecipeChecks = new Map();
 
 /**
  * Recupere l'index des recettes depuis chrome.storage.local
@@ -78,6 +84,32 @@ async function addRecipe(recipe) {
 }
 
 /**
+ * Vérifie si le HTML contient des données structurées de type Recipe
+ * (JSON-LD ou microdata Schema.org)
+ */
+function containsRecipe(html) {
+  // JSON-LD : "@type": "Recipe" ou "@type": ["Recipe", ...]
+  const jsonLd = /"@type"\s*:\s*(\[.*?)?"Recipe"/s.test(html);
+  // Microdata : itemtype="https://schema.org/Recipe"
+  const microdata = /itemtype\s*=\s*["']https?:\/\/schema\.org\/Recipe["']/i.test(html);
+  return jsonLd || microdata;
+}
+
+/**
+ * Fetch le HTML d'une URL et vérifie si la page contient une recette
+ */
+async function fetchAndCheckRecipe(url) {
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    },
+  });
+  if (!response.ok) return false;
+  const html = await response.text();
+  return containsRecipe(html);
+}
+
+/**
  * Scrape une recette via le backend
  */
 async function scrapeRecipe(url) {
@@ -116,23 +148,65 @@ async function scrapeAndSave(url) {
 }
 
 /**
- * Intercepte les navigations vers les sites de recettes supportés
- * Redirige vers la page de chargement Reciper avant l'affichage du site
+ * Enregistre le content script overlay sur les sites de recettes supportés.
+ * Le script s'exécute à document_start (avant tout rendu) et injecte un overlay.
+ */
+chrome.runtime.onInstalled.addListener(async () => {
+  const patterns = [];
+  for (const domain of SUPPORTED_SITES) {
+    patterns.push(`*://${domain}/*`);
+    patterns.push(`*://*.${domain}/*`);
+  }
+
+  try {
+    await chrome.scripting.unregisterContentScripts({ ids: ["reciper-overlay"] });
+  } catch {}
+
+  await chrome.scripting.registerContentScripts([{
+    id: "reciper-overlay",
+    matches: patterns,
+    js: ["overlay-content-script.js"],
+    runAt: "document_start",
+    allFrames: false,
+  }]);
+});
+
+/**
+ * Capture l'URL de la page précédente et lance le pre-fetch de détection recipe
+ */
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (details.frameId !== 0) return;
+  const url = new URL(details.url);
+  if (!isSupportedSite(url.hostname)) return;
+
+  // Capturer l'URL de la page précédente
+  try {
+    const tab = await chrome.tabs.get(details.tabId);
+    preNavigationUrls.set(details.tabId, tab.url);
+  } catch {}
+
+  // Lancer le pre-fetch pour détecter @type: Recipe avant onCommitted
+  const checkPromise = fetchAndCheckRecipe(details.url);
+  pendingRecipeChecks.set(details.url, checkPromise);
+});
+
+/**
+ * Intercepte les navigations vers les sites de recettes supportés.
+ * L'overlay est déjà injecté par le content script (document_start).
+ * Ici on vérifie si c'est une recette, et on retire l'overlay sinon.
  */
 chrome.webNavigation.onCommitted.addListener(
   async (details) => {
-    // Ignorer les iframes et les navigations internes
     if (details.frameId !== 0) return;
     if (details.transitionType === "auto_subframe") return;
 
     const url = new URL(details.url);
-
-    // Vérifier si c'est un site supporté
     if (!isSupportedSite(url.hostname)) return;
 
-    // Bypass si demandé (lien source depuis Reciper)
+    // Bypass si demandé (retour depuis Reciper vers le site)
     if (bypassUrls.has(details.url)) {
       bypassUrls.delete(details.url);
+      chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
       return;
     }
 
@@ -140,14 +214,39 @@ chrome.webNavigation.onCommitted.addListener(
     if (processingUrls.has(details.url)) return;
     processingUrls.add(details.url);
 
-    // Rediriger immédiatement vers la page de chargement
-    const encodedUrl = encodeURIComponent(details.url);
-    const loadingUrl = chrome.runtime.getURL(
-      `index.html#/loading?url=${encodedUrl}&returnUrl=${encodedUrl}`
-    );
-    chrome.tabs.update(details.tabId, { url: loadingUrl });
+    try {
+      // Consommer le pre-fetch lancé par onBeforeNavigate (ou fallback)
+      const isRecipe = pendingRecipeChecks.has(details.url)
+        ? await pendingRecipeChecks.get(details.url)
+        : await fetchAndCheckRecipe(details.url);
+      pendingRecipeChecks.delete(details.url);
 
-    setTimeout(() => processingUrls.delete(details.url), 5000);
+      if (!isRecipe) {
+        // Pas une recette : retirer l'overlay injecté par le content script
+        chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+        return;
+      }
+
+      // Vérifier que l'onglet est toujours sur la même page
+      const tab = await chrome.tabs.get(details.tabId).catch(() => null);
+      if (!tab || tab.url !== details.url) return;
+
+      // Récupérer l'URL de la page précédente (capturée par onBeforeNavigate)
+      const referrerUrl = preNavigationUrls.get(details.tabId) || "";
+      preNavigationUrls.delete(details.tabId);
+
+      const encodedUrl = encodeURIComponent(details.url);
+      const encodedReferrer = encodeURIComponent(referrerUrl);
+      const loadingUrl = chrome.runtime.getURL(
+        `index.html#/loading?url=${encodedUrl}&returnUrl=${encodedUrl}&referrerUrl=${encodedReferrer}`
+      );
+      chrome.tabs.update(details.tabId, { url: loadingUrl });
+    } catch {
+      // En cas d'erreur, retirer l'overlay pour ne pas bloquer la page
+      chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+    } finally {
+      processingUrls.delete(details.url);
+    }
   },
   {
     url: [{ schemes: ["http", "https"] }],

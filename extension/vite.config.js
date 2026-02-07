@@ -28,6 +28,12 @@ function extensionPlugin() {
         resolve(distDir, 'service-worker.js')
       )
 
+      // Copier overlay-content-script.js
+      copyFileSync(
+        resolve(__dirname, 'overlay-content-script.js'),
+        resolve(distDir, 'overlay-content-script.js')
+      )
+
       // Copier supported-sites.js
       copyFileSync(
         resolve(__dirname, 'supported-sites.js'),

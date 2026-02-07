@@ -95,7 +95,11 @@ onMounted(async () => {
     })
 
     if (response.success) {
-      router.replace(`/recipe/${response.recipeId}`)
+      const referrerUrl = route.query.referrerUrl
+      const target = referrerUrl
+        ? `/recipe/${response.recipeId}?referrerUrl=${encodeURIComponent(referrerUrl)}`
+        : `/recipe/${response.recipeId}`
+      router.replace(target)
     } else {
       throw new Error(response.error || t('loading.scrapingError'))
     }
