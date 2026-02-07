@@ -21,6 +21,10 @@ export default {
     deleteConfirm: 'Voulez-vous vraiment supprimer cette recette ?',
     deleting: 'Suppression...',
     edit: 'Modifier',
+    share: 'Partager',
+    sharing: 'Partage...',
+    shareCopied: 'Lien copié !',
+    shareError: 'Erreur lors du partage',
     source: 'Source: {host}',
   },
   home: {
