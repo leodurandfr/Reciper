@@ -298,6 +298,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 });
 
+/**
+ * Ouvre l'app Reciper dans un nouvel onglet au clic sur l'icône de l'extension
+ */
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
+});
+
 // Initialiser la locale et log au démarrage
 initLocale().then(() => {
   console.log(t("extensionLoaded"));

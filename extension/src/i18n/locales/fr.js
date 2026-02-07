@@ -25,8 +25,8 @@ export default {
   },
   home: {
     errorLoading: 'Erreur lors du chargement des recettes',
-    emptyFavorites: 'Aucune recette en favoris. Ajoutez des recettes à vos favoris depuis leur page de détail !',
-    emptyHistory: "Aucune recette sauvegardée. Utilisez l'extension Chrome pour en ajouter !",
+    emptyFavorites: 'Aucune recette en favoris',
+    emptyHistory: "Aucune recette sauvegardée",
   },
   search: {
     button: 'Rechercher',

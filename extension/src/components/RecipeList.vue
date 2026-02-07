@@ -1,8 +1,9 @@
 <template>
   <div class="recipe-list">
-    <p v-if="recipes.length === 0" class="empty-state">
-      {{ emptyMessage }}
-    </p>
+    <div v-if="recipes.length === 0" class="empty-state">
+      <img src="@/assets/ingredients/vegetables/carrot.png" alt="" class="empty-state__image" />
+      <p class="heading-03">{{ emptyMessage }}</p>
+    </div>
     <RecipeCard v-for="(recipe, index) in recipes" :key="recipe.id" :recipe="recipe" :style="{ '--i': index }" />
   </div>
 </template>
@@ -64,11 +65,23 @@ const emptyMessage = computed(() => {
 
 .empty-state {
   grid-column: 1 / -1;
+  animation: stagger-in 300ms ease-out both;
+  animation-delay: 150ms;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-05);
   text-align: center;
   color: var(--color-text);
-  padding: var(--space-07);
+  padding: var(--space-09) var(--space-07);
   background: var(--color-background-neutral);
-  border-radius: var(--radius-02);
+  border-radius: var(--radius-07);
+}
+
+.empty-state__image {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
 }
 
 /* lg (768-1024px): 3 cards par ligne (span 4 sur 12 colonnes) */

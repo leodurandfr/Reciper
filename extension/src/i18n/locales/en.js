@@ -25,8 +25,8 @@ export default {
   },
   home: {
     errorLoading: 'Error loading recipes',
-    emptyFavorites: 'No favorite recipes. Add recipes to your favorites from their detail page!',
-    emptyHistory: 'No saved recipes. Use the Chrome extension to add some!',
+    emptyFavorites: 'No favorite recipes',
+    emptyHistory: 'No saved recipes',
   },
   search: {
     button: 'Search',
