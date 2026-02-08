@@ -16,6 +16,7 @@
       <li v-for="(ingredient, index) in scaledIngredients" :key="index">
         <div class="ingredient-image">
           <img
+            v-if="hasImage(index)"
             :src="getIngredientImageUrl(index)"
             :alt="ingredient"
             width="32"
@@ -85,20 +86,16 @@ function getImageBaseUrl() {
   return import.meta.env.DEV ? '' : (settings.backendUrl || BACKEND_URL)
 }
 
-const placeholderUrl = `${getImageBaseUrl()}/api/ingredients/images/placeholder`
+function hasImage(index) {
+  return !!props.enrichedIngredients?.[index]?.image_id
+}
 
 function getIngredientImageUrl(index) {
-  const enriched = props.enrichedIngredients?.[index]
-  if (!enriched?.image_id) {
-    return placeholderUrl
-  }
-  return `${getImageBaseUrl()}/api/ingredients/images/${enriched.image_id}`
+  return `${getImageBaseUrl()}/api/ingredients/images/${props.enrichedIngredients[index].image_id}`
 }
 
 function onImageError(e) {
-  if (e.target.src !== placeholderUrl) {
-    e.target.src = placeholderUrl
-  }
+  e.target.style.display = 'none'
 }
 </script>
 
@@ -177,6 +174,8 @@ function onImageError(e) {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-radius: var(--radius-full);
+  background-color: var(--color-background-strong);
 }
 
 .ingredient-image img {

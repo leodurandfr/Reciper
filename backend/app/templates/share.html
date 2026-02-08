@@ -321,6 +321,8 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      border-radius: var(--radius-full);
+      background-color: var(--color-background-strong);
     }
     .ingredient-image img {
       width: 100%;
@@ -472,9 +474,11 @@
               <li data-original="{{ ingredient }}">
                 {% set enriched = recipe.enriched_ingredients[loop.index0] if recipe.enriched_ingredients and loop.index0 < recipe.enriched_ingredients | length else none %}
                 <div class="ingredient-image">
-                  <img src="/api/ingredients/images/{{ enriched.image_id if enriched and enriched.image_id else 'placeholder' }}"
+                  {% if enriched and enriched.image_id %}
+                  <img src="/api/ingredients/images/{{ enriched.image_id }}"
                        alt="" width="36" height="36"
-                       onerror="this.src='/api/ingredients/images/placeholder'">
+                       onerror="this.style.display='none'">
+                  {% endif %}
                 </div>
                 <div class="ingredient-content">
                   <span class="ingredient-quantity"></span><span class="ingredient-text">{{ ingredient }}</span>
