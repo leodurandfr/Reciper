@@ -51,6 +51,25 @@
         <div v-if="importResult" :class="['status-message', importResult.type]">
           {{ importResult.message }}
         </div>
+
+        <div class="delete-all-zone">
+          <template v-if="!confirmingDeleteAll">
+            <BaseButton variant="outline" class="delete-all-btn" :disabled="recipeCount === 0" @click="confirmingDeleteAll = true">
+              {{ $t('settings.data.deleteAll') }}
+            </BaseButton>
+          </template>
+          <template v-else>
+            <p class="delete-all-warning body-small">{{ $t('settings.data.deleteAllDescription') }}</p>
+            <div class="button-group">
+              <BaseButton variant="fill" class="delete-all-btn" :disabled="deletingAll" @click="handleDeleteAll">
+                {{ deletingAll ? $t('settings.data.deleting') : $t('settings.data.deleteAllConfirm') }}
+              </BaseButton>
+              <BaseButton variant="outline" @click="confirmingDeleteAll = false">
+                {{ $t('settings.data.deleteAllCancel') }}
+              </BaseButton>
+            </div>
+          </template>
+        </div>
       </section>
 
       <!-- Thème -->
@@ -135,7 +154,7 @@ import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
 import BaseButton from './BaseButton.vue'
 import { getSettings, saveSettings, applyTheme, BACKEND_URL } from '../stores/settings.js'
-import { getRecipeCount } from '../services/db.js'
+import { getRecipeCount, clearAllRecipes } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
 
 const props = defineProps({
@@ -157,6 +176,8 @@ const importInput = ref(null)
 const importFile = ref(null)
 const importOverwrite = ref(false)
 const importResult = ref(null)
+const confirmingDeleteAll = ref(false)
+const deletingAll = ref(false)
 
 const theme = ref('system')
 
@@ -199,6 +220,8 @@ watch(
       importPreview.value = null
       importFile.value = null
       importResult.value = null
+      confirmingDeleteAll.value = false
+      deletingAll.value = false
     }
   },
   { immediate: true }
@@ -286,6 +309,26 @@ function triggerImport() {
 function cancelImport() {
   importPreview.value = null
   importFile.value = null
+}
+
+async function handleDeleteAll() {
+  deletingAll.value = true
+  try {
+    await clearAllRecipes()
+    recipeCount.value = 0
+    confirmingDeleteAll.value = false
+    importResult.value = {
+      type: 'success',
+      message: t('settings.data.deleteAllSuccess')
+    }
+  } catch (error) {
+    importResult.value = {
+      type: 'error',
+      message: t('settings.data.deleteAllError', { message: error.message })
+    }
+  } finally {
+    deletingAll.value = false
+  }
 }
 
 async function changeTheme() {
@@ -411,6 +454,37 @@ async function saveBackendUrl() {
   align-items: center;
   gap: var(--space-02);
   cursor: pointer;
+}
+
+.delete-all-zone {
+  margin-top: var(--space-05);
+  padding-top: var(--space-05);
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.delete-all-warning {
+  color: var(--color-brand);
+  margin-bottom: var(--space-03);
+}
+
+.delete-all-btn {
+  color: #c53030;
+  border-color: #c53030;
+}
+
+.delete-all-btn:hover:not(.base-btn--disabled) {
+  box-shadow: inset 0 0 0 1.5px #c53030;
+}
+
+.delete-all-btn.base-btn--fill {
+  background-color: #c53030;
+  color: white;
+  box-shadow: none;
+}
+
+.delete-all-btn.base-btn--fill:hover:not(.base-btn--disabled) {
+  background-color: #9b2c2c;
+  box-shadow: none;
 }
 
 .theme-options {

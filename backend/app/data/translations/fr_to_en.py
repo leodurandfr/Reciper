@@ -7,7 +7,7 @@ This dictionary maps French ingredient names to their English image IDs.
 REGROUPEMENT STRATEGY:
 - Similar ingredients are grouped under a single image ID
 - Example: tagliatelle, farfalle, fusilli → 'pasta'
-- Exception: gruyère kept distinct (very common in French recipes)
+- Example: gruyère, emmental, comté → 'cheese'
 """
 
 # Main translation dictionary FR → EN
@@ -244,10 +244,14 @@ FR_TO_EN = {
     'jambon': 'ham',
     'jambons': 'ham',
     'prosciutto': 'ham',
+    'coppa': 'ham',
+    'bresaola': 'ham',
+    'mortadelle': 'ham',
     'bacon': 'bacon',
     'lardon': 'bacon',
     'lardons': 'bacon',
     'lard': 'bacon',
+    'pancetta': 'bacon',
     'saucisse': 'sausage',
     'saucisses': 'sausage',
     'merguez': 'sausage',
@@ -255,28 +259,46 @@ FR_TO_EN = {
     'saucisson': 'sausage',
     'andouille': 'sausage',
     'andouillette': 'sausage',
+    'chipolata': 'sausage',
+    'chipolatas': 'sausage',
+    'boudin': 'sausage',
+    'boudins': 'sausage',
+    'rillettes': 'pate',
 
     # ============================================================
-    # POISSONS → fish
+    # POISSONS
     # ============================================================
     'poisson': 'fish',
     'poissons': 'fish',
-    'saumon': 'fish',
-    'saumons': 'fish',
-    'thon': 'fish',
-    'thons': 'fish',
-    'cabillaud': 'fish',
-    'cabillauds': 'fish',
-    'colin': 'fish',
-    'colins': 'fish',
-    'lieu': 'fish',
-    'merlu': 'fish',
-    'dorade': 'fish',
-    'dorades': 'fish',
-    'bar': 'fish',
-    'bars': 'fish',
-    'sole': 'fish',
-    'soles': 'fish',
+
+    # Saumon (distinct)
+    'saumon': 'salmon',
+    'saumons': 'salmon',
+
+    # Thon (distinct)
+    'thon': 'tuna',
+    'thons': 'tuna',
+
+    # Poissons blancs → white-fish
+    'cabillaud': 'white-fish',
+    'cabillauds': 'white-fish',
+    'colin': 'white-fish',
+    'colins': 'white-fish',
+    'lieu': 'white-fish',
+    'merlu': 'white-fish',
+    'dorade': 'white-fish',
+    'dorades': 'white-fish',
+    'bar': 'white-fish',
+    'bars': 'white-fish',
+    'sole': 'white-fish',
+    'soles': 'white-fish',
+    'flétan': 'white-fish',
+    'fletan': 'white-fish',
+    'églefin': 'white-fish',
+    'eglefin': 'white-fish',
+    'limande': 'white-fish',
+
+    # Reste → fish (générique)
     'truite': 'fish',
     'truites': 'fish',
     'maquereau': 'fish',
@@ -284,11 +306,6 @@ FR_TO_EN = {
     'sardine': 'fish',
     'sardines': 'fish',
     'anchois': 'fish',
-    'flétan': 'fish',
-    'fletan': 'fish',
-    'églefin': 'fish',
-    'eglefin': 'fish',
-    'limande': 'fish',
 
     # ============================================================
     # CRUSTACÉS → shrimp
@@ -311,10 +328,10 @@ FR_TO_EN = {
     # ============================================================
     'moule': 'mussel',
     'moules': 'mussel',
-    'huître': 'mussel',
-    'huîtres': 'mussel',
-    'huitre': 'mussel',
-    'huitres': 'mussel',
+    'huître': 'oyster',
+    'huîtres': 'oyster',
+    'huitre': 'oyster',
+    'huitres': 'oyster',
     'saint-jacques': 'mussel',
     'coquille': 'mussel',
     'coquilles': 'mussel',
@@ -354,27 +371,48 @@ FR_TO_EN = {
     'mascarpone': 'cream',
     'faisselle': 'cream',
 
-    # === GRUYÈRE (distinct car très fréquent en FR) ===
-    'gruyère': 'gruyere',
-    'gruyere': 'gruyere',
+    # === FROMAGES ===
 
-    # === FROMAGES → cheese ===
+    # Fromages à pâte molle, croûte fleurie → camembert
+    'camembert': 'camembert',
+    'coulommiers': 'camembert',
+    'reblochon': 'camembert',
+    'munster': 'camembert',
+    'pont-l\'évêque': 'camembert',
+    'chaource': 'camembert',
+
+    # Brie (distinct)
+    'brie': 'brie',
+
+    # Fromages de chèvre → goat-cheese
+    'chèvre': 'goat-cheese',
+    'chevre': 'goat-cheese',
+    'chavignol': 'goat-cheese',
+    'crottin': 'goat-cheese',
+    'bûche': 'goat-cheese',
+    'buche': 'goat-cheese',
+
+    # Fromages à pâte persillée → blue-cheese
+    'roquefort': 'blue-cheese',
+    'gorgonzola': 'blue-cheese',
+    'bleu': 'blue-cheese',
+    'fourme': 'blue-cheese',
+
+    # Parmesan (distinct)
+    'parmesan': 'parmesan',
+    'parmigiano': 'parmesan',
+
+    # Fromages durs / génériques → cheese
+    'gruyère': 'cheese',
+    'gruyere': 'cheese',
     'fromage': 'cheese',
     'fromages': 'cheese',
-    'parmesan': 'cheese',
     'mozzarella': 'cheese',
     'comté': 'cheese',
     'comte': 'cheese',
     'emmental': 'cheese',
-    'chèvre': 'cheese',
-    'chevre': 'cheese',
-    'roquefort': 'cheese',
-    'camembert': 'cheese',
-    'brie': 'cheese',
     'feta': 'cheese',
-    'gorgonzola': 'cheese',
     'pecorino': 'cheese',
-    'reblochon': 'cheese',
     'raclette': 'cheese',
     'cheddar': 'cheese',
     'gouda': 'cheese',
@@ -382,42 +420,45 @@ FR_TO_EN = {
     'cantal': 'cheese',
     'mimolette': 'cheese',
     'maroilles': 'cheese',
-    'munster': 'cheese',
     'boursin': 'cheese',
-    'chavignol': 'cheese',
-    'crottin': 'cheese',
 
     # ============================================================
     # PÂTES → pasta
     # ============================================================
     'pâtes': 'pasta',
     'pates': 'pasta',
-    'spaghetti': 'pasta',
-    'spaghettis': 'pasta',
-    'tagliatelle': 'pasta',
-    'tagliatelles': 'pasta',
-    'farfalle': 'pasta',
-    'farfalles': 'pasta',
-    'fusilli': 'pasta',
-    'fusillis': 'pasta',
-    'penne': 'pasta',
-    'pennes': 'pasta',
+
+    # Pâtes spécifiques
+    'spaghetti': 'spaghetti',
+    'spaghettis': 'spaghetti',
+    'tagliatelle': 'tagliatelle',
+    'tagliatelles': 'tagliatelle',
+    'fettuccine': 'tagliatelle',
+    'fettuccines': 'tagliatelle',
+    'farfalle': 'farfalle',
+    'farfalles': 'farfalle',
+    'fusilli': 'fusilli',
+    'fusillis': 'fusilli',
+    'penne': 'penne',
+    'pennes': 'penne',
+    'macaroni': 'macaroni',
+    'macaronis': 'macaroni',
+    'coquillette': 'macaroni',
+    'coquillettes': 'macaroni',
+    'lasagne': 'lasagna',
+    'lasagnes': 'lasagna',
+
+    # Reste → pasta (générique)
     'rigatoni': 'pasta',
     'rigatonis': 'pasta',
-    'macaroni': 'pasta',
-    'macaronis': 'pasta',
     'linguine': 'pasta',
     'linguines': 'pasta',
-    'fettuccine': 'pasta',
-    'fettuccines': 'pasta',
     'orecchiette': 'pasta',
     'orecchiettes': 'pasta',
     'tortellini': 'pasta',
     'tortellinis': 'pasta',
     'ravioli': 'pasta',
     'raviolis': 'pasta',
-    'lasagne': 'pasta',
-    'lasagnes': 'pasta',
     'cannelloni': 'pasta',
     'cannellonis': 'pasta',
     'gnocchi': 'pasta',
@@ -426,8 +467,6 @@ FR_TO_EN = {
     'nouilles': 'pasta',
     'vermicelle': 'pasta',
     'vermicelles': 'pasta',
-    'coquillette': 'pasta',
-    'coquillettes': 'pasta',
     'conchiglie': 'pasta',
     'papardelle': 'pasta',
     'papardelles': 'pasta',
@@ -459,6 +498,12 @@ FR_TO_EN = {
     'biscottes': 'rusk',
     'cracker': 'cracker',
     'crackers': 'cracker',
+    'biscuit': 'cracker',
+    'biscuits': 'cracker',
+    'sablé': 'cracker',
+    'sablés': 'cracker',
+    'speculoos': 'speculos',
+    'spéculoos': 'speculos',
 
     # ============================================================
     # FARINES & LEVURES
@@ -468,13 +513,13 @@ FR_TO_EN = {
     'épeautre': 'flour',
     'epeautre': 'flour',
     'sarrasin': 'flour',
-    'fécule': 'starch',
-    'fecule': 'starch',
+    'fécule': 'cornstarch',
+    'fecule': 'cornstarch',
     'maïzena': 'cornstarch',
     'maizena': 'cornstarch',
     'levure': 'yeast',
     'levures': 'yeast',
-    'bicarbonate': 'baking-soda',
+    'bicarbonate': 'white-powder',
 
     # ============================================================
     # SUCRES & DOUCEURS
@@ -492,23 +537,34 @@ FR_TO_EN = {
     'chocolat': 'chocolate',
     'chocolats': 'chocolate',
     'cacao': 'cocoa',
-    'pépite': 'chocolate-chip',
-    'pépites': 'chocolate-chip',
+    'pépite': 'chocolate',
+    'pépites': 'chocolate',
+    'nutella': 'spread',
 
     # ============================================================
-    # NOIX & FRUITS SECS → nuts
+    # NOIX & FRUITS SECS
     # ============================================================
-    'amande': 'nuts',
-    'amandes': 'nuts',
-    'noisette': 'nuts',
-    'noisettes': 'nuts',
+
+    # Amande (distinct)
+    'amande': 'almond',
+    'amandes': 'almond',
+
+    # Noisette (distinct)
+    'noisette': 'hazelnut',
+    'noisettes': 'hazelnut',
+
+    # Cacahuète (distinct)
+    'cacahuète': 'peanut',
+    'cacahuètes': 'peanut',
+    'cacahuete': 'peanut',
+    'cacahuetes': 'peanut',
+    'arachide': 'peanut',
+    'arachides': 'peanut',
+
+    # Reste → nuts (générique)
     'noix': 'nuts',
     'pistache': 'nuts',
     'pistaches': 'nuts',
-    'cacahuète': 'nuts',
-    'cacahuètes': 'nuts',
-    'cacahuete': 'nuts',
-    'cacahuetes': 'nuts',
     'cajou': 'nuts',
     'cajous': 'nuts',
     'pécan': 'nuts',
@@ -528,18 +584,24 @@ FR_TO_EN = {
     # ============================================================
     # HERBES → herbs
     # ============================================================
-    'basilic': 'herbs',
-    'persil': 'herbs',
-    'ciboulette': 'herbs',
-    'ciboulettes': 'herbs',
-    'coriandre': 'herbs',
-    'menthe': 'herbs',
-    'thym': 'herbs',
-    'romarin': 'herbs',
-    'origan': 'herbs',
+    # Tier 1 — herbes spécifiques
+    'basilic': 'basil',
+    'persil': 'parsley',
+    'coriandre': 'cilantro',
+    'menthe': 'mint',
+    'romarin': 'rosemary',
+
+    # Tier 2 — herbes spécifiques
+    'thym': 'thyme',
+    'ciboulette': 'chives',
+    'ciboulettes': 'chives',
+    'aneth': 'dill',
+    'laurier': 'bay',
+
+    'origan': 'oregano',
+
+    # Reste → herbs (générique)
     'estragon': 'herbs',
-    'laurier': 'herbs',
-    'aneth': 'herbs',
     'sauge': 'herbs',
     'cerfeuil': 'herbs',
     'sarriette': 'herbs',
@@ -591,7 +653,7 @@ FR_TO_EN = {
     'ketchup': 'ketchup',
     'mayonnaise': 'mayonnaise',
     'mayo': 'mayonnaise',
-    'soja': 'soy-sauce',
+    'soja': 'sauce',
     'worcestershire': 'worcestershire-sauce',
     'tabasco': 'tabasco',
     'vin': 'wine',
@@ -599,8 +661,8 @@ FR_TO_EN = {
     'bouillon': 'broth',
     'bouillons': 'broth',
     'coulis': 'tomato-sauce',
-    'nuoc-mâm': 'fish-sauce',
-    'nuoc-mam': 'fish-sauce',
+    'nuoc-mâm': 'sauce',
+    'nuoc-mam': 'sauce',
     'miso': 'miso',
     'tahini': 'tahini',
     'cornichon': 'pickle',
@@ -610,6 +672,7 @@ FR_TO_EN = {
     'capre': 'caper',
     'capres': 'caper',
     'pesto': 'pesto',
+    'pesto-rosso': 'pesto-rosso',
     'harissa': 'harissa',
     'wasabi': 'wasabi',
     'béchamel': 'bechamel',
@@ -629,4 +692,8 @@ FR_TO_EN = {
     'tofu': 'tofu',
     'tempeh': 'tofu',
     'seitan': 'tofu',
+    'eau': 'water',
+    'pâté': 'pate',
+    'pate': 'pate',
+    'terrine': 'pate',
 }

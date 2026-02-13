@@ -3,46 +3,47 @@
 > Fichier image attendu : `{image_id}.png`
 > Répertoire : `backend/app/static/ingredients/` + `extension/src/assets/ingredients/`
 >
-> **24 / 162 illustrations réalisées** (15%)
+> **190 / 190 illustrations réalisées** (100%)
 
 ---
 
-## Légumes (16/35)
+## Légumes (36/36)
 
 - [x] tomato
 - [x] potato
 - [x] carrot
 - [x] onion
+- [x] red-onion
 - [x] garlic
-- [ ] shallot
+- [x] shallot
 - [x] leek
 - [x] zucchini
 - [x] eggplant
 - [x] bell-pepper
 - [x] cucumber
 - [x] mushroom
-- [ ] celery
-- [ ] fennel
-- [ ] radish
-- [ ] turnip
-- [ ] beet
-- [ ] squash
-- [ ] pumpkin
-- [ ] asparagus
-- [ ] artichoke
-- [ ] endive
-- [ ] chard
-- [ ] avocado
-- [ ] chili
-- [ ] ginger
-- [ ] olive
-- [ ] corn
+- [x] celery
+- [x] fennel
+- [x] radish
+- [x] turnip
+- [x] beet
+- [x] squash
+- [x] pumpkin
+- [x] asparagus
+- [x] artichoke
+- [x] endive
+- [x] chard
+- [x] avocado
+- [x] chili
+- [x] ginger
+- [x] olive
+- [x] corn
 - [x] broccoli
-- [ ] cauliflower
-- [ ] cabbage
-- [ ] brussels-sprout
-- [ ] green-bean
-- [ ] pea
+- [x] cauliflower
+- [x] cabbage
+- [x] brussels-sprout
+- [x] green-bean
+- [x] pea
 - [x] edamame
 
 ## Salades & Feuilles (2/2)
@@ -50,170 +51,208 @@
 - [x] lettuce
 - [x] spinach
 
-## Fruits (9/30)
+## Fruits (30/30)
 
 - [x] apple
 - [x] pear
 - [x] banana
 - [x] kiwi
 - [x] mango
-- [ ] pineapple
-- [ ] papaya
-- [ ] passion-fruit
-- [ ] pomegranate
-- [ ] fig
-- [ ] date
-- [ ] apricot
-- [ ] peach
-- [ ] nectarine
-- [ ] plum
-- [ ] rhubarb
-- [ ] lychee
-- [ ] melon
-- [ ] watermelon
-- [ ] coconut
-- [ ] lemon
+- [x] pineapple
+- [x] papaya
+- [x] passion-fruit
+- [x] pomegranate
+- [x] fig
+- [x] date
+- [x] apricot
+- [x] peach
+- [x] nectarine
+- [x] plum
+- [x] rhubarb
+- [x] lychee
+- [x] melon
+- [x] watermelon
+- [x] coconut
+- [x] lemon
 - [x] orange
 - [x] strawberry
 - [x] raspberry
 - [x] blueberry
-- [ ] blackberry
-- [ ] cherry
-- [ ] grape
-- [ ] redcurrant
-- [ ] blackcurrant
+- [x] blackberry
+- [x] cherry
+- [x] grape
+- [x] redcurrant
+- [x] blackcurrant
 
-## Viandes (0/7)
+## Viandes (7/7)
 
-- [ ] chicken
-- [ ] beef
-- [ ] pork
-- [ ] duck
-- [ ] ham
-- [ ] bacon
-- [ ] sausage
+- [x] chicken
+- [x] beef
+- [x] pork
+- [x] duck
+- [x] ham
+- [x] bacon
+- [x] sausage
 
-## Poissons & Fruits de mer (0/5)
+## Poissons & Fruits de mer (9/9)
 
-- [ ] fish
-- [ ] shrimp
-- [ ] mussel
-- [ ] surimi
-- [ ] caviar
+- [x] fish
+- [x] salmon
+- [x] tuna
+- [x] white-fish
+- [x] shrimp
+- [x] mussel
+- [x] oyster
+- [x] surimi
+- [x] caviar
 
-## Produits laitiers (0/7)
+## Produits laitiers (11/11)
 
-- [ ] milk
-- [ ] butter
-- [ ] yogurt
-- [ ] egg
-- [ ] cream
-- [ ] gruyere
-- [ ] cheese
+- [x] milk
+- [x] butter
+- [x] yogurt
+- [x] egg
+- [x] cream
+- [x] cheese
+- [x] parmesan
+- [x] camembert
+- [x] brie
+- [x] goat-cheese
+- [x] blue-cheese
 
-## Pâtes & Féculents (0/13)
+## Pâtes & Féculents (20/20)
 
-- [ ] pasta
-- [ ] rice
-- [ ] quinoa
-- [ ] bulgur
-- [ ] couscous
-- [ ] lentil
-- [ ] chickpea
-- [ ] oat
-- [ ] bread
-- [ ] breadcrumb
-- [ ] rusk
-- [ ] cracker
-- [ ] kidney-bean
+- [x] pasta
+- [x] spaghetti
+- [x] tagliatelle
+- [x] farfalle
+- [x] fusilli
+- [x] penne
+- [x] macaroni
+- [x] lasagna
+- [x] rice
+- [x] quinoa
+- [x] bulgur
+- [x] couscous
+- [x] lentil
+- [x] chickpea
+- [x] oat
+- [x] bread
+- [x] breadcrumb
+- [x] rusk
+- [x] cracker
+- [x] kidney-bean
 
-## Farines & Levures (0/5)
+## Farines & Levures (4/4)
 
-- [ ] flour
-- [ ] starch
-- [ ] cornstarch
-- [ ] yeast
-- [ ] baking-soda
+- [x] flour
+- [x] white-powder
+- [x] cornstarch
+- [x] yeast
 
-## Sucres & Douceurs (0/9)
+## Sucres & Douceurs (8/8)
 
-- [ ] sugar
-- [ ] brown-sugar
-- [ ] honey
-- [ ] syrup
-- [ ] maple-syrup
-- [ ] jam
-- [ ] chocolate
-- [ ] cocoa
-- [ ] chocolate-chip
+- [x] sugar
+- [x] brown-sugar
+- [x] honey
+- [x] maple-syrup
+- [x] jam
+- [x] chocolate
+- [x] cocoa
+- [x] spread
 
-## Noix & Graines (0/6)
+## Noix & Graines (9/9)
 
-- [ ] nuts
-- [ ] sunflower-seed
-- [ ] flax-seed
-- [ ] chia-seed
-- [ ] sesame
-- [ ] poppy-seed
+- [x] almond
+- [x] hazelnut
+- [x] peanut
+- [x] nuts
+- [x] sunflower-seed
+- [x] flax-seed
+- [x] chia-seed
+- [x] sesame
+- [x] poppy-seed
 
-## Herbes (0/1)
+## Herbes (11/11)
 
-- [ ] herbs
+- [x] basil
+- [x] parsley
+- [x] cilantro
+- [x] mint
+- [x] rosemary
+- [x] thyme
+- [x] chives
+- [x] dill
+- [x] bay
+- [x] oregano
+- [x] herbs
 
-## Épices (0/17)
+## Épices (17/17)
 
-- [ ] salt
-- [ ] pepper
-- [ ] paprika
-- [ ] curry
-- [ ] turmeric
-- [ ] cumin
-- [ ] cinnamon
-- [ ] nutmeg
-- [ ] vanilla
-- [ ] clove
-- [ ] star-anise
-- [ ] saffron
-- [ ] cardamom
-- [ ] cayenne
-- [ ] ras-el-hanout
-- [ ] zaatar
-- [ ] sumac
+- [x] salt
+- [x] pepper
+- [x] paprika
+- [x] curry
+- [x] turmeric
+- [x] cumin
+- [x] cinnamon
+- [x] nutmeg
+- [x] vanilla
+- [x] clove
+- [x] star-anise
+- [x] saffron
+- [x] cardamom
+- [x] cayenne
+- [x] ras-el-hanout
+- [x] zaatar
+- [x] sumac
 
-## Huiles & Condiments (0/20)
+## Huiles & Condiments (19/19)
 
-- [ ] oil
-- [ ] vinegar
-- [ ] mustard
-- [ ] ketchup
-- [ ] mayonnaise
-- [ ] soy-sauce
-- [ ] worcestershire-sauce
-- [ ] tabasco
-- [ ] wine
-- [ ] broth
-- [ ] tomato-sauce
-- [ ] fish-sauce
-- [ ] miso
-- [ ] tahini
-- [ ] pickle
-- [ ] caper
-- [ ] pesto
-- [ ] harissa
-- [ ] wasabi
-- [ ] bechamel
+- [x] oil
+- [x] vinegar
+- [x] mustard
+- [x] ketchup
+- [x] mayonnaise
+- [x] sauce
+- [x] worcestershire-sauce
+- [x] tabasco
+- [x] wine
+- [x] broth
+- [x] tomato-sauce
+- [x] miso
+- [x] tahini
+- [x] pickle
+- [x] pesto
+- [x] pesto-rosso
+- [x] harissa
+- [x] wasabi
+- [x] bechamel
 
-## Boissons (0/2)
+## Boissons (2/2)
 
-- [ ] coffee
-- [ ] tea
+- [x] coffee
+- [x] tea
 
-## Autres (0/3)
+## Autres (5/5)
 
-- [ ] tofu
-- [ ] dough
-- [ ] spread
+- [x] tofu
+- [x] dough
+- [x] water
+- [x] pate
+- [x] speculos
 
 ---
 
-> **Note :** L'image `red-onion.png` existe dans les assets mais n'est mappée par aucun ID dans les dictionnaires.
+> **Note :** `gruyere` a été fusionné avec `cheese` (même image).
+> **Note :** `starch` et `baking-soda` sont consolidés en `white-powder.png`. `cornstarch` a sa propre image.
+> **Note :** `chocolate-chip` / `pépites` consolidés en `chocolate.png`.
+> **Note :** `sauce bolognaise` redirige vers `tomato-sauce.png`.
+> **Note :** Fromages regroupés : `camembert` (reblochon, munster), `brie` (distinct), `goat-cheese` (chèvre, crottin), `blue-cheese` (roquefort, gorgonzola), `cheese` (gruyère, comté, emmental, etc.).
+> **Note :** `parmesan` / `parmigiano` ont leur propre image distincte.
+> **Note :** Poissons regroupés : `salmon` (saumon), `tuna` (thon), `white-fish` (cabillaud, colin, sole, dorade, bar...), `fish` (générique, truite, sardine, maquereau...).
+> **Note :** Noix regroupées : `almond` (amande), `hazelnut` (noisette), `peanut` (cacahuète), `nuts` (noix, pistache, cajou, pécan...).
+> **Note :** `oyster` (huître) a sa propre image, distincte de `mussel`.
+> **Note :** `soy-sauce` et `fish-sauce` sont consolidés en `sauce.png`.
+> **Note :** `pesto-rosso` a sa propre image, distincte de `pesto`.
+> **Note :** `nutella` et `pâte à tartiner` sont consolidés en `spread.png`.

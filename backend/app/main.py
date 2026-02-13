@@ -8,16 +8,19 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from google.cloud import storage
 from jinja2 import Environment, FileSystemLoader
 
 from .schemas import ScrapeRequest, ScrapedRecipe, ShareRequest, ShareResponse
 from .scraper import scrape_recipe, ScraperError, UnsupportedWebsiteError, FetchError
 
-GCS_BUCKET = os.getenv("GCS_SHARED_BUCKET", "reciper-shared-recipes")
-
-gcs_client = storage.Client()
-gcs_bucket = gcs_client.bucket(GCS_BUCKET)
+try:
+    from google.cloud import storage
+    gcs_client = storage.Client()
+    GCS_BUCKET = os.getenv("GCS_SHARED_BUCKET", "reciper-shared-recipes")
+    gcs_bucket = gcs_client.bucket(GCS_BUCKET)
+except Exception:
+    gcs_client = None
+    gcs_bucket = None
 
 templates_dir = Path(__file__).parent / "templates"
 jinja_env = Environment(loader=FileSystemLoader(str(templates_dir)), autoescape=True)
@@ -90,6 +93,8 @@ def _generate_share_id(length: int = 8) -> str:
 @app.post("/api/share", response_model=ShareResponse)
 async def share_recipe(request: Request, data: ShareRequest):
     """Store a recipe in GCS and return a shareable URL."""
+    if gcs_bucket is None:
+        raise HTTPException(status_code=503, detail="Sharing unavailable: GCS not configured")
     share_id = _generate_share_id()
 
     blob = gcs_bucket.blob(f"{share_id}.json")
@@ -109,6 +114,9 @@ async def view_shared_recipe(share_id: str):
     # Security: only allow alphanumeric IDs
     if not share_id.isalnum() or len(share_id) > 16:
         raise HTTPException(status_code=400, detail="Invalid share ID")
+
+    if gcs_bucket is None:
+        raise HTTPException(status_code=503, detail="Sharing unavailable: GCS not configured")
 
     blob = gcs_bucket.blob(f"{share_id}.json")
 

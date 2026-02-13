@@ -179,30 +179,42 @@ EN_INGREDIENTS = {
     # ============================================================
     'ham': 'ham',
     'prosciutto': 'ham',
+    'coppa': 'ham',
+    'bresaola': 'ham',
+    'mortadella': 'ham',
     'bacon': 'bacon',
     'pancetta': 'bacon',
     'sausage': 'sausage',
     'chorizo': 'sausage',
     'salami': 'sausage',
+    'pepperoni': 'sausage',
 
     # ============================================================
-    # FISH → fish
+    # FISH
     # ============================================================
     'fish': 'fish',
-    'salmon': 'fish',
-    'tuna': 'fish',
-    'cod': 'fish',
-    'haddock': 'fish',
-    'halibut': 'fish',
+
+    # Salmon (distinct)
+    'salmon': 'salmon',
+
+    # Tuna (distinct)
+    'tuna': 'tuna',
+
+    # White fish → white-fish
+    'cod': 'white-fish',
+    'haddock': 'white-fish',
+    'halibut': 'white-fish',
+    'sole': 'white-fish',
+    'bass': 'white-fish',
+    'tilapia': 'white-fish',
+
+    # Rest → fish (generic)
     'trout': 'fish',
     'mackerel': 'fish',
     'sardine': 'fish',
     'sardines': 'fish',
     'anchovy': 'fish',
     'anchovies': 'fish',
-    'sole': 'fish',
-    'bass': 'fish',
-    'tilapia': 'fish',
 
     # ============================================================
     # SHELLFISH → shrimp
@@ -220,8 +232,8 @@ EN_INGREDIENTS = {
     # ============================================================
     'mussel': 'mussel',
     'mussels': 'mussel',
-    'oyster': 'mussel',
-    'oysters': 'mussel',
+    'oyster': 'oyster',
+    'oysters': 'oyster',
     'clam': 'mussel',
     'clams': 'mussel',
     'scallop': 'mussel',
@@ -247,23 +259,32 @@ EN_INGREDIENTS = {
     'mascarpone': 'cream',
     'cottage': 'cream',
 
-    # === GRUYERE (distinct - common in recipes) ===
-    'gruyere': 'gruyere',
-    'gruyère': 'gruyere',
+    # === SOFT CHEESE (white rind) → camembert ===
+    'camembert': 'camembert',
 
-    # === CHEESE → cheese ===
+    # === BRIE (distinct) ===
+    'brie': 'brie',
+
+    # === GOAT CHEESE → goat-cheese ===
+    'goat': 'goat-cheese',
+
+    # === BLUE CHEESE → blue-cheese ===
+    'roquefort': 'blue-cheese',
+    'gorgonzola': 'blue-cheese',
+
+    # === PARMESAN (distinct) ===
+    'parmesan': 'parmesan',
+    'parmigiano': 'parmesan',
+
+    # === CHEESE (hard / generic) → cheese ===
+    'gruyere': 'cheese',
+    'gruyère': 'cheese',
     'cheese': 'cheese',
-    'parmesan': 'cheese',
     'mozzarella': 'cheese',
     'cheddar': 'cheese',
-    'brie': 'cheese',
-    'camembert': 'cheese',
     'feta': 'cheese',
     'gouda': 'cheese',
-    'gorgonzola': 'cheese',
-    'goat': 'cheese',
     'pecorino': 'cheese',
-    'roquefort': 'cheese',
     'swiss': 'cheese',
     'provolone': 'cheese',
     'manchego': 'cheese',
@@ -273,17 +294,21 @@ EN_INGREDIENTS = {
     # PASTA → pasta
     # ============================================================
     'pasta': 'pasta',
-    'spaghetti': 'pasta',
-    'tagliatelle': 'pasta',
-    'fettuccine': 'pasta',
+
+    # Specific pasta types
+    'spaghetti': 'spaghetti',
+    'tagliatelle': 'tagliatelle',
+    'fettuccine': 'tagliatelle',
+    'farfalle': 'farfalle',
+    'fusilli': 'fusilli',
+    'penne': 'penne',
+    'macaroni': 'macaroni',
+    'lasagna': 'lasagna',
+    'lasagne': 'lasagna',
+
+    # Rest → pasta (generic)
     'linguine': 'pasta',
-    'penne': 'pasta',
     'rigatoni': 'pasta',
-    'fusilli': 'pasta',
-    'farfalle': 'pasta',
-    'macaroni': 'pasta',
-    'lasagna': 'pasta',
-    'lasagne': 'pasta',
     'ravioli': 'pasta',
     'tortellini': 'pasta',
     'gnocchi': 'pasta',
@@ -314,15 +339,20 @@ EN_INGREDIENTS = {
     'breadcrumbs': 'breadcrumb',
     'cracker': 'cracker',
     'crackers': 'cracker',
+    'biscuit': 'cracker',
+    'biscuits': 'cracker',
+    'cookie': 'cracker',
+    'cookies': 'cracker',
+    'speculoos': 'speculos',
 
     # ============================================================
     # FLOUR & LEAVENING
     # ============================================================
     'flour': 'flour',
     'cornstarch': 'cornstarch',
-    'starch': 'starch',
+    'starch': 'white-powder',
     'yeast': 'yeast',
-    'baking': 'baking-soda',
+    'baking': 'white-powder',
 
     # ============================================================
     # SWEETENERS
@@ -336,24 +366,33 @@ EN_INGREDIENTS = {
     'jelly': 'jam',
     'chocolate': 'chocolate',
     'cocoa': 'cocoa',
+    'nutella': 'spread',
 
     # ============================================================
-    # NUTS → nuts
+    # NUTS
     # ============================================================
-    'almond': 'nuts',
-    'almonds': 'nuts',
+
+    # Almond (distinct)
+    'almond': 'almond',
+    'almonds': 'almond',
+
+    # Hazelnut (distinct)
+    'hazelnut': 'hazelnut',
+    'hazelnuts': 'hazelnut',
+
+    # Peanut (distinct)
+    'peanut': 'peanut',
+    'peanuts': 'peanut',
+
+    # Rest → nuts (generic)
     'walnut': 'nuts',
     'walnuts': 'nuts',
-    'peanut': 'nuts',
-    'peanuts': 'nuts',
     'cashew': 'nuts',
     'cashews': 'nuts',
     'pistachio': 'nuts',
     'pistachios': 'nuts',
     'pecan': 'nuts',
     'pecans': 'nuts',
-    'hazelnut': 'nuts',
-    'hazelnuts': 'nuts',
     'macadamia': 'nuts',
     'pine': 'nuts',
 
@@ -367,19 +406,25 @@ EN_INGREDIENTS = {
     # ============================================================
     # HERBS → herbs
     # ============================================================
-    'basil': 'herbs',
-    'parsley': 'herbs',
-    'cilantro': 'herbs',
-    'coriander': 'herbs',
-    'thyme': 'herbs',
-    'rosemary': 'herbs',
-    'oregano': 'herbs',
-    'mint': 'herbs',
+    # Tier 1 — specific herbs
+    'basil': 'basil',
+    'parsley': 'parsley',
+    'cilantro': 'cilantro',
+    'coriander': 'cilantro',
+    'mint': 'mint',
+    'rosemary': 'rosemary',
+
+    # Tier 2 — specific herbs
+    'thyme': 'thyme',
+    'chive': 'chives',
+    'chives': 'chives',
+    'dill': 'dill',
+    'bay': 'bay',
+
+    'oregano': 'oregano',
+
+    # Rest → herbs (generic)
     'sage': 'herbs',
-    'dill': 'herbs',
-    'chive': 'herbs',
-    'chives': 'herbs',
-    'bay': 'herbs',
     'tarragon': 'herbs',
     'herb': 'herbs',
     'herbs': 'herbs',
@@ -418,14 +463,16 @@ EN_INGREDIENTS = {
     'ketchup': 'ketchup',
     'mayonnaise': 'mayonnaise',
     'mayo': 'mayonnaise',
-    'soy': 'soy-sauce',
+    'soy': 'sauce',
     'worcestershire': 'worcestershire-sauce',
     'tabasco': 'tabasco',
     'wine': 'wine',
     'stock': 'broth',
     'broth': 'broth',
     'pesto': 'pesto',
+    'pesto-rosso': 'pesto-rosso',
     'harissa': 'harissa',
+    'fish-sauce': 'sauce',
     'tahini': 'tahini',
     'miso': 'miso',
     'pickle': 'pickle',
@@ -445,4 +492,7 @@ EN_INGREDIENTS = {
     'tofu': 'tofu',
     'tempeh': 'tofu',
     'seitan': 'tofu',
+    'water': 'water',
+    'pate': 'pate',
+    'terrine': 'pate',
 }

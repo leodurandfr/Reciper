@@ -68,6 +68,13 @@ export default {
       importError: 'Import error: {message}',
       fileError: 'Error reading file',
       invalidFile: 'Invalid file: {error}',
+      deleteAll: 'Delete all recipes',
+      deleteAllDescription: 'This action cannot be undone. All your recipes will be permanently deleted.',
+      deleteAllConfirm: 'Confirm deletion',
+      deleteAllCancel: 'Cancel',
+      deleting: 'Deleting...',
+      deleteAllSuccess: 'All recipes have been deleted',
+      deleteAllError: 'Error deleting recipes: {message}',
     },
     appearance: {
       title: 'Appearance',

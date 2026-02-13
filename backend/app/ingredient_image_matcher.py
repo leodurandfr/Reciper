@@ -161,7 +161,8 @@ def _lookup_single_keyword(keyword: str, dictionary: dict) -> Optional[str]:
     """
     Look up a single keyword in the dictionary.
 
-    Tries exact match, then singular forms (removes trailing 's' or 'x').
+    Tries exact match, then singular forms (removes trailing 's' or 'x'),
+    then splits hyphenated words and checks each part.
 
     Args:
         keyword: Single normalized keyword
@@ -184,6 +185,12 @@ def _lookup_single_keyword(keyword: str, dictionary: dict) -> Optional[str]:
         singular = keyword[:-1]
         if singular in dictionary:
             return dictionary[singular]
+
+    # Try splitting hyphenated words ("herbes-de-provence" → check each part)
+    if '-' in keyword:
+        for part in keyword.split('-'):
+            if len(part) >= 2 and part in dictionary:
+                return dictionary[part]
 
     return None
 

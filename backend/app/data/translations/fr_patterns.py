@@ -39,6 +39,42 @@ COMPOUND_PATTERNS = [
     (r'bouquet[s]?.{0,5}garni', 'herbs'),
     (r'viande[s]?.{0,5}hach[ée]e?', 'beef'),
     (r'b[œoe]+uf.{0,5}hach[ée]', 'beef'),
+
+    # "oignon rouge" = red-onion (NOT onion)
+    (r'oignon[s]?.{0,5}rouge', 'red-onion'),
+
+    # "sucre roux/brun" = brown-sugar (NOT sugar)
+    (r'sucre[s]?.{0,5}(roux|brun)', 'brown-sugar'),
+
+    # "sauce bolognaise/tomate" = tomato-sauce
+    (r'sauce[s]?.{0,10}bolognaise', 'tomato-sauce'),
+    (r'sauce[s]?.{0,10}tomate', 'tomato-sauce'),
+
+    # "pépites de chocolat" = chocolate (NOT chocolate-chip)
+    (r'p[ée]pite[s]?.{0,5}chocolat', 'chocolate'),
+
+    # "sucre semoule/glace/vanillé" = sugar (NOT couscous)
+    (r'sucre[s]?.{0,5}(semoule|glace|vanill)', 'sugar'),
+
+    # "crozet au sarrasin" = pasta (NOT flour)
+    (r'crozet', 'pasta'),
+
+    # "café noir/non sucré" = coffee (NOT sugar)
+    (r'caf[ée].{0,15}(noir|non.{0,5}sucr|allonge|expresso|espresso)', 'coffee'),
+
+    # "foie gras" / "pâté de campagne" = pate
+    (r'foie.{0,5}gras', 'pate'),
+    (r'p[âa]t[ée].{0,10}(campagne|canard|porc|lapin|foie)', 'pate'),
+
+    # "sauce soja" / "sauce poisson" = sauce
+    (r'sauce[s]?.{0,5}soja', 'sauce'),
+    (r'sauce[s]?.{0,10}poisson', 'sauce'),
+    (r'nuoc.{0,5}m[aâ]m', 'sauce'),
+
+    # "pesto rosso" / "pesto rouge" = pesto-rosso (NOT pesto)
+    (r'pesto.{0,5}rosso', 'pesto-rosso'),
+    (r'pesto.{0,5}rouge', 'pesto-rosso'),
+
 ]
 
 # Exclusion patterns: (regex_pattern, keyword_to_exclude)

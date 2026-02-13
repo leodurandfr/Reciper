@@ -68,6 +68,13 @@ export default {
       importError: "Erreur lors de l'import: {message}",
       fileError: 'Erreur lors de la lecture du fichier',
       invalidFile: 'Fichier invalide: {error}',
+      deleteAll: 'Supprimer toutes les recettes',
+      deleteAllDescription: 'Cette action est irréversible. Toutes vos recettes seront définitivement supprimées.',
+      deleteAllConfirm: 'Confirmer la suppression',
+      deleteAllCancel: 'Annuler',
+      deleting: 'Suppression...',
+      deleteAllSuccess: 'Toutes les recettes ont été supprimées',
+      deleteAllError: 'Erreur lors de la suppression: {message}',
     },
     appearance: {
       title: 'Apparence',
