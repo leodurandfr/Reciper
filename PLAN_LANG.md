@@ -48,7 +48,7 @@ import pt from './locales/pt.js'
 
 ## Étape 3 — Détection automatique de la langue du navigateur
 
-- [ ] **Statut**
+- [x] **Statut**
 
 **Fichiers** :
 - Créer [extension/src/i18n/detect.js](extension/src/i18n/detect.js) :

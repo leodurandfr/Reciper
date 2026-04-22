@@ -10,16 +10,16 @@ import HomeView from './views/HomeView.vue'
 import RecipeView from './views/RecipeView.vue'
 import LoadingView from './views/LoadingView.vue'
 import i18n from './i18n/index.js'
-import { initTheme, getSettings } from './stores/settings.js'
+import { initTheme, getEffectiveLanguage } from './stores/settings.js'
 import { useScrollPosition } from './composables/useScrollPosition.js'
 
 // Initialiser le thème
 initTheme()
 
-// Charger la langue persistée
-getSettings().then(settings => {
-  if (settings.language && i18n.global.availableLocales.includes(settings.language)) {
-    i18n.global.locale.value = settings.language
+// Charger la langue (utilisateur ou détectée automatiquement)
+getEffectiveLanguage().then(language => {
+  if (i18n.global.availableLocales.includes(language)) {
+    i18n.global.locale.value = language
   }
 })
 

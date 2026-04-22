@@ -4,6 +4,7 @@
  */
 
 import { reactive, watch } from 'vue'
+import { detectBrowserLocale } from '../i18n/detect.js'
 
 export const BACKEND_URL = import.meta.env.DEV
   ? ''
@@ -13,7 +14,7 @@ const SETTINGS_KEY = 'settings'
 const defaultSettings = {
   autoSaveImages: false, // Télécharger et sauver les images localement
   theme: 'light', // 'light', 'dark', 'system'
-  language: 'fr', // 'fr', 'en'
+  language: null, // null = auto (suit le navigateur), sinon 'fr' | 'en' | 'es' | 'pt'
 }
 
 // Reactive settings store for composable
@@ -56,6 +57,15 @@ export async function saveSettings(settings) {
     console.error('Erreur sauvegarde paramètres:', error)
     throw error
   }
+}
+
+/**
+ * Récupère la langue effective : valeur explicite de l'utilisateur, ou langue détectée du navigateur.
+ * @returns {Promise<string>}
+ */
+export async function getEffectiveLanguage() {
+  const settings = await getSettings()
+  return settings.language || detectBrowserLocale()
 }
 
 /**

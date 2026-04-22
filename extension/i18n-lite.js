@@ -50,14 +50,25 @@ const messages = {
   },
 }
 
-let currentLocale = 'fr'
+const SUPPORTED = ['en', 'fr', 'es', 'pt']
+let currentLocale = 'en'
+
+function detectBrowserLocale() {
+  try {
+    const raw = chrome.i18n?.getUILanguage?.() || 'en'
+    const base = raw.toLowerCase().split('-')[0]
+    return SUPPORTED.includes(base) ? base : 'en'
+  } catch {
+    return 'en'
+  }
+}
 
 export async function initLocale() {
   try {
     const result = await chrome.storage.local.get('settings')
-    currentLocale = result.settings?.language || 'fr'
+    currentLocale = result.settings?.language || detectBrowserLocale()
   } catch {
-    currentLocale = 'fr'
+    currentLocale = detectBrowserLocale()
   }
 }
 
