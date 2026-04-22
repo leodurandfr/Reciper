@@ -54,7 +54,7 @@ async def scrape(request: ScrapeRequest):
     url = str(request.url)
 
     try:
-        scraped = await scrape_recipe(url)
+        scraped = await scrape_recipe(url, wild_mode=request.wild_mode)
         return scraped
     except UnsupportedWebsiteError as e:
         raise HTTPException(status_code=400, detail=str(e))

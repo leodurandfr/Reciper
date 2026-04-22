@@ -4,6 +4,7 @@ from pydantic import BaseModel, HttpUrl
 class ScrapeRequest(BaseModel):
     """Request body for scraping a recipe."""
     url: HttpUrl
+    wild_mode: bool = False
 
 
 class EnrichedIngredient(BaseModel):

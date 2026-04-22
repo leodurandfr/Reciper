@@ -32,7 +32,7 @@ def parse_time_to_minutes(time_value) -> int | None:
     return None
 
 
-async def scrape_recipe(url: str) -> ScrapedRecipe:
+async def scrape_recipe(url: str, wild_mode: bool = False) -> ScrapedRecipe:
     """Scrape a recipe from a URL using recipe-scrapers library."""
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
@@ -50,7 +50,10 @@ async def scrape_recipe(url: str) -> ScrapedRecipe:
     try:
         scraper = scrape_html(html, org_url=url)
     except WebsiteNotImplementedError:
-        raise UnsupportedWebsiteError(f"Site non supporté: {url}")
+        if wild_mode:
+            scraper = scrape_html(html, org_url=url, wild_mode=True)
+        else:
+            raise UnsupportedWebsiteError(f"Site non supporté: {url}")
 
     title = scraper.title() or "Sans titre"
 
