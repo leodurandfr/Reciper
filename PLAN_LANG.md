@@ -73,7 +73,7 @@ export function detectBrowserLocale() {
 
 ## Étape 4 — Ajouter es/pt + option "Auto" dans les paramètres
 
-- [ ] **Statut**
+- [x] **Statut**
 
 **Fichier** : [extension/src/components/SettingsModal.vue](extension/src/components/SettingsModal.vue)
 

@@ -154,6 +154,7 @@ import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
 import BaseButton from './BaseButton.vue'
 import { getSettings, saveSettings, applyTheme, BACKEND_URL } from '../stores/settings.js'
+import { detectBrowserLocale } from '../i18n/detect.js'
 import { getRecipeCount, clearAllRecipes } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
 
@@ -195,10 +196,13 @@ const themeOptions = computed(() => [
   { value: 'system', label: t('settings.appearance.system') },
 ])
 
-const language = ref('fr')
+const language = ref(null)
 const languageOptions = [
+  { value: null, label: 'Auto' },
   { value: 'fr', label: 'Français' },
   { value: 'en', label: 'English' },
+  { value: 'es', label: 'Español' },
+  { value: 'pt', label: 'Português' },
 ]
 
 // Load data each time the modal opens
@@ -208,7 +212,7 @@ watch(
     if (isOpen) {
       const settings = await getSettings()
       theme.value = settings.theme
-      language.value = settings.language || 'fr'
+      language.value = settings.language ?? null
       recipeCount.value = await getRecipeCount()
 
       backendUrl.value = settings.backendUrl || ''
@@ -337,7 +341,7 @@ async function changeTheme() {
 }
 
 async function changeLanguage() {
-  locale.value = language.value
+  locale.value = language.value ?? detectBrowserLocale()
   await saveSettings({ language: language.value })
 }
 
