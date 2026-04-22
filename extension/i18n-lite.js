@@ -26,6 +26,28 @@ const messages = {
     errorPrefix: 'Error: ',
     extensionLoaded: 'Reciper: Extension loaded - 606 supported sites',
   },
+  es: {
+    recipesStored: 'recetas guardadas',
+    openMyRecipes: 'Abrir mis recetas',
+    addThisPage: 'Agregar esta página',
+    scraping: 'Extrayendo...',
+    recipeAdded: '¡Receta agregada!',
+    addError: 'Error al agregar la receta',
+    error: 'Error',
+    errorPrefix: 'Error: ',
+    extensionLoaded: 'Reciper: Extensión cargada - 606 sitios compatibles',
+  },
+  pt: {
+    recipesStored: 'receitas salvas',
+    openMyRecipes: 'Abrir minhas receitas',
+    addThisPage: 'Adicionar esta página',
+    scraping: 'Extraindo...',
+    recipeAdded: 'Receita adicionada!',
+    addError: 'Erro ao adicionar a receita',
+    error: 'Erro',
+    errorPrefix: 'Erro: ',
+    extensionLoaded: 'Reciper: Extensão carregada - 606 sites compatíveis',
+  },
 }
 
 let currentLocale = 'fr'
@@ -40,5 +62,5 @@ export async function initLocale() {
 }
 
 export function t(key) {
-  return messages[currentLocale]?.[key] || messages.fr[key] || key
+  return messages[currentLocale]?.[key] || messages.en[key] || key
 }

@@ -34,7 +34,7 @@ import pt from './locales/pt.js'
 
 ## Étape 2 — Étendre i18n-lite (service worker + popup)
 
-- [ ] **Statut**
+- [x] **Statut**
 
 **Fichier** : [extension/i18n-lite.js](extension/i18n-lite.js)
 
