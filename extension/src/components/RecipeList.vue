@@ -1,7 +1,7 @@
 <template>
   <div class="recipe-list">
     <div v-if="recipes.length === 0" class="empty-state">
-      <img src="@/assets/ingredients/vegetables/carrot.png" alt="" class="empty-state__image" />
+      <img src="@/assets/ingredients/carrot.png" alt="" class="empty-state__image" />
       <p class="heading-03">{{ emptyMessage }}</p>
     </div>
     <RecipeCard v-for="(recipe, index) in recipes" :key="recipe.id" :recipe="recipe" :style="{ '--i': index }" />
