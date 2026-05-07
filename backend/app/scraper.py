@@ -35,7 +35,7 @@ def parse_time_to_minutes(time_value) -> int | None:
 async def scrape_recipe(url: str, wild_mode: bool = False) -> ScrapedRecipe:
     """Scrape a recipe from a URL using recipe-scrapers library."""
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
             response = await client.get(
                 url,
                 headers={
