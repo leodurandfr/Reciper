@@ -4,11 +4,11 @@
     "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
   },
   "extDescription": {
-    "message": "Consulter les recettes de cuisine sans publicités sur une mise en page soignée, avec favoris et historique.",
+    "message": "Consulta recetas de cocina sin publicidad en un diseño cuidado, con favoritos e historial.",
     "description": "Short description / package summary shown in the Chrome Web Store (max 132 chars)"
   },
   "extActionTitle": {
-    "message": "Reciper - Mes recettes",
+    "message": "Reciper - Mis recetas",
     "description": "Tooltip shown when hovering the extension icon in the browser toolbar"
   }
 }

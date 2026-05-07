@@ -4,7 +4,7 @@
     "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
   },
   "extDescription": {
-    "message": "Save recipes automatically from 600+ cooking websites",
+    "message": "View cooking recipes ad-free on a clean layout, with favorites and history.",
     "description": "Short description / package summary shown in the Chrome Web Store (max 132 chars)"
   },
   "extActionTitle": {
