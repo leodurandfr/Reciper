@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Reciper",
+    "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
+  },
+  "extDescription": {
+    "message": "Enregistrez automatiquement vos recettes depuis plus de 600 sites de cuisine",
+    "description": "Short description / package summary shown in the Chrome Web Store (max 132 chars)"
+  },
+  "extActionTitle": {
+    "message": "Reciper - Mes recettes",
+    "description": "Tooltip shown when hovering the extension icon in the browser toolbar"
+  }
+}

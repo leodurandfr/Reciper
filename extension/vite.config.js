@@ -53,6 +53,13 @@ function extensionPlugin() {
       }
       cpSync(resolve(__dirname, 'icons'), iconsDir, { recursive: true })
 
+      // Copier le dossier _locales (i18n du manifest pour le Chrome Web Store)
+      const localesDir = resolve(distDir, '_locales')
+      if (!existsSync(localesDir)) {
+        mkdirSync(localesDir, { recursive: true })
+      }
+      cpSync(resolve(__dirname, '_locales'), localesDir, { recursive: true })
+
       console.log('Extension files copied to dist/')
     }
   }
