@@ -85,10 +85,15 @@ export default {
     language: {
       title: 'Idioma',
     },
+    scraping: {
+      title: 'Captura de receitas',
+      anySite: 'Capturar receitas em qualquer site',
+      anySiteDescription: 'Também abre no Reciper as receitas de sites que não estão na lista de sites compatíveis, quando a página descreve a receita de forma padrão (schema.org). O resultado pode ser menos preciso.',
+    },
     about: {
       title: 'Sobre',
       version: 'Reciper v1.0.0',
-      description: 'Salve automaticamente receitas de mais de 600 sites de culinária.',
+      description: 'Salve automaticamente receitas de mais de 700 sites de culinária.',
     },
   },
   editModal: {

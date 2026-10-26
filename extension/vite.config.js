@@ -34,9 +34,15 @@ function extensionPlugin() {
         resolve(distDir, 'overlay-content-script.js')
       )
 
-      // Copier supported-sites.js
+      // Copier detect-content-script.js (option « tous les sites »)
       copyFileSync(
-        resolve(__dirname, 'supported-sites.js'),
+        resolve(__dirname, 'detect-content-script.js'),
+        resolve(distDir, 'detect-content-script.js')
+      )
+
+      // Copier supported-sites.js (généré par scripts/vendor-pyodide.mjs)
+      copyFileSync(
+        resolve(__dirname, 'vendor/supported-sites.js'),
         resolve(distDir, 'supported-sites.js')
       )
 

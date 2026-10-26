@@ -85,10 +85,15 @@ export default {
     language: {
       title: 'Langue',
     },
+    scraping: {
+      title: 'Récupération des recettes',
+      anySite: 'Récupérer les recettes sur tous les sites',
+      anySiteDescription: 'Ouvre aussi dans Reciper les recettes des sites absents de la liste des sites supportés, quand la page décrit sa recette de façon standard (schema.org). Le résultat peut être moins précis.',
+    },
     about: {
       title: 'À propos',
       version: 'Reciper v1.0.0',
-      description: 'Sauvegardez automatiquement les recettes de 600+ sites de cuisine.',
+      description: 'Sauvegardez automatiquement les recettes de 700+ sites de cuisine.',
     },
   },
   editModal: {

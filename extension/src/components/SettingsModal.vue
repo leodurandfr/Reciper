@@ -106,6 +106,21 @@
         </div>
       </section>
 
+      <!-- Récupération des recettes -->
+      <section class="settings-section">
+        <h2 class="heading-03">{{ $t('settings.scraping.title') }}</h2>
+
+        <label class="theme-option">
+          <input
+            type="checkbox"
+            v-model="scrapeAnySite"
+            @change="changeScrapeAnySite"
+          >
+          <span>{{ $t('settings.scraping.anySite') }}</span>
+        </label>
+        <p class="body-small text-muted">{{ $t('settings.scraping.anySiteDescription') }}</p>
+      </section>
+
       <!-- À propos -->
       <section class="settings-section">
         <h2 class="heading-03">{{ $t('settings.about.title') }}</h2>
@@ -176,6 +191,8 @@ const languageOptions = [
   { value: 'pt', label: 'Português' },
 ]
 
+const scrapeAnySite = ref(false)
+
 // Load data each time the modal opens
 watch(
   () => props.isOpen,
@@ -184,6 +201,7 @@ watch(
       const settings = await getSettings()
       theme.value = settings.theme
       language.value = settings.language ?? null
+      scrapeAnySite.value = settings.scrapeAnySite
       recipeCount.value = await getRecipeCount()
 
       // Reset transient states
@@ -309,6 +327,10 @@ async function changeTheme() {
 async function changeLanguage() {
   locale.value = language.value ?? detectBrowserLocale()
   await saveSettings({ language: language.value })
+}
+
+async function changeScrapeAnySite() {
+  await saveSettings({ scrapeAnySite: scrapeAnySite.value })
 }
 
 </script>

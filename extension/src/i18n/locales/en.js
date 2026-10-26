@@ -85,10 +85,15 @@ export default {
     language: {
       title: 'Language',
     },
+    scraping: {
+      title: 'Recipe capture',
+      anySite: 'Capture recipes on any website',
+      anySiteDescription: 'Also opens recipes in Reciper on websites missing from the supported list, when the page describes its recipe in the standard way (schema.org). Results may be less accurate.',
+    },
     about: {
       title: 'About',
       version: 'Reciper v1.0.0',
-      description: 'Save recipes automatically from 600+ cooking websites.',
+      description: 'Save recipes automatically from 700+ cooking websites.',
     },
   },
   editModal: {

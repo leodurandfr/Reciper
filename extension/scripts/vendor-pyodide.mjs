@@ -4,6 +4,8 @@
  * - les wheels nécessaires à recipe-scrapers, téléchargées une fois puis vérifiées (sha256),
  *   puis précompilées en bytecode (.pyc) : sinon Python recompile ~1000 fichiers à chaque
  *   démarrage, ce qui ralentit fortement le premier scraping
+ * - vendor/supported-sites.js : les domaines gérés par la version embarquée de recipe-scrapers,
+ *   lus dans recipe_scrapers.SCRAPERS (la liste suit donc toujours la version de la wheel)
  *
  * Le Chrome Web Store interdit le code distant : tout doit être dans le paquet.
  * Lancé automatiquement avant `npm run build` ; les fichiers déjà présents sont réutilisés.
@@ -18,6 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = resolve(root, 'vendor/pyodide')
 const cacheDir = resolve(root, 'vendor/wheels-cache')
+const supportedSitesFile = resolve(root, 'vendor/supported-sites.js')
 const pyodideDir = dirname(createRequire(import.meta.url).resolve('pyodide/package.json'))
 const pyodideVersion = JSON.parse(readFileSync(resolve(pyodideDir, 'package.json'), 'utf-8')).version
 const cdnBase = `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`
@@ -43,7 +46,7 @@ const PYODIDE_PACKAGES = [
 // Wheels pure-Python depuis PyPI (recipe-scrapers et dépendances d'extruct).
 // jstyleson n'existe qu'en sdist : il est vendorisé dans python/jstyleson.py.
 const PYPI_WHEELS = [
-  ['recipe_scrapers-15.11.0-py3-none-any.whl', 'https://files.pythonhosted.org/packages/75/5a/ff6ba9552d7551c719812d2e9d9847c57abee4ffa11941d84f87b84a8764/recipe_scrapers-15.11.0-py3-none-any.whl', '9e56f1e56ff2c7dfb16b88422beda90f7b3a3896617329ed934d74c1b5ee8b10'],
+  ['recipe_scrapers-15.13.0-py3-none-any.whl', 'https://files.pythonhosted.org/packages/75/31/36696aff66b5727615210f8f83f6be4f439b362061070fc9b946de20f97e/recipe_scrapers-15.13.0-py3-none-any.whl', 'f67cb8bf655efb3748a0de6116ad69b7df4a5c2a70b71785e82b4ec33312fc63'],
   ['extruct-0.18.0-py2.py3-none-any.whl', 'https://files.pythonhosted.org/packages/33/00/60d3efc09d52a9e8d57b59323d7edb962daba2f1c46b89449a252f3652e7/extruct-0.18.0-py2.py3-none-any.whl', '1e739985da705c3348c7614dc169e7780caf20908338fa5f4c6e48576df6f000'],
   ['html_text-0.7.1-py3-none-any.whl', 'https://files.pythonhosted.org/packages/01/da/694ee4570fb1d9d06a00f1493a248531d347be48a2503e9dd79c595de992/html_text-0.7.1-py3-none-any.whl', 'acf13aa1412e559f84f4617fba419720cb8732861736fe07a8dfdafcbdbb8cad'],
   ['isodate-0.7.2-py3-none-any.whl', 'https://files.pythonhosted.org/packages/15/aa/0aca39a37d3c7eb941ba736ede56d689e7be91cab5d9ca846bde3999eba6/isodate-0.7.2-py3-none-any.whl', '28009937d8031054830160fce6d409ed342816b543597cece116d966c6d99e15'],
@@ -73,7 +76,7 @@ async function downloadWheel(fileName, url, expectedSha256) {
 /**
  * Ajoute à chaque wheel le bytecode de ses modules (__pycache__/*.cpython-3XX.pyc, en mode
  * « unchecked hash » : Python l'utilise sans vérifier la source). Compilé par Pyodide lui-même
- * pour que le format corresponde exactement à son Python.
+ * pour que le format corresponde exactement à son Python. Retourne cette instance de Pyodide.
  */
 async function precompileWheels(fileNames) {
   const { loadPyodide } = await import(pathToFileURL(resolve(outDir, 'pyodide.mjs')).href)
@@ -103,6 +106,29 @@ for name in os.listdir("/wheels/in"):
   for (const fileName of fileNames) {
     writeFileSync(resolve(outDir, fileName), pyodide.FS.readFile(`/wheels/out/${fileName}`))
   }
+  return pyodide
+}
+
+/**
+ * Écrit vendor/supported-sites.js : les domaines (sans « www. ») pour lesquels la version
+ * embarquée de recipe-scrapers a un scraper dédié. Importé par le service worker.
+ */
+async function writeSupportedSites(pyodide, fileNames) {
+  await pyodide.loadPackage(fileNames.map((w) => resolve(outDir, w)), { messageCallback: () => {} })
+  // Dépendance d'extruct vendorisée (voir PYPI_WHEELS)
+  pyodide.FS.mkdirTree('/vendored')
+  pyodide.FS.writeFile('/vendored/jstyleson.py', readFileSync(resolve(root, 'python/jstyleson.py')))
+  const hosts = JSON.parse(pyodide.runPython(`
+import json
+import sys
+sys.path.insert(0, "/vendored")
+from recipe_scrapers import SCRAPERS
+json.dumps(sorted({host.removeprefix("www.") for host in SCRAPERS}))
+`))
+  writeFileSync(supportedSitesFile, `// Généré par scripts/vendor-pyodide.mjs depuis recipe_scrapers.SCRAPERS : ne pas modifier.
+export const SUPPORTED_SITES = new Set(${JSON.stringify(hosts, null, 2)});
+`)
+  console.log(`  ${hosts.length} sites supportés par recipe-scrapers`)
 }
 
 mkdirSync(outDir, { recursive: true })
@@ -127,17 +153,21 @@ for (const [fileName, url, hash] of PYPI_WHEELS) {
   wheels.push(fileName)
 }
 
-// Ne recompiler que si les wheels ou la version de Pyodide ont changé
+// Ne recompiler (et ne relister les sites) que si les wheels ou la version de Pyodide ont changé
 const stampFile = resolve(root, 'vendor/precompiled.json')
 const stamp = JSON.stringify({
   pyodideVersion,
+  // Contenu de ce script : changer la génération (bytecode, liste des sites) relance le travail
+  script: sha256(readFileSync(fileURLToPath(import.meta.url))),
   wheels: Object.fromEntries(wheels.map((w) => [w, sha256(readFileSync(resolve(cacheDir, w)))])),
 })
 const upToDate = existsSync(stampFile)
   && readFileSync(stampFile, 'utf-8') === stamp
   && wheels.every((w) => existsSync(resolve(outDir, w)))
+  && existsSync(supportedSitesFile)
 if (!upToDate) {
-  await precompileWheels(wheels)
+  const pyodide = await precompileWheels(wheels)
+  await writeSupportedSites(pyodide, wheels)
   writeFileSync(stampFile, stamp)
 }
 

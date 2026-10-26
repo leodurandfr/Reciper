@@ -51,8 +51,8 @@ async function scrape(html, url) {
     return JSON.parse(scrapeRecipeJson(html, url));
   } catch (error) {
     // PythonError : ne garder que le message de l'exception, pas la traceback
-    if (error.type === "UnsupportedWebsiteError") {
-      throw new Error(`Site non supporté: ${url}`);
+    if (error.type === "NoRecipeFoundError") {
+      throw new Error(`Aucune recette trouvée sur cette page: ${url}`);
     }
     const lastLine = String(error.message).trim().split("\n").pop();
     throw new Error(`Erreur de scraping: ${lastLine}`);

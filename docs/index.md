@@ -23,7 +23,7 @@ describes, in plain terms, what data the extension handles and what it does
 
 ## What the extension does
 
-When you navigate to a page on one of the 600+ supported recipe websites, the
+When you navigate to a page on one of the 700+ supported recipe websites, the
 extension:
 
 1. Detects that the page contains a recipe (via Schema.org structured data).
@@ -33,15 +33,24 @@ extension:
 3. Saves the extracted recipe locally on your device.
 4. Opens the recipe inside the extension.
 
-The extension does **not** read or transmit the content of any page outside the
-list of supported recipe websites.
+By default, the extension does **not** read the content of any page outside the
+list of supported recipe websites, and it never transmits page content anywhere.
+
+## Capturing recipes on any website (optional, off by default)
+
+If you turn on "Capture recipes on any website" in the settings, the extension
+also checks, on every website you visit, whether the page you opened declares a
+recipe (Schema.org structured data). This check runs locally in the page; the
+page content is not stored or sent anywhere. When a recipe is found, the page is
+processed on your device and the recipe is saved, exactly as for supported
+websites. Turning the setting off stops these checks.
 
 ## Data stored locally (on your device)
 
 Stored via `chrome.storage.local`, never transmitted anywhere:
 
 - Recipes you have saved (title, ingredients, steps, image, source URL).
-- User preferences (language, theme).
+- User preferences (language, theme, optional settings).
 
 You can delete all data at any time by removing the extension from Chrome.
 
@@ -70,9 +79,10 @@ This only happens on explicit user action.
 - Financial or payment information
 - Health information
 - Location data (GPS, geolocation)
-- Browsing history outside of supported recipe websites
+- Browsing history
 - Keystrokes, mouse movements, clicks, or any user activity telemetry
-- Content of websites outside the supported recipe list
+- Content of websites outside the supported recipe list (unless you turn on the
+  optional setting above, and then only recipe pages are saved, on your device)
 
 ## Third parties
 

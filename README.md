@@ -12,7 +12,7 @@ Application web locale pour sauvegarder et organiser des recettes de cuisine via
 ## Stack technique
 
 - **Backend**: Python 3.11+ / FastAPI / SQLAlchemy / SQLite
-- **Scraping**: [recipe-scrapers](https://github.com/hhursev/recipe-scrapers) (606 sites supportes)
+- **Scraping**: [recipe-scrapers](https://github.com/hhursev/recipe-scrapers) (700+ sites supportes)
 - **Frontend**: Vue.js 3 / Vite
 - **Extension**: Chrome Extension (Manifest V3)
 
@@ -84,7 +84,7 @@ pytest
 
 ## Sites supportes
 
-L'application supporte plus de 600 sites de recettes grace a la bibliotheque recipe-scrapers, dont :
+L'application supporte plus de 700 sites de recettes grace a la bibliotheque recipe-scrapers, dont :
 
 - Marmiton
 - 750g

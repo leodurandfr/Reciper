@@ -13,7 +13,7 @@ const messages = {
     addError: "Erreur lors de l'ajout",
     error: 'Erreur',
     errorPrefix: 'Erreur: ',
-    extensionLoaded: 'Reciper: Extension chargée - 606 sites supportés',
+    extensionLoaded: 'Reciper: Extension chargée - {count} sites supportés',
   },
   en: {
     recipesStored: 'saved recipes',
@@ -24,7 +24,7 @@ const messages = {
     addError: 'Error adding recipe',
     error: 'Error',
     errorPrefix: 'Error: ',
-    extensionLoaded: 'Reciper: Extension loaded - 606 supported sites',
+    extensionLoaded: 'Reciper: Extension loaded - {count} supported sites',
   },
   es: {
     recipesStored: 'recetas guardadas',
@@ -35,7 +35,7 @@ const messages = {
     addError: 'Error al agregar la receta',
     error: 'Error',
     errorPrefix: 'Error: ',
-    extensionLoaded: 'Reciper: Extensión cargada - 606 sitios compatibles',
+    extensionLoaded: 'Reciper: Extensión cargada - {count} sitios compatibles',
   },
   pt: {
     recipesStored: 'receitas salvas',
@@ -46,7 +46,7 @@ const messages = {
     addError: 'Erro ao adicionar a receita',
     error: 'Erro',
     errorPrefix: 'Erro: ',
-    extensionLoaded: 'Reciper: Extensão carregada - 606 sites compatíveis',
+    extensionLoaded: 'Reciper: Extensão carregada - {count} sites compatíveis',
   },
 }
 

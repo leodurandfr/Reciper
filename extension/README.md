@@ -25,15 +25,17 @@ npm run build   # telecharge Pyodide + wheels dans vendor/ (1re fois), puis buil
 
 ## Sites supportes
 
-L'extension supporte **606 sites de recettes**, dont :
+L'extension supporte **700+ sites de recettes** (tous ceux de recipe-scrapers), dont :
 - marmiton.org
 - 750g.com
 - cuisineaz.com
 - allrecipes.com
 - bbcgoodfood.com
-- Et 600+ autres...
+- Et 700+ autres...
 
-La liste complete est dans `supported-sites.js`.
+La liste est generee au build depuis `recipe_scrapers.SCRAPERS` (`vendor/supported-sites.js`, voir `scripts/vendor-pyodide.mjs`) : elle suit toujours la version de recipe-scrapers embarquee.
+
+Option **Recuperer les recettes sur tous les sites** (Parametres, desactivee par defaut) : sur les autres sites, `detect-content-script.js` signale les pages qui declarent une recette schema.org, et recipe-scrapers les lit en mode generique.
 
 ## Debug
 

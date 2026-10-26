@@ -12,6 +12,7 @@ const defaultSettings = {
   autoSaveImages: false, // Télécharger et sauver les images localement
   theme: 'light', // 'light', 'dark', 'system'
   language: null, // null = auto (suit le navigateur), sinon 'fr' | 'en' | 'es' | 'pt'
+  scrapeAnySite: false, // Récupérer les recettes (schema.org) aussi sur les sites non supportés par recipe-scrapers
 }
 
 // Reactive settings store for composable

@@ -1,4 +1,5 @@
-import { isSupportedSite, SUPPORTED_SITES } from "./supported-sites.js";
+// Généré au build par scripts/vendor-pyodide.mjs depuis recipe_scrapers.SCRAPERS
+import { SUPPORTED_SITES } from "./supported-sites.js";
 import { initLocale, t } from "./i18n-lite.js";
 
 // Set pour tracker les URLs en cours de traitement
@@ -6,6 +7,10 @@ const processingUrls = new Set();
 
 // Set pour les URLs à ne pas intercepter (bypass depuis le lien source)
 const bypassUrls = new Set();
+
+// URL dont la navigation a consommé un bypass, par tabId : sur les sites non supportés,
+// la détection arrive bien plus tard (document_end), après l'expiration du bypass
+const bypassedTabUrls = new Map();
 
 // Map pour stocker l'URL de la page précédente par tabId
 const preNavigationUrls = new Map();
@@ -18,6 +23,45 @@ const pageHtmlCache = new Map();
 const PAGE_HTML_TTL_MS = 60000;
 
 const FETCH_TIMEOUT_MS = 15000;
+
+const OVERLAY_SCRIPT_ID = "reciper-overlay";
+const DETECT_SCRIPT_ID = "reciper-detect";
+
+/**
+ * Vérifie si un hostname correspond à un site supporté (même règle que recipe-scrapers :
+ * le domaine exact, avec ou sans « www. »)
+ * @param {string} hostname - Le hostname à vérifier (ex: "www.marmiton.org")
+ * @returns {boolean}
+ */
+function isSupportedSite(hostname) {
+  return SUPPORTED_SITES.has(hostname.replace(/^www\./, ""));
+}
+
+/**
+ * Motifs des sites supportés pour les content scripts (mêmes domaines que isSupportedSite)
+ */
+function supportedSitePatterns() {
+  const patterns = [];
+  for (const domain of SUPPORTED_SITES) {
+    patterns.push(`*://${domain}/*`);
+    patterns.push(`*://www.${domain}/*`);
+  }
+  return patterns;
+}
+
+/**
+ * Option « Récupérer les recettes sur tous les sites » (désactivée par défaut).
+ * Lue une fois puis gardée en mémoire jusqu'à sa prochaine modification.
+ */
+let scrapeAnySitePromise = null;
+
+function isScrapeAnySiteEnabled() {
+  scrapeAnySitePromise ??= chrome.storage.local
+    .get("settings")
+    .then((result) => Boolean(result.settings?.scrapeAnySite))
+    .catch(() => false);
+  return scrapeAnySitePromise;
+}
 // Couvre le premier démarrage de Python (plusieurs secondes, davantage sur une machine lente)
 const SCRAPE_TIMEOUT_MS = 60000;
 
@@ -78,15 +122,37 @@ async function addRecipe(recipe) {
 }
 
 /**
+ * Vrai si un bloc JSON-LD décrit une recette comme sujet de la page : nœud racine, entrée
+ * de @graph ou mainEntity d'une page. Les recettes seulement listées ou citées (ItemList,
+ * relatedRecipes…) ne comptent pas, pour ne pas intercepter les pages de liste.
+ */
+function jsonLdHasRecipe(node, depth = 0) {
+  if (!node || typeof node !== "object" || depth > 4) return false;
+  if (Array.isArray(node)) return node.some((item) => jsonLdHasRecipe(item, depth + 1));
+  const types = [].concat(node["@type"] ?? []);
+  // "Recipe", "schema:Recipe" ou "https://schema.org/Recipe"
+  if (types.some((type) => typeof type === "string" && /(^|[/:])Recipe$/.test(type))) return true;
+  return [node["@graph"], node.mainEntity].some((value) => jsonLdHasRecipe(value, depth + 1));
+}
+
+/**
  * Vérifie si le HTML contient des données structurées de type Recipe
  * (JSON-LD ou microdata Schema.org)
  */
 function containsRecipe(html) {
-  // JSON-LD : "@type": "Recipe" ou "@type": ["Recipe", ...]
-  const jsonLd = /"@type"\s*:\s*(\[.*?)?"Recipe"/s.test(html);
-  // Microdata : itemtype="https://schema.org/Recipe"
-  const microdata = /itemtype\s*=\s*["']https?:\/\/schema\.org\/Recipe["']/i.test(html);
-  return jsonLd || microdata;
+  const jsonLdBlocks = html.matchAll(
+    /<script[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi
+  );
+  for (const [, content] of jsonLdBlocks) {
+    try {
+      if (jsonLdHasRecipe(JSON.parse(content))) return true;
+    } catch {
+      // JSON-LD invalide (virgules en trop, commentaires…) que recipe-scrapers sait souvent lire
+      if (/"@type"\s*:\s*(\[[^\]]*)?"([^"]*[/:])?Recipe"/.test(content)) return true;
+    }
+  }
+  // Microdata : itemtype="https://schema.org/Recipe" (éventuellement parmi plusieurs types)
+  return /itemtype\s*=\s*["'][^"']*schema\.org\/Recipe\b/i.test(html);
 }
 
 /**
@@ -107,13 +173,20 @@ async function fetchPageHtml(url) {
 async function fetchAndCheckRecipe(url) {
   const html = await fetchPageHtml(url).catch(() => null);
   if (!html) return false;
+  cachePageHtml(url, html);
+  return containsRecipe(html);
+}
+
+/**
+ * Garde le HTML d'une page pour le scraping qui suit (évite de la retélécharger)
+ */
+function cachePageHtml(url, html) {
   const entry = { html };
   pageHtmlCache.set(url, entry);
   setTimeout(() => {
     // Ne pas effacer une entrée plus récente pour la même URL
     if (pageHtmlCache.get(url) === entry) pageHtmlCache.delete(url);
   }, PAGE_HTML_TTL_MS);
-  return containsRecipe(html);
 }
 
 /**
@@ -216,28 +289,109 @@ async function scrapeAndSave(url) {
 }
 
 /**
- * Enregistre le content script overlay sur les sites de recettes supportés.
- * Le script s'exécute à document_start (avant tout rendu) et injecte un overlay.
+ * Enregistre les content scripts :
+ * - overlay sur les sites supportés : s'exécute à document_start (avant tout rendu)
+ *   et masque la page pendant que le service worker vérifie si c'est une recette
+ * - détection sur tous les autres sites, si l'option « tous les sites » est activée :
+ *   s'exécute une fois le HTML chargé et signale les pages qui déclarent une recette
  */
-chrome.runtime.onInstalled.addListener(async () => {
-  const patterns = [];
-  for (const domain of SUPPORTED_SITES) {
-    patterns.push(`*://${domain}/*`);
-    patterns.push(`*://*.${domain}/*`);
+async function registerContentScripts(refresh) {
+  const registered = new Set(
+    (await chrome.scripting.getRegisteredContentScripts()).map((script) => script.id)
+  );
+  const wantDetect = await isScrapeAnySiteEnabled();
+  const supportedPatterns = supportedSitePatterns();
+
+  // À l'installation / mise à jour, tout réenregistrer (la liste des sites a pu changer) ;
+  // sinon seul le script de détection est ajouté ou retiré, l'overlay n'est jamais retiré
+  const toRemove = [...registered].filter(
+    (id) => refresh || (id === DETECT_SCRIPT_ID && !wantDetect)
+  );
+  if (toRemove.length > 0) await chrome.scripting.unregisterContentScripts({ ids: toRemove });
+
+  const toAdd = [];
+  if (refresh || !registered.has(OVERLAY_SCRIPT_ID)) {
+    toAdd.push({
+      id: OVERLAY_SCRIPT_ID,
+      matches: supportedPatterns,
+      js: ["overlay-content-script.js"],
+      runAt: "document_start",
+      allFrames: false,
+    });
   }
+  if (wantDetect && (refresh || !registered.has(DETECT_SCRIPT_ID))) {
+    toAdd.push({
+      id: DETECT_SCRIPT_ID,
+      matches: ["http://*/*", "https://*/*"],
+      excludeMatches: supportedPatterns,
+      js: ["detect-content-script.js"],
+      runAt: "document_end",
+      allFrames: false,
+    });
+  }
+  if (toAdd.length > 0) await chrome.scripting.registerContentScripts(toAdd);
+}
+
+let contentScriptsQueue = Promise.resolve();
+
+function syncContentScripts({ refresh = false } = {}) {
+  contentScriptsQueue = contentScriptsQueue
+    .then(() => registerContentScripts(refresh))
+    .catch((error) => console.error("Reciper: content scripts", error));
+  return contentScriptsQueue;
+}
+
+chrome.runtime.onInstalled.addListener(() => syncContentScripts({ refresh: true }));
+
+// L'option « tous les sites » a changé : (dés)activer le script de détection
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local" || !changes.settings) return;
+  const before = Boolean(changes.settings.oldValue?.scrapeAnySite);
+  const after = Boolean(changes.settings.newValue?.scrapeAnySite);
+  scrapeAnySitePromise = Promise.resolve(after);
+  if (before !== after) syncContentScripts();
+});
+
+/**
+ * Ouvre la page de chargement de Reciper dans l'onglet, qui lance le scraping de l'URL
+ */
+function openLoadingPage(tabId, url, referrerUrl) {
+  const encodedUrl = encodeURIComponent(url);
+  const encodedReferrer = encodeURIComponent(referrerUrl);
+  const loadingUrl = chrome.runtime.getURL(
+    `index.html#/loading?url=${encodedUrl}&returnUrl=${encodedUrl}&referrerUrl=${encodedReferrer}`
+  );
+  return chrome.tabs.update(tabId, { url: loadingUrl });
+}
+
+/**
+ * Page d'un site non supporté signalée par detect-content-script.js (option « tous les sites ») :
+ * si elle contient bien une recette, l'ouvrir dans Reciper avec le HTML déjà chargé par l'onglet
+ */
+async function handleDetectedRecipePage(tabId, url, html) {
+  if (bypassedTabUrls.get(tabId) === url) {
+    bypassedTabUrls.delete(tabId);
+    return;
+  }
+  if (!(await isScrapeAnySiteEnabled())) return;
+  if (processingUrls.has(url) || !containsRecipe(html)) return;
+  processingUrls.add(url);
 
   try {
-    await chrome.scripting.unregisterContentScripts({ ids: ["reciper-overlay"] });
-  } catch {}
+    // Vérifier que l'onglet est toujours sur la même page
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (!tab || tab.url !== url) return;
 
-  await chrome.scripting.registerContentScripts([{
-    id: "reciper-overlay",
-    matches: patterns,
-    js: ["overlay-content-script.js"],
-    runAt: "document_start",
-    allFrames: false,
-  }]);
-});
+    const referrerUrl = preNavigationUrls.get(tabId) || "";
+    preNavigationUrls.delete(tabId);
+
+    cachePageHtml(url, html);
+    ensureOffscreenDocument().catch(() => {});
+    await openLoadingPage(tabId, url, referrerUrl);
+  } finally {
+    processingUrls.delete(url);
+  }
+}
 
 /**
  * Capture l'URL de la page précédente et lance le pre-fetch de détection recipe
@@ -245,13 +399,18 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return;
   const url = new URL(details.url);
-  if (!isSupportedSite(url.hostname)) return;
+  if (!/^https?:$/.test(url.protocol)) return;
+  const supported = isSupportedSite(url.hostname);
+  if (!supported && !(await isScrapeAnySiteEnabled())) return;
 
   // Capturer l'URL de la page précédente
   try {
     const tab = await chrome.tabs.get(details.tabId);
     preNavigationUrls.set(details.tabId, tab.url);
   } catch {}
+
+  // Sites non supportés : la détection se fait sur la page chargée (detect-content-script.js)
+  if (!supported) return;
 
   // Lancer le pre-fetch pour détecter @type: Recipe avant onCommitted
   const checkPromise = fetchAndCheckRecipe(details.url);
@@ -273,14 +432,21 @@ chrome.webNavigation.onCommitted.addListener(
     if (details.transitionType === "auto_subframe") return;
 
     const url = new URL(details.url);
-    if (!isSupportedSite(url.hostname)) return;
+    const supported = isSupportedSite(url.hostname);
 
     // Bypass si demandé (retour depuis Reciper vers le site)
+    bypassedTabUrls.delete(details.tabId);
     if (bypassUrls.has(details.url)) {
       bypassUrls.delete(details.url);
-      chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+      if (supported) {
+        chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+      } else {
+        // Consommé plus tard par handleDetectedRecipePage (option « tous les sites »)
+        bypassedTabUrls.set(details.tabId, details.url);
+      }
       return;
     }
+    if (!supported) return;
 
     // Bypass les navigations back/forward du navigateur
     // (filet de sécurité pour les cas cross-origin où replaceState ne fonctionne pas)
@@ -329,12 +495,7 @@ chrome.webNavigation.onCommitted.addListener(
         } catch {}
       }
 
-      const encodedUrl = encodeURIComponent(details.url);
-      const encodedReferrer = encodeURIComponent(referrerUrl);
-      const loadingUrl = chrome.runtime.getURL(
-        `index.html#/loading?url=${encodedUrl}&returnUrl=${encodedUrl}&referrerUrl=${encodedReferrer}`
-      );
-      chrome.tabs.update(details.tabId, { url: loadingUrl });
+      await openLoadingPage(details.tabId, details.url, referrerUrl);
     } catch {
       // En cas d'erreur, retirer l'overlay pour ne pas bloquer la page
       chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
@@ -366,6 +527,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  // Page d'un site non supporté qui semble contenir une recette (option « tous les sites »)
+  if (message.type === "RECIPE_PAGE_DETECTED") {
+    if (sender.tab && sender.frameId === 0) {
+      handleDetectedRecipePage(sender.tab.id, message.url, message.html).catch(() => {});
+    }
+    return;
+  }
+
   // Bypass d'interception pour le lien source
   if (message.type === "BYPASS_URL") {
     bypassUrls.add(message.url);
@@ -383,7 +552,13 @@ chrome.action.onClicked.addListener(() => {
   chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
 });
 
+// L'URL de la page précédente n'est plus utile une fois l'onglet fermé
+chrome.tabs.onRemoved.addListener((tabId) => {
+  preNavigationUrls.delete(tabId);
+  bypassedTabUrls.delete(tabId);
+});
+
 // Initialiser la locale et log au démarrage
 initLocale().then(() => {
-  console.log(t("extensionLoaded"));
+  console.log(t("extensionLoaded").replace("{count}", SUPPORTED_SITES.size));
 });
