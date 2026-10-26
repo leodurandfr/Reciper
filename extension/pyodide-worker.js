@@ -23,12 +23,14 @@ async function initPython() {
   });
 
   const files = await fetch(`${extensionRoot}python/files.json`).then((r) => r.json());
-  for (const path of files) {
-    const source = await fetch(`${extensionRoot}python/${path}`).then((r) => r.text());
+  const sources = await Promise.all(
+    files.map((path) => fetch(`${extensionRoot}python/${path}`).then((r) => r.text()))
+  );
+  files.forEach((path, i) => {
     const target = `${PYTHON_ROOT}/${path}`;
     pyodide.FS.mkdirTree(target.slice(0, target.lastIndexOf("/")));
-    pyodide.FS.writeFile(target, source);
-  }
+    pyodide.FS.writeFile(target, sources[i]);
+  });
 
   pyodide.runPython(`import sys; sys.path.insert(0, "${PYTHON_ROOT}")`);
   return pyodide.pyimport("reciper.scraper").scrape_recipe_json;
@@ -38,7 +40,13 @@ async function initPython() {
 const scraperReady = initPython();
 
 async function scrape(html, url) {
-  const scrapeRecipeJson = await scraperReady;
+  let scrapeRecipeJson;
+  try {
+    scrapeRecipeJson = await scraperReady;
+  } catch (error) {
+    // Échec définitif pour ce worker : le service worker recrée le document offscreen
+    throw Object.assign(new Error(`Échec du chargement de Python: ${error.message}`), { fatal: true });
+  }
   try {
     return JSON.parse(scrapeRecipeJson(html, url));
   } catch (error) {
@@ -56,6 +64,6 @@ self.onmessage = async ({ data }) => {
     const recipe = await scrape(data.html, data.url);
     self.postMessage({ id: data.id, success: true, recipe });
   } catch (error) {
-    self.postMessage({ id: data.id, success: false, error: error.message });
+    self.postMessage({ id: data.id, success: false, error: error.message, fatal: Boolean(error.fatal) });
   }
 };

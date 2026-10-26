@@ -127,7 +127,19 @@ for (const [fileName, url, hash] of PYPI_WHEELS) {
   wheels.push(fileName)
 }
 
-await precompileWheels(wheels)
+// Ne recompiler que si les wheels ou la version de Pyodide ont changé
+const stampFile = resolve(root, 'vendor/precompiled.json')
+const stamp = JSON.stringify({
+  pyodideVersion,
+  wheels: Object.fromEntries(wheels.map((w) => [w, sha256(readFileSync(resolve(cacheDir, w)))])),
+})
+const upToDate = existsSync(stampFile)
+  && readFileSync(stampFile, 'utf-8') === stamp
+  && wheels.every((w) => existsSync(resolve(outDir, w)))
+if (!upToDate) {
+  await precompileWheels(wheels)
+  writeFileSync(stampFile, stamp)
+}
 
 // Liste lue par pyodide-worker.js pour charger les wheels
 writeFileSync(resolve(outDir, 'wheels.json'), JSON.stringify(wheels, null, 2))

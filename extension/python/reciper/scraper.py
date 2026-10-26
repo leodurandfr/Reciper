@@ -8,7 +8,7 @@ like the old ScrapedRecipe schema.
 import json
 
 from recipe_scrapers import scrape_html
-from recipe_scrapers._exceptions import WebsiteNotImplementedError
+from recipe_scrapers._exceptions import RecipeScrapersExceptions, WebsiteNotImplementedError
 
 from .ingredient_image_matcher import get_ingredient_image_id
 from .language_detection import get_language_from_domain
@@ -37,23 +37,25 @@ def parse_time_to_minutes(time_value) -> int | None:
 
 
 def _safe(getter, default=None):
+    """Call a scraper field getter; a field the page does not provide gives `default`.
+
+    recipe-scrapers raises its own exceptions (SchemaOrgException,
+    ElementNotFoundInHtml...) for missing fields, not only NotImplementedError.
+    """
     try:
         return getter()
-    except (AttributeError, NotImplementedError):
+    except (AttributeError, NotImplementedError, RecipeScrapersExceptions):
         return default
 
 
-def scrape_recipe(html: str, url: str, wild_mode: bool = False) -> dict:
+def scrape_recipe(html: str, url: str) -> dict:
     """Scrape a recipe from its page HTML using recipe-scrapers."""
     try:
         scraper = scrape_html(html, org_url=url)
     except WebsiteNotImplementedError:
-        if wild_mode:
-            scraper = scrape_html(html, org_url=url, wild_mode=True)
-        else:
-            raise UnsupportedWebsiteError(f"Site non supporté: {url}")
+        raise UnsupportedWebsiteError(f"Site non supporté: {url}")
 
-    title = scraper.title() or "Sans titre"
+    title = _safe(scraper.title) or "Sans titre"
     image_url = _safe(scraper.image)
     ingredients = _safe(scraper.ingredients, [])
 
@@ -88,6 +90,6 @@ def scrape_recipe(html: str, url: str, wild_mode: bool = False) -> dict:
     }
 
 
-def scrape_recipe_json(html: str, url: str, wild_mode: bool = False) -> str:
+def scrape_recipe_json(html: str, url: str) -> str:
     """Entry point called from JavaScript: returns the recipe as JSON."""
-    return json.dumps(scrape_recipe(html, url, wild_mode))
+    return json.dumps(scrape_recipe(html, url))

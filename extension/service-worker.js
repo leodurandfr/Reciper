@@ -17,6 +17,10 @@ const pendingRecipeChecks = new Map();
 const pageHtmlCache = new Map();
 const PAGE_HTML_TTL_MS = 60000;
 
+const FETCH_TIMEOUT_MS = 15000;
+// Couvre le premier démarrage de Python (plusieurs secondes, davantage sur une machine lente)
+const SCRAPE_TIMEOUT_MS = 60000;
+
 /**
  * Recupere l'index des recettes depuis chrome.storage.local
  */
@@ -89,7 +93,7 @@ function containsRecipe(html) {
  * Fetch le HTML d'une URL
  */
 async function fetchPageHtml(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
   if (!response.ok) {
     throw new Error(`Impossible de récupérer la page: HTTP ${response.status}`);
   }
@@ -103,57 +107,93 @@ async function fetchPageHtml(url) {
 async function fetchAndCheckRecipe(url) {
   const html = await fetchPageHtml(url).catch(() => null);
   if (!html) return false;
-  pageHtmlCache.set(url, html);
-  setTimeout(() => pageHtmlCache.delete(url), PAGE_HTML_TTL_MS);
+  const entry = { html };
+  pageHtmlCache.set(url, entry);
+  setTimeout(() => {
+    // Ne pas effacer une entrée plus récente pour la même URL
+    if (pageHtmlCache.get(url) === entry) pageHtmlCache.delete(url);
+  }, PAGE_HTML_TTL_MS);
   return containsRecipe(html);
 }
 
 /**
- * Crée le document offscreen qui exécute recipe-scrapers (Pyodide), s'il n'existe pas déjà.
+ * Création / fermeture du document offscreen qui exécute recipe-scrapers (Pyodide).
+ * Les opérations passent par une file unique : deux appels simultanés (préchauffage et
+ * scraping) ne peuvent pas créer deux documents, et un appel attend la fin d'une
+ * création en cours (hasDocument() est vrai avant que le document soit chargé).
  */
-let creatingOffscreen = null;
-async function ensureOffscreenDocument() {
-  // hasDocument() est vrai dès la création, avant que le document soit chargé :
-  // attendre une création en cours (lancée par le préchauffage) avant de lui écrire
-  if (creatingOffscreen) return creatingOffscreen;
-  if (await chrome.offscreen.hasDocument()) return;
-  creatingOffscreen ??= chrome.offscreen
-    .createDocument({
+let offscreenQueue = Promise.resolve();
+let scrapesInFlight = 0;
+
+function queueOffscreenOperation(operation) {
+  offscreenQueue = offscreenQueue.catch(() => {}).then(operation);
+  return offscreenQueue;
+}
+
+function ensureOffscreenDocument() {
+  return queueOffscreenOperation(async () => {
+    if (await chrome.offscreen.hasDocument()) return;
+    await chrome.offscreen.createDocument({
       url: "offscreen.html",
       reasons: ["WORKERS"],
       justification: "Run recipe-scrapers (Python, via Pyodide) in a Web Worker to parse recipe pages",
-    })
-    .finally(() => {
-      creatingOffscreen = null;
     });
-  await creatingOffscreen;
+  });
+}
+
+function closeOffscreenDocument() {
+  return queueOffscreenOperation(async () => {
+    if (await chrome.offscreen.hasDocument()) await chrome.offscreen.closeDocument();
+  });
+}
+
+/**
+ * Envoie le HTML au document offscreen, en réessayant brièvement s'il n'écoute pas encore
+ */
+async function sendToOffscreen(message) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await chrome.runtime.sendMessage(message);
+    } catch (error) {
+      if (attempt >= 10 || !String(error.message).includes("Receiving end does not exist")) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
 }
 
 /**
  * Scrape une recette localement (recipe-scrapers dans le document offscreen)
  */
 async function scrapeRecipe(url) {
-  const html = pageHtmlCache.get(url) ?? (await fetchPageHtml(url));
-  pageHtmlCache.delete(url);
+  scrapesInFlight++;
+  try {
+    const cached = pageHtmlCache.get(url);
+    pageHtmlCache.delete(url);
+    const html = cached?.html ?? (await fetchPageHtml(url));
 
-  await ensureOffscreenDocument();
-  const message = { target: "offscreen", type: "SCRAPE_HTML", url, html };
-  let response;
-  for (let attempt = 0; ; attempt++) {
-    try {
-      response = await chrome.runtime.sendMessage(message);
-      break;
-    } catch (error) {
-      // Document offscreen pas encore à l'écoute : réessayer brièvement
-      if (attempt >= 10 || !String(error.message).includes("Receiving end does not exist")) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 200));
+    await ensureOffscreenDocument();
+    let timeoutId;
+    const timeout = new Promise((resolve) => {
+      timeoutId = setTimeout(
+        () => resolve({ success: false, error: "Délai dépassé lors de l'analyse de la recette", fatal: true }),
+        SCRAPE_TIMEOUT_MS
+      );
+    });
+    const response = await Promise.race([
+      sendToOffscreen({ target: "offscreen", type: "SCRAPE_HTML", url, html }),
+      timeout,
+    ]).finally(() => clearTimeout(timeoutId));
+
+    if (!response?.success) {
+      // Python n'a pas pu se charger, ou le worker est bloqué / planté : repartir de zéro
+      // au prochain scraping plutôt que de réutiliser un document cassé
+      if (response?.fatal) closeOffscreenDocument().catch(() => {});
+      throw new Error(response?.error || t("error"));
     }
+    return response.recipe;
+  } finally {
+    scrapesInFlight--;
   }
-
-  if (!response?.success) {
-    throw new Error(response?.error || t("error"));
-  }
-  return response.recipe;
 }
 
 /**
@@ -318,6 +358,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, error: error.message })
       );
     return true;
+  }
+
+  // Le document offscreen est inactif depuis un moment : le fermer pour libérer la mémoire
+  if (message.type === "OFFSCREEN_IDLE") {
+    if (scrapesInFlight === 0) closeOffscreenDocument().catch(() => {});
+    return;
   }
 
   // Bypass d'interception pour le lien source
