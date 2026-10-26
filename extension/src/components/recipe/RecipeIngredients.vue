@@ -35,7 +35,7 @@
 <script setup>
 import { computed } from 'vue'
 import Icon from '@/components/Icon.vue'
-import { useSettings, BACKEND_URL } from '@/stores/settings'
+import placeholderUrl from '@/assets/ingredient-placeholder.png'
 
 const props = defineProps({
   ingredients: {
@@ -62,8 +62,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:current-portions'])
 
-const settings = useSettings()
-
 const portions = computed({
   get: () => props.currentPortions,
   set: (val) => emit('update:current-portions', val),
@@ -81,18 +79,16 @@ function getIngredientParts(ingredient) {
   return { quantity, rest }
 }
 
-function getImageBaseUrl() {
-  return import.meta.env.DEV ? '' : (settings.backendUrl || BACKEND_URL)
-}
-
-const placeholderUrl = `${getImageBaseUrl()}/api/ingredients/images/placeholder`
+// Images embarquées dans l'extension, indexées par image_id (nom du fichier)
+const ingredientImages = Object.fromEntries(
+  Object.entries(
+    import.meta.glob('@/assets/ingredients/*.png', { eager: true, import: 'default' })
+  ).map(([path, url]) => [path.split('/').pop().replace('.png', ''), url])
+)
 
 function getIngredientImageUrl(index) {
-  const enriched = props.enrichedIngredients?.[index]
-  if (!enriched?.image_id) {
-    return placeholderUrl
-  }
-  return `${getImageBaseUrl()}/api/ingredients/images/${enriched.image_id}`
+  const imageId = props.enrichedIngredients?.[index]?.image_id
+  return ingredientImages[imageId] || placeholderUrl
 }
 
 function onImageError(e) {

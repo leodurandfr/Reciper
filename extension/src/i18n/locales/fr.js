@@ -90,15 +90,6 @@ export default {
       version: 'Reciper v1.0.0',
       description: 'Sauvegardez automatiquement les recettes de 600+ sites de cuisine.',
     },
-    server: {
-      title: 'Serveur',
-      description: 'URL du backend de scraping.',
-      save: 'Enregistrer',
-      saving: 'Enregistrement...',
-      saved: 'URL enregistrée',
-      reset: 'URL réinitialisée (défaut)',
-      saveError: "Erreur lors de l'enregistrement",
-    },
   },
   editModal: {
     title: 'Modifier la recette',

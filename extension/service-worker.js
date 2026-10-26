@@ -1,20 +1,6 @@
 import { isSupportedSite, SUPPORTED_SITES } from "./supported-sites.js";
 import { initLocale, t } from "./i18n-lite.js";
 
-const DEFAULT_BACKEND_URL = "https://reciper-api-605923399344.europe-west1.run.app";
-
-/**
- * Récupère l'URL du backend (custom ou défaut)
- */
-async function getBackendUrl() {
-  try {
-    const result = await chrome.storage.local.get("settings");
-    return result.settings?.backendUrl || DEFAULT_BACKEND_URL;
-  } catch {
-    return DEFAULT_BACKEND_URL;
-  }
-}
-
 // Set pour tracker les URLs en cours de traitement
 const processingUrls = new Set();
 
@@ -26,6 +12,10 @@ const preNavigationUrls = new Map();
 
 // Map pour stocker les promises de pre-fetch (détection recipe)
 const pendingRecipeChecks = new Map();
+
+// Map pour garder le HTML pré-fetché (réutilisé par le scraping, évite un 2e téléchargement)
+const pageHtmlCache = new Map();
+const PAGE_HTML_TTL_MS = 60000;
 
 /**
  * Recupere l'index des recettes depuis chrome.storage.local
@@ -96,36 +86,74 @@ function containsRecipe(html) {
 }
 
 /**
- * Fetch le HTML d'une URL et vérifie si la page contient une recette
+ * Fetch le HTML d'une URL
+ */
+async function fetchPageHtml(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Impossible de récupérer la page: HTTP ${response.status}`);
+  }
+  return response.text();
+}
+
+/**
+ * Fetch le HTML d'une URL et vérifie si la page contient une recette.
+ * Le HTML est gardé en cache pour le scraping qui suit.
  */
 async function fetchAndCheckRecipe(url) {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    },
-  });
-  if (!response.ok) return false;
-  const html = await response.text();
+  const html = await fetchPageHtml(url).catch(() => null);
+  if (!html) return false;
+  pageHtmlCache.set(url, html);
+  setTimeout(() => pageHtmlCache.delete(url), PAGE_HTML_TTL_MS);
   return containsRecipe(html);
 }
 
 /**
- * Scrape une recette via le backend
+ * Crée le document offscreen qui exécute recipe-scrapers (Pyodide), s'il n'existe pas déjà.
+ */
+let creatingOffscreen = null;
+async function ensureOffscreenDocument() {
+  // hasDocument() est vrai dès la création, avant que le document soit chargé :
+  // attendre une création en cours (lancée par le préchauffage) avant de lui écrire
+  if (creatingOffscreen) return creatingOffscreen;
+  if (await chrome.offscreen.hasDocument()) return;
+  creatingOffscreen ??= chrome.offscreen
+    .createDocument({
+      url: "offscreen.html",
+      reasons: ["WORKERS"],
+      justification: "Run recipe-scrapers (Python, via Pyodide) in a Web Worker to parse recipe pages",
+    })
+    .finally(() => {
+      creatingOffscreen = null;
+    });
+  await creatingOffscreen;
+}
+
+/**
+ * Scrape une recette localement (recipe-scrapers dans le document offscreen)
  */
 async function scrapeRecipe(url) {
-  const backendUrl = await getBackendUrl();
-  const response = await fetch(`${backendUrl}/api/scrape`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-  });
+  const html = pageHtmlCache.get(url) ?? (await fetchPageHtml(url));
+  pageHtmlCache.delete(url);
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: t("error") }));
-    throw new Error(error.detail || `HTTP ${response.status}`);
+  await ensureOffscreenDocument();
+  const message = { target: "offscreen", type: "SCRAPE_HTML", url, html };
+  let response;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      response = await chrome.runtime.sendMessage(message);
+      break;
+    } catch (error) {
+      // Document offscreen pas encore à l'écoute : réessayer brièvement
+      if (attempt >= 10 || !String(error.message).includes("Receiving end does not exist")) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
   }
 
-  return response.json();
+  if (!response?.success) {
+    throw new Error(response?.error || t("error"));
+  }
+  return response.recipe;
 }
 
 /**
@@ -138,7 +166,7 @@ async function scrapeAndSave(url) {
     return { success: true, recipeId: existing.id, existing: true };
   }
 
-  // Scraper via le backend
+  // Scraper localement (Pyodide)
   const scrapedRecipe = await scrapeRecipe(url);
 
   // Sauvegarder dans chrome.storage.local
@@ -188,6 +216,10 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   // Lancer le pre-fetch pour détecter @type: Recipe avant onCommitted
   const checkPromise = fetchAndCheckRecipe(details.url);
   pendingRecipeChecks.set(details.url, checkPromise);
+
+  // Charger Python dès maintenant (premier démarrage de plusieurs secondes),
+  // sans attendre de savoir si la page est une recette
+  ensureOffscreenDocument().catch(() => {});
 });
 
 /**

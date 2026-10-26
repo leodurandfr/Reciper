@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
-import { copyFileSync, mkdirSync, existsSync, cpSync, readFileSync, writeFileSync } from 'fs'
+import { dirname, resolve } from 'path'
+import { copyFileSync, mkdirSync, existsSync, cpSync, readFileSync, writeFileSync, readdirSync } from 'fs'
 
 // Plugin pour copier les fichiers de l'extension et nettoyer le HTML
 function extensionPlugin() {
@@ -45,6 +45,34 @@ function extensionPlugin() {
         resolve(__dirname, 'i18n-lite.js'),
         resolve(distDir, 'i18n-lite.js')
       )
+
+      // Copier le document offscreen (scraping Python via Pyodide)
+      copyFileSync(
+        resolve(__dirname, 'offscreen.html'),
+        resolve(distDir, 'offscreen.html')
+      )
+      copyFileSync(
+        resolve(__dirname, 'offscreen.js'),
+        resolve(distDir, 'offscreen.js')
+      )
+      copyFileSync(
+        resolve(__dirname, 'pyodide-worker.js'),
+        resolve(distDir, 'pyodide-worker.js')
+      )
+
+      // Copier le runtime Pyodide et les wheels (préparés par scripts/vendor-pyodide.mjs)
+      cpSync(resolve(__dirname, 'vendor/pyodide'), resolve(distDir, 'pyodide'), { recursive: true })
+
+      // Copier le code Python et lister ses fichiers pour offscreen.js
+      const pythonFiles = readdirSync(resolve(__dirname, 'python'), { recursive: true })
+        .map((file) => file.split('\\').join('/'))
+        .filter((file) => file.endsWith('.py'))
+      for (const file of pythonFiles) {
+        const target = resolve(distDir, 'python', file)
+        mkdirSync(dirname(target), { recursive: true })
+        copyFileSync(resolve(__dirname, 'python', file), target)
+      }
+      writeFileSync(resolve(distDir, 'python/files.json'), JSON.stringify(pythonFiles))
 
       // Copier le dossier icons
       const iconsDir = resolve(distDir, 'icons')
@@ -95,12 +123,6 @@ export default defineConfig({
   // Dev server pour test hors extension
   server: {
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-      },
-    },
   },
 
   resolve: {

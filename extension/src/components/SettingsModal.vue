@@ -110,7 +110,7 @@
       <section class="settings-section">
         <h2 class="heading-03">{{ $t('settings.about.title') }}</h2>
         <p class="body-small text-muted">
-          <span class="version-tap" @click="onVersionTap">{{ $t('settings.about.version') }}</span><br>
+          <span>{{ $t('settings.about.version') }}</span><br>
           {{ $t('settings.about.description') }}
         </p>
         <div class="about-links">
@@ -123,27 +123,6 @@
         </div>
       </section>
 
-      <!-- Dev: Backend URL (hidden by default, tap version 5x to reveal) -->
-      <section v-if="showDevSettings" class="settings-section">
-        <h2 class="heading-03">{{ $t('settings.server.title') }}</h2>
-        <p class="body-small text-muted">{{ $t('settings.server.description') }}</p>
-
-        <div class="dev-url-group">
-          <input
-            v-model="backendUrl"
-            type="url"
-            :placeholder="defaultUrl"
-            class="dev-url-input"
-          >
-          <BaseButton variant="fill" :disabled="saving" @click="saveBackendUrl">
-            {{ saving ? $t('settings.server.saving') : $t('settings.server.save') }}
-          </BaseButton>
-        </div>
-
-        <div v-if="backendStatus" :class="['status-message', backendStatus.type]">
-          {{ backendStatus.message }}
-        </div>
-      </section>
     </div>
   </BaseModal>
 </template>
@@ -153,7 +132,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
 import BaseButton from './BaseButton.vue'
-import { getSettings, saveSettings, applyTheme, BACKEND_URL } from '../stores/settings.js'
+import { getSettings, saveSettings, applyTheme } from '../stores/settings.js'
 import { detectBrowserLocale } from '../i18n/detect.js'
 import { getRecipeCount, clearAllRecipes } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
@@ -182,14 +161,6 @@ const deletingAll = ref(false)
 
 const theme = ref('system')
 
-// Hidden dev settings (tap version 5x to reveal)
-const devTapCount = ref(0)
-const showDevSettings = ref(false)
-const backendUrl = ref('')
-const saving = ref(false)
-const backendStatus = ref(null)
-const defaultUrl = BACKEND_URL
-
 const themeOptions = computed(() => [
   { value: 'light', label: t('settings.appearance.light') },
   { value: 'dark', label: t('settings.appearance.dark') },
@@ -215,12 +186,7 @@ watch(
       language.value = settings.language ?? null
       recipeCount.value = await getRecipeCount()
 
-      backendUrl.value = settings.backendUrl || ''
-
       // Reset transient states
-      devTapCount.value = 0
-      showDevSettings.value = false
-      backendStatus.value = null
       importPreview.value = null
       importFile.value = null
       importResult.value = null
@@ -343,32 +309,6 @@ async function changeTheme() {
 async function changeLanguage() {
   locale.value = language.value ?? detectBrowserLocale()
   await saveSettings({ language: language.value })
-}
-
-function onVersionTap() {
-  devTapCount.value++
-  if (devTapCount.value >= 5) {
-    showDevSettings.value = true
-  }
-}
-
-async function saveBackendUrl() {
-  saving.value = true
-  try {
-    const url = backendUrl.value.trim() || undefined
-    await saveSettings({ backendUrl: url })
-    backendStatus.value = {
-      type: 'success',
-      message: url ? t('settings.server.saved') : t('settings.server.reset')
-    }
-  } catch {
-    backendStatus.value = {
-      type: 'error',
-      message: t('settings.server.saveError')
-    }
-  } finally {
-    saving.value = false
-  }
 }
 
 </script>
@@ -508,18 +448,4 @@ async function saveBackendUrl() {
   gap: var(--space-03);
 }
 
-.version-tap {
-  cursor: default;
-  user-select: none;
-}
-
-.dev-url-group {
-  display: flex;
-  gap: var(--space-03);
-  margin-bottom: var(--space-04);
-}
-
-.dev-url-input {
-  flex: 1;
-}
 </style>

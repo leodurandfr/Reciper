@@ -1,28 +1,27 @@
-# Extension Chrome - RecettesScrapper
+# Extension Chrome - Reciper
 
-Extension Chrome qui intercepte automatiquement les clics sur les liens de recettes et les sauvegarde dans votre application RecettesScrapper locale.
+Extension Chrome qui detecte automatiquement les pages de recettes et les sauvegarde dans votre collection Reciper.
 
 ## Fonctionnement
 
-1. Vous cliquez sur un lien vers un site de recette supporte (Marmiton, 750g, etc.)
-2. L'extension detecte le site et envoie l'URL au backend local
-3. La recette est scrapee et sauvegardee automatiquement
-4. Vous etes redirige vers l'app locale pour voir la recette
+1. Vous ouvrez une page d'un site de recette supporte (Marmiton, 750g, etc.)
+2. L'extension recupere le HTML de la page et l'analyse localement avec `recipe-scrapers` (Python, execute via Pyodide dans un document offscreen)
+3. La recette est sauvegardee dans le navigateur (`chrome.storage.local`)
+4. Vous etes redirige vers Reciper pour voir la recette
 
-**Fallback** : Si le backend n'est pas lance, le site original s'ouvre normalement.
+Aucun serveur : tout se passe dans le navigateur.
 
 ## Installation
 
-### Prerequis
-- Le backend par défaut est `https://api-reciper.leodurand.com`
-- Modifiable dans les paramètres de l'extension
-
-### Installation de l'extension
+```bash
+npm install
+npm run build   # telecharge Pyodide + wheels dans vendor/ (1re fois), puis build dans dist/
+```
 
 1. Ouvrir Chrome et aller sur `chrome://extensions/`
 2. Activer le **Mode developpeur** (en haut a droite)
 3. Cliquer sur **Charger l'extension non empaquetee**
-4. Selectionner ce dossier (`extension/`)
+4. Selectionner le dossier `extension/dist/`
 
 ## Sites supportes
 
@@ -40,16 +39,19 @@ La liste complete est dans `supported-sites.js`.
 
 Pour voir les logs de l'extension :
 1. Aller sur `chrome://extensions/`
-2. Cliquer sur "Details" de RecettesScrapper
-3. Cliquer sur "service worker" pour ouvrir la console
+2. Cliquer sur "Details" de Reciper
+3. "Inspecter les vues" : `service worker` (detection, fetch) ou `offscreen.html` (Pyodide / scraping)
 
 ## Structure
 
 ```
 extension/
-├── manifest.json        # Configuration de l'extension
-├── background.js        # Service Worker (logique principale)
-├── supported-sites.js   # Liste des 606 domaines supportes
-├── icons/               # Icones de l'extension
-└── README.md
+├── manifest.json              # Configuration de l'extension
+├── service-worker.js          # Detection des recettes, fetch du HTML
+├── offscreen.html / .js       # Pyodide + recipe-scrapers
+├── python/                    # Code Python execute dans Pyodide (scraper, images d'ingredients)
+├── scripts/vendor-pyodide.mjs # Prepare vendor/pyodide/ (Pyodide + wheels figees)
+├── supported-sites.js         # Liste des domaines supportes
+├── src/                       # App Vue.js
+└── icons/                     # Icones de l'extension
 ```

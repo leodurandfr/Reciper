@@ -6,7 +6,7 @@ description: Privacy policy for the Reciper Chrome extension
 
 # Reciper – Privacy Policy
 
-_Last updated: 2026-04-23_
+_Last updated: 2026-10-26_
 
 Reciper is a Chrome extension that automatically saves cooking recipes from
 supported websites into a personal library stored on your device. This page
@@ -17,11 +17,9 @@ describes, in plain terms, what data the extension handles and what it does
 
 - Your recipes are stored **only on your device**, via `chrome.storage.local`.
 - No account, no login, no advertising, no analytics, no tracking.
-- The URL of a recipe page is sent to our backend **only when you visit a
-  supported cooking website** (e.g. Marmiton, 750g, AllRecipes).
-- The backend extracts and returns the recipe content. It does **not log, store
-  or share** the URLs or recipe content.
-- The backend is open source and can be self-hosted.
+- Recipes are extracted **inside your browser**. Reciper has no server: the
+  URLs you visit and the recipes you save are never sent to us or anyone else.
+- The extension is open source.
 
 ## What the extension does
 
@@ -29,8 +27,9 @@ When you navigate to a page on one of the 600+ supported recipe websites, the
 extension:
 
 1. Detects that the page contains a recipe (via Schema.org structured data).
-2. Sends the URL of that page to the Reciper backend so the recipe can be
-   extracted (ingredients, steps, cooking time, servings, title, image).
+2. Extracts the recipe (ingredients, steps, cooking time, servings, title,
+   image) locally, inside the extension, using the open source
+   [recipe-scrapers](https://github.com/hhursev/recipe-scrapers) library.
 3. Saves the extracted recipe locally on your device.
 4. Opens the recipe inside the extension.
 
@@ -42,33 +41,27 @@ list of supported recipe websites.
 Stored via `chrome.storage.local`, never transmitted anywhere:
 
 - Recipes you have saved (title, ingredients, steps, image, source URL).
-- User preferences (language, theme, custom backend URL).
+- User preferences (language, theme).
 
 You can delete all data at any time by removing the extension from Chrome.
 
-## Data sent to the Reciper backend
+## Network requests made by the extension
 
-When you visit a supported recipe website, the extension sends the following
-to the backend hosted on Google Cloud Run (region: europe-west1):
-
-- **The URL of the recipe page** you are viewing.
-
-That is the only data sent. No personal identifier, no cookie, no IP address
-is deliberately collected. Standard network metadata (your IP address) is
-transiently visible to the server as with any HTTP request, but is **not
-logged or stored** by the Reciper backend.
-
-The backend uses the URL to fetch the public HTML of the recipe page and
-returns the structured recipe data. Nothing is persisted server-side for this
-operation.
+To extract a recipe, the extension downloads the page you are visiting from
+the recipe website itself, exactly as your browser already does when you open
+it. The page is then processed on your device. The extension does not send
+any data to a Reciper server: there is none.
 
 ## Sharing a recipe (optional)
 
-If you explicitly click "Share" on a saved recipe, the recipe content (title,
-ingredients, steps, image URL) is uploaded to Google Cloud Storage and a
-short public link is generated so you can send the recipe to someone else.
-This only happens on explicit user action. Links are not indexed or listed
-anywhere public.
+If you explicitly click "Share" on a saved recipe, the extension builds a link
+to a static page hosted on GitHub Pages (`leodurandfr.github.io`). The recipe
+content (title, ingredients, steps, image URL, source URL) is compressed into
+the part of the link after the `#`, which browsers never send to a server:
+the recipe is not uploaded or stored anywhere. Whoever opens the link loads
+the page from GitHub, ingredient illustrations from GitHub
+(`raw.githubusercontent.com`) and the recipe photo from its original website.
+This only happens on explicit user action.
 
 ## Data we do NOT collect
 
@@ -83,19 +76,14 @@ anywhere public.
 
 ## Third parties
 
-The backend is hosted on **Google Cloud Run** (Google Cloud Platform). Google
-acts as infrastructure provider only. No other third party receives data from
-Reciper.
+Reciper does not operate any server and has no third-party services
+receiving your data. The optional sharing page is a static page hosted by
+GitHub; GitHub acts as hosting provider only and does not receive the recipe
+content.
 
 User data is **never sold, rented, or transferred** to third parties for
 advertising, profiling, credit assessment, or any purpose unrelated to the
 core functionality of extracting and displaying recipes.
-
-## Self-hosting
-
-The backend source code is open source. You can host your own instance and
-configure the extension to use it via the Settings page. In that case, no
-data ever reaches the Reciper-operated backend.
 
 ## Changes to this policy
 

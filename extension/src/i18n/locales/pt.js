@@ -90,15 +90,6 @@ export default {
       version: 'Reciper v1.0.0',
       description: 'Salve automaticamente receitas de mais de 600 sites de culinária.',
     },
-    server: {
-      title: 'Servidor',
-      description: 'URL do backend de extração.',
-      save: 'Salvar',
-      saving: 'Salvando...',
-      saved: 'URL salva',
-      reset: 'URL redefinida (padrão)',
-      saveError: 'Erro ao salvar',
-    },
   },
   editModal: {
     title: 'Editar receita',

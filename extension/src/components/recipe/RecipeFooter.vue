@@ -22,7 +22,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteRecipe } from '../../services/db.js'
-import { shareRecipe } from '../../services/api.js'
+import { shareRecipe } from '../../services/share.js'
 import BaseButton from '../BaseButton.vue'
 
 const { t } = useI18n()

@@ -4,47 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Reciper** is a recipe scraping and management application with two components:
-- **Backend**: Python/FastAPI API for scraping (deployable via Docker)
-- **Extension**: Chrome Extension (Manifest V3) with Vue.js frontend and IndexedDB storage
+**Reciper** is a Chrome Extension (Manifest V3, Vue.js frontend, local storage) that scrapes and manages recipes. Everything runs client-side: there is no server.
 
-The app scrapes recipes from 600+ supported websites using the `recipe-scrapers` library.
+Recipes are scraped from 600+ supported websites with the Python `recipe-scrapers` library, run inside the extension through **Pyodide** (Python compiled to WebAssembly).
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    CHROME EXTENSION                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │   Frontend   │  │   IndexedDB  │  │  Service Worker  │   │
-│  │   (Vue.js)   │  │  (ReciperDB) │  │  (Interception)  │   │
-│  └──────────────┘  └──────────────┘  └──────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              │ POST /api/scrape
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│              BACKEND (Docker on NAS / localhost)             │
-│                 FastAPI + recipe-scrapers                    │
-│                    (No database)                             │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                          CHROME EXTENSION                             │
+│  ┌──────────────┐  ┌────────────────────┐  ┌──────────────────────┐  │
+│  │   Frontend   │  │   Service Worker   │  │  Offscreen document  │  │
+│  │   (Vue.js)   │  │ detects recipe     │─▶│  Pyodide +           │  │
+│  │              │  │ sites, fetches the │  │  recipe-scrapers +   │  │
+│  │              │  │ page HTML          │◀─│  python/reciper/     │  │
+│  └──────────────┘  └────────────────────┘  └──────────────────────┘  │
+│                    chrome.storage.local (recipes)                     │
+└──────────────────────────────────────────────────────────────────────┘
+          │ Share: link to docs/share/ (GitHub Pages), recipe compressed in the URL #fragment
 ```
 
 ## Common Commands
 
-### Backend (from `backend/` directory)
-```bash
-# Development (Mac)
-uvicorn app.main:app --reload --port 8080
-
-# Production (Docker)
-docker-compose up -d --build
-```
-
 ### Extension (from `extension/` directory)
 ```bash
-npm install           # Install dependencies
-npm run build         # Build to dist/
+npm install           # Install dependencies (incl. pyodide)
+npm run build         # Vendor Pyodide + wheels (scripts/vendor-pyodide.mjs), then build to dist/
 npm run build:watch   # Build with watch mode
 ```
 
@@ -52,80 +37,41 @@ Load extension in Chrome: `chrome://extensions/` > Load unpacked > select `exten
 
 ## Project Structure
 
-### Backend (`backend/`)
-- `app/main.py` - FastAPI app with `/api/scrape` and `/api/health` endpoints
-- `app/scraper.py` - Recipe scraping logic using `recipe-scrapers`
-- `app/schemas.py` - Pydantic schemas (ScrapeRequest, ScrapedRecipe)
-- `Dockerfile` + `docker-compose.yml` - Docker deployment
-
 ### Extension (`extension/`)
 - `src/` - Vue.js source code
-  - `views/` - HomeView, RecipeView, SettingsView
+  - `views/` - HomeView, RecipeView, LoadingView
   - `components/` - UI components
-  - `services/db.js` - IndexedDB operations
-  - `services/api.js` - Backend API calls
-  - `stores/settings.js` - User settings (backend URL, theme)
-- `service-worker.js` - Detects recipe sites and triggers scraping
-- `content-script.js` - Notification overlay on recipe pages
-- `popup.html/js` - Extension popup
-- `manifest.json` - Chrome extension manifest (v3)
+  - `services/db.js` - Recipe storage
+  - `services/share.js` - Builds share links (recipe compressed with deflate-raw + base64url in the URL fragment)
+  - `assets/ingredients/` - Ingredient illustrations, named by `image_id`
+  - `stores/settings.js` - User settings (theme, language)
+- `service-worker.js` - Detects recipe sites, fetches the page HTML, sends it to the offscreen document
+- `offscreen.html/js` - Hosts the Pyodide Web Worker and relays scrape requests from the service worker
+- `pyodide-worker.js` - Loads Pyodide once and runs `reciper.scraper.scrape_recipe_json(html, url)`. Must stay in a worker: extension pages share the offscreen document's thread, so running Pyodide there freezes the UI
+- `python/` - Python code run in Pyodide
+  - `reciper/scraper.py` - Scraping with `recipe-scrapers`, returns the recipe dict
+  - `reciper/ingredient_image_matcher.py`, `language_detection.py`, `data/translations/` - Ingredient → image_id matching (FR/EN)
+  - `jstyleson.py` - Vendored extruct dependency (sdist-only on PyPI, so no wheel for Pyodide)
+- `scripts/vendor-pyodide.mjs` - Copies Pyodide core, downloads pinned wheels (sha256-checked, cached in `vendor/wheels-cache/`) and adds precompiled bytecode to them (compiled by Pyodide in Node) into `vendor/pyodide/` (all gitignored). The bytecode halves cold-start import time. To upgrade recipe-scrapers, update its URL/hash there.
+- `overlay-content-script.js` - Notification overlay on recipe pages
+- `manifest.json` - Chrome extension manifest (v3); CSP needs `'wasm-unsafe-eval'` for Pyodide
 - `dist/` - Built extension (load this in Chrome)
+
+### Docs / GitHub Pages (`docs/`, served at https://leodurandfr.github.io/Reciper/)
+- `index.md` - Privacy policy (Chrome Web Store)
+- `share/index.html` - Static share page: decodes the recipe from the URL fragment
+
+### Backend (`backend/`) - legacy
+Former FastAPI scraping API (Cloud Run). No longer used by the extension; kept for reference.
 
 ### User Flow
 1. User navigates to a supported recipe site (Marmiton, 750g, etc.)
 2. Notification overlay appears: "Récupération de la recette..."
-3. Backend scrapes the recipe
+3. The extension scrapes the recipe locally (Pyodide)
 4. Notification shows "Prêt !" with link to view in Reciper
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/health` | GET | Health check |
-| `/api/scrape` | POST | Scrape recipe from URL |
 
 ## Key Dependencies
 
-**Backend:**
-- `fastapi>=0.115.0` with `uvicorn[standard]`
-- `recipe-scrapers>=15.0.0`
-- `httpx>=0.28.0`
-
-**Extension:**
-- Vue 3 with Vue Router
-- IndexedDB for local storage
-
-## Deployment (Synology NAS)
-
-### Architecture
-L'extension Chrome communique avec le backend via HTTPS :
-- Backend hébergé sur NAS Synology avec Docker
-- Exposé via reverse proxy DSM avec certificat SSL
-- Les utilisateurs n'installent que l'extension Chrome
-
-### Déploiement Docker
-
-1. **Copier le dossier `backend/` sur le NAS**
-   Via File Station ou SCP vers `/volume1/docker/reciper/`
-
-2. **Lancer via Container Manager**
-   - Projet > Créer
-   - Sélectionner le dossier avec docker-compose.yml
-   - Démarrer
-
-3. **Configurer le Reverse Proxy DSM**
-   - Panneau de configuration > Portail de connexion > Avancé > Proxy inversé
-   - Source : `https://api.votre-domaine.com` (port 443)
-   - Destination : `http://localhost:8742`
-
-### Variables d'environnement
-| Variable | Défaut | Description |
-|----------|--------|-------------|
-| PORT | 8742 | Port interne du container |
-| CORS_ORIGINS | * | Origines autorisées (recommandé: votre domaine) |
-
-### Vérification
-```bash
-curl https://api.votre-domaine.com/api/health
-# Réponse : {"status":"healthy"}
-```
+- Vue 3 with Vue Router, vue-i18n
+- Pyodide (pinned in `package.json`; Python packages pinned in `scripts/vendor-pyodide.mjs`)
+- `recipe-scrapers` 15.x and its dependencies (extruct, lxml, beautifulsoup4, …)
