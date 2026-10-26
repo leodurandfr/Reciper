@@ -114,9 +114,13 @@ onUnmounted(() => {
   }
 })
 
-function goBack() {
+async function goBack() {
   const returnUrl = route.query.returnUrl
   if (returnUrl) {
+    // Otherwise the service worker intercepts the navigation again and sends the tab back here
+    if (chrome?.runtime?.sendMessage) {
+      await chrome.runtime.sendMessage({ type: 'BYPASS_URL', url: returnUrl }).catch(() => {})
+    }
     window.location.href = returnUrl
   } else {
     router.push('/')
