@@ -76,6 +76,9 @@ export default {
       deleteAllSuccess: 'Todas as receitas foram excluídas',
       deleteAllError: 'Erro ao excluir: {message}',
     },
+    preferences: {
+      title: 'Preferências',
+    },
     appearance: {
       title: 'Aparência',
       light: 'Claro',

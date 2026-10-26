@@ -76,6 +76,9 @@ export default {
       deleteAllSuccess: 'Todas las recetas fueron eliminadas',
       deleteAllError: 'Error al eliminar: {message}',
     },
+    preferences: {
+      title: 'Preferencias',
+    },
     appearance: {
       title: 'Apariencia',
       light: 'Claro',

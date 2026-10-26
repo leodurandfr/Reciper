@@ -76,6 +76,9 @@ export default {
       deleteAllSuccess: 'Toutes les recettes ont été supprimées',
       deleteAllError: 'Erreur lors de la suppression: {message}',
     },
+    preferences: {
+      title: 'Préférences',
+    },
     appearance: {
       title: 'Apparence',
       light: 'Clair',

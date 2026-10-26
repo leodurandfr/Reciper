@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div v-if="open" class="modal-overlay">
         <div class="modal-grid" @click.self="$emit('close')">
-          <div class="modal-panel">
+          <div class="modal-panel" :class="`modal-panel--${size}`">
             <header class="modal-header">
               <slot name="header">
                 <h2 class="heading-03">{{ title }}</h2>
@@ -39,6 +39,12 @@ const props = defineProps({
   title: {
     type: String,
     default: '',
+  },
+  // 'small': narrower panel that hugs its content height
+  size: {
+    type: String,
+    default: 'default',
+    validator: (v) => ['default', 'small'].includes(v),
   },
 })
 
@@ -99,6 +105,12 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.modal-panel--small {
+  grid-column: 4 / 10;
+  align-self: center;
+  max-height: 100%;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -129,6 +141,7 @@ onBeforeUnmount(() => {
 
 .modal-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--space-05);
 }
@@ -170,6 +183,10 @@ onBeforeUnmount(() => {
 @media (max-width: 1024px) {
   .modal-panel {
     grid-column: 2 / 12;
+  }
+
+  .modal-panel--small {
+    grid-column: 3 / 11;
   }
 }
 
