@@ -1,8 +1,8 @@
 """Recipe scraping, run in the browser through Pyodide.
 
-Same logic as the former backend (backend/app/scraper.py), except the HTML is
-fetched by the extension and passed in, and the result is a plain dict shaped
-like the old ScrapedRecipe schema.
+Ported from the former FastAPI backend (removed; see git history), except the
+HTML is fetched by the extension and passed in, and the result is a plain dict
+shaped like the old ScrapedRecipe schema.
 """
 
 import json

@@ -61,9 +61,6 @@ Load extension in Chrome: `chrome://extensions/` > Load unpacked > select `exten
 - `index.md` - Privacy policy (Chrome Web Store)
 - `share/index.html` - Static share page: decodes the recipe from the URL fragment
 
-### Backend (`backend/`) - legacy
-Former FastAPI scraping API (Cloud Run). No longer used by the extension; kept for reference.
-
 ### User Flow
 1. User navigates to a supported recipe site (Marmiton, 750g, etc.)
 2. Notification overlay appears: "Récupération de la recette..."
