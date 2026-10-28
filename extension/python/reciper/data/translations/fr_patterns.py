@@ -30,7 +30,7 @@ COMPOUND_PATTERNS = [
     # === MULTI-WORD INGREDIENTS ===
 
     # Compound ingredients that need pattern matching
-    (r'huile.{0,10}olive', 'oil'),
+    (r'huile.{0,10}(olive|tournesol)', 'oil'),
     (r'pomme[s]?.{0,10}terre', 'potato'),
     (r'citron[s]?.{0,10}vert', 'lemon'),
     (r'noix.{0,10}coco', 'coconut'),
@@ -50,8 +50,8 @@ COMPOUND_PATTERNS = [
     (r'sauce[s]?.{0,10}bolognaise', 'tomato-sauce'),
     (r'sauce[s]?.{0,10}tomate', 'tomato-sauce'),
 
-    # "pépites de chocolat" = chocolate (NOT chocolate-chip)
-    (r'p[ée]pite[s]?.{0,5}chocolat', 'chocolate'),
+    # "pépites de chocolat" = chocolate-chip
+    (r'p[ée]pite[s]?.{0,5}chocolat', 'chocolate-chip'),
 
     # "sucre semoule/glace/vanillé" = sugar (NOT couscous)
     (r'sucre[s]?.{0,5}(semoule|glace|vanill)', 'sugar'),
@@ -66,7 +66,7 @@ COMPOUND_PATTERNS = [
     (r'foie.{0,5}gras', 'pate'),
     (r'p[âa]t[ée].{0,10}(campagne|canard|porc|lapin|foie)', 'pate'),
 
-    # "sauce soja" / "sauce poisson" = sauce
+    # "sauce soja" / "sauce poisson" = sauce (same illustration)
     (r'sauce[s]?.{0,5}soja', 'sauce'),
     (r'sauce[s]?.{0,10}poisson', 'sauce'),
     (r'nuoc.{0,5}m[aâ]m', 'sauce'),
@@ -77,18 +77,20 @@ COMPOUND_PATTERNS = [
 
 ]
 
-# Exclusion patterns: (regex_pattern, keyword_to_exclude)
-# If the pattern matches, the specified keyword should NOT be matched
+# Exclusion patterns: (regex_pattern, keyword(s)_to_exclude)
+# If the pattern matches, the specified keyword(s) should NOT be matched
 # This prevents false positives
 EXCLUSION_PATTERNS = [
     # "moule" as cooking utensil (not mussel)
     (r'(pour\s+(le\s+)?moule|moule\s+[àa]|beurrer.{0,10}moule)', 'moule'),
 
     # "mûres" as adjective meaning "ripe" (not blackberry fruit)
-    (r'(bien|très|tres|trop)\s+m[ûu]re', 'mûre'),
-    (r'(bien|très|tres|trop)\s+m[ûu]res', 'mûres'),
+    (r'(bien|très|tres|trop)\s+m[ûu]res?', ('mûre', 'mûres', 'mure', 'mures')),
+]
 
-    # "café" in "cuillère à café" is a unit, not coffee
-    (r'cuill[èe]re[s]?\s+[àa]\s+caf[ée]', 'café'),
-    (r'cuill[èe]re[s]?\s+[àa]\s+caf[ée]', 'cafe'),
+# Unit patterns: removed from the text before matching, so that only the unit is
+# ignored ("1 c. à café de café soluble" still gives coffee)
+UNIT_PATTERNS = [
+    # "cuillère à café/soupe", "cuil. à café", "c. à soupe"…
+    r'\b(cuill[èe]re[s]?|cuil\.?|c\.?)\s*[àa]\s*\.?\s*(caf[ée]|soupe)\b',
 ]

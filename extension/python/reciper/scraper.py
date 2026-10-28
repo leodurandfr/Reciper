@@ -1,7 +1,9 @@
 """Recipe scraping, run in the browser through Pyodide.
 
 The HTML is fetched by the extension and passed in; the result is a plain dict
-shaped like the old ScrapedRecipe schema of the former backend.
+(url, title, image_url, ingredients, enriched_ingredients, instructions, times,
+yields, host) that the service worker stores as the recipe. A recipe without a
+title gets title "": the service worker fills in a localized fallback.
 
 Sites with a dedicated recipe-scrapers scraper use it; any other page is read
 through its schema.org Recipe data (recipe-scrapers "wild mode"). Which pages get
@@ -14,18 +16,14 @@ import math
 from urllib.parse import urlparse
 
 from recipe_scrapers import scrape_html
-from recipe_scrapers._exceptions import NoSchemaFoundInWildMode, RecipeScrapersExceptions
+from recipe_scrapers._exceptions import NoSchemaFoundInWildMode
 from recipe_scrapers._utils import normalize_string
 
 from .ingredient_image_matcher import get_ingredient_image_id
 from .language_detection import get_language_from_domain
 
 
-class ScraperError(Exception):
-    pass
-
-
-class NoRecipeFoundError(ScraperError):
+class NoRecipeFoundError(Exception):
     pass
 
 
@@ -48,11 +46,13 @@ def _safe(getter, default=None):
     """Call a scraper field getter; a field the page does not provide gives `default`.
 
     recipe-scrapers raises its own exceptions (SchemaOrgException,
-    ElementNotFoundInHtml...) for missing fields, not only NotImplementedError.
+    ElementNotFoundInHtml...) for missing fields, and dedicated scrapers may also
+    raise KeyError/IndexError on pages they do not expect. Every field is optional,
+    so any error only drops that field instead of failing the whole recipe.
     """
     try:
         value = getter()
-    except (AttributeError, NotImplementedError, TypeError, ValueError, RecipeScrapersExceptions):
+    except Exception:
         return default
     return default if value is None else value
 
@@ -104,20 +104,20 @@ def scrape_recipe(html: str, url: str) -> dict:
     try:
         scraper = scrape_html(html, org_url=url, supported_only=False)
     except NoSchemaFoundInWildMode:
-        raise NoRecipeFoundError(f"Aucune recette trouvée sur cette page: {url}")
+        raise NoRecipeFoundError(f"No recipe found on this page: {url}")
 
     title = _safe(scraper.title, "").strip()
     ingredients = _clean_lines(_safe(scraper.ingredients, []))
     instructions = _clean_lines(_safe(scraper.instructions_list, [])) or _schema_instructions(scraper)
     if not ingredients and not instructions:
-        raise NoRecipeFoundError(f"Aucune recette trouvée sur cette page: {url}")
+        raise NoRecipeFoundError(f"No recipe found on this page: {url}")
 
     host = _host_of(url)
     language = get_language_from_domain(host, page_language=_safe(scraper.language))
 
     return {
         "url": url,
-        "title": title or "Sans titre",
+        "title": title,
         "image_url": _safe(scraper.image) or None,
         "ingredients": ingredients,
         "enriched_ingredients": [

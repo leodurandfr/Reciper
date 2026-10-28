@@ -378,7 +378,7 @@ FR_TO_EN = {
     'coulommiers': 'camembert',
     'reblochon': 'camembert',
     'munster': 'camembert',
-    'pont-l\'évêque': 'camembert',
+    'évêque': 'camembert',  # pont-l'évêque (l'apostrophe découpe le mot)
     'chaource': 'camembert',
 
     # Brie (distinct)
@@ -529,7 +529,6 @@ FR_TO_EN = {
     'cassonade': 'brown-sugar',
     'vergeoise': 'brown-sugar',
     'miel': 'honey',
-    'sirop': 'syrup',
     'érable': 'maple-syrup',
     'erable': 'maple-syrup',
     'confiture': 'jam',
@@ -537,8 +536,8 @@ FR_TO_EN = {
     'chocolat': 'chocolate',
     'chocolats': 'chocolate',
     'cacao': 'cocoa',
-    'pépite': 'chocolate',
-    'pépites': 'chocolate',
+    'pépite': 'chocolate-chip',
+    'pépites': 'chocolate-chip',
     'nutella': 'spread',
 
     # ============================================================
@@ -562,7 +561,7 @@ FR_TO_EN = {
     'arachides': 'peanut',
 
     # Reste → nuts (générique)
-    'noix': 'nuts',
+    'noix': 'nut',
     'pistache': 'nuts',
     'pistaches': 'nuts',
     'cajou': 'nuts',
@@ -667,10 +666,6 @@ FR_TO_EN = {
     'tahini': 'tahini',
     'cornichon': 'pickle',
     'cornichons': 'pickle',
-    'câpre': 'caper',
-    'câpres': 'caper',
-    'capre': 'caper',
-    'capres': 'caper',
     'pesto': 'pesto',
     'pesto-rosso': 'pesto-rosso',
     'harissa': 'harissa',

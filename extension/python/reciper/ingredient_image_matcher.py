@@ -12,7 +12,9 @@ Supported languages:
 - Other languages → Returns None (no dictionary available)
 """
 
+import re
 from typing import Optional
+
 from .data.translations.fr_to_en import FR_TO_EN
 from .data.translations.en_ingredients import EN_INGREDIENTS
 from .data.translations import fr_patterns, en_patterns
@@ -23,11 +25,13 @@ LANGUAGE_CONFIG = {
         'dictionary': FR_TO_EN,
         'compound_patterns': fr_patterns.COMPOUND_PATTERNS,
         'exclusion_patterns': fr_patterns.EXCLUSION_PATTERNS,
+        'unit_patterns': fr_patterns.UNIT_PATTERNS,
     },
     'en': {
         'dictionary': EN_INGREDIENTS,
         'compound_patterns': en_patterns.COMPOUND_PATTERNS,
         'exclusion_patterns': en_patterns.EXCLUSION_PATTERNS,
+        'unit_patterns': en_patterns.UNIT_PATTERNS,
     },
 }
 
@@ -42,16 +46,14 @@ def normalize_text(text: str) -> str:
     Returns:
         Normalized text (lowercase, special chars removed)
     """
-    import re
-
     text = text.lower()
 
-    # Replace apostrophes with spaces to split "d'ail" → "d ail"
-    text = re.sub(r"[''']", ' ', text)
+    # Replace apostrophes (ASCII and typographic) with spaces to split "d’ail" → "d ail"
+    text = re.sub(r"['’‘`´]", ' ', text)
 
-    # Remove special characters (parentheses, commas, semicolons, etc.)
-    # This fixes the "Œuf(s)" bug
-    text = re.sub(r'[(),;:]', ' ', text)
+    # Remove punctuation (parentheses, commas, final dots, etc.), keeping
+    # letters (accented too), digits and hyphens. This fixes the "Œuf(s)" bug
+    text = re.sub(r'[^\w\s-]', ' ', text)
 
     return text
 
@@ -80,7 +82,7 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
     Get the image ID for an ingredient based on detected language.
 
     MATCHING LOGIC (same for all languages):
-    1. Load language-specific config (dictionary + patterns)
+    1. Load language-specific config (dictionary + patterns), remove units
     2. Check for compound patterns (e.g., "pâte feuilletée" → dough)
     3. Determine excluded keywords based on exclusion patterns
     4. Extract ALL keywords from the ingredient
@@ -118,8 +120,6 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
     Returns:
         Image ID (English) or None if no match
     """
-    import re
-
     # STEP 1: Load language configuration
     config = LANGUAGE_CONFIG.get(language)
     if not config:
@@ -128,6 +128,10 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
     dictionary = config['dictionary']
     compound_patterns = config['compound_patterns']
     exclusion_patterns = config['exclusion_patterns']
+
+    # Units ("c. à café") are removed first: they are not ingredients
+    for pattern in config['unit_patterns']:
+        ingredient = re.sub(pattern, ' ', ingredient, flags=re.IGNORECASE)
 
     normalized_ingredient = ingredient.lower()
 
@@ -138,9 +142,11 @@ def get_ingredient_image_id(ingredient: str, language: str = "fr") -> Optional[s
 
     # STEP 3: Determine which keywords should be excluded
     excluded_keywords = set()
-    for pattern, keyword_to_exclude in exclusion_patterns:
+    for pattern, to_exclude in exclusion_patterns:
         if re.search(pattern, normalized_ingredient):
-            excluded_keywords.add(keyword_to_exclude.lower())
+            if isinstance(to_exclude, str):
+                to_exclude = (to_exclude,)
+            excluded_keywords.update(keyword.lower() for keyword in to_exclude)
 
     # STEP 4: Extract ALL keywords
     keywords = extract_keywords(ingredient)
@@ -194,11 +200,3 @@ def _lookup_single_keyword(keyword: str, dictionary: dict) -> Optional[str]:
 
     return None
 
-
-# Legacy function name for backward compatibility
-def match_ingredient_fr_to_en(ingredient: str) -> Optional[str]:
-    """
-    Legacy function - redirects to get_ingredient_image_id with language="fr".
-    Kept for backward compatibility with existing tests.
-    """
-    return get_ingredient_image_id(ingredient, language="fr")

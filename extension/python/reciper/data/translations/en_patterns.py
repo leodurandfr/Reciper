@@ -13,8 +13,11 @@ COMPOUND_PATTERNS = [
     # "cherry tomatoes" = tomato (NOT cherry)
     (r'cherry\s+tomato', 'tomato'),
 
-    # "olive oil" = oil
-    (r'olive\s+oil', 'oil'),
+    # "olive/sunflower/vegetable oil" = oil (NOT olive, sunflower-seed)
+    (r'(olive|sunflower|vegetable|canola)\s+oil', 'oil'),
+
+    # "peanut butter" = peanut (NOT butter)
+    (r'peanut\s+butter', 'peanut'),
 
     # "ground beef" / "minced beef" = beef
     (r'(ground|minced)\s+(beef|meat)', 'beef'),
@@ -32,13 +35,13 @@ COMPOUND_PATTERNS = [
     (r'bolognese\s+sauce', 'tomato-sauce'),
     (r'tomato\s+sauce', 'tomato-sauce'),
 
-    # "chocolate chips" = chocolate
-    (r'chocolate\s+chip', 'chocolate'),
+    # "chocolate chips" = chocolate-chip
+    (r'chocolate\s+chip', 'chocolate-chip'),
 
     # "foie gras" = pate
     (r'foie\s+gras', 'pate'),
 
-    # "soy sauce" / "fish sauce" = sauce
+    # "soy sauce" / "fish sauce" = sauce (same illustration)
     (r'soy\s+sauce', 'sauce'),
     (r'fish\s+sauce', 'sauce'),
 
@@ -46,13 +49,10 @@ COMPOUND_PATTERNS = [
     (r'pesto\s+rosso', 'pesto-rosso'),
 ]
 
-# Exclusion patterns: (regex_pattern, keyword_to_exclude)
-# If the pattern matches, the specified keyword should NOT be matched
-EXCLUSION_PATTERNS = [
-    # "teaspoon" / "tablespoon" - don't match "tea" or "spoon"
-    (r'teaspoon', 'tea'),
-    (r'tablespoon', 'table'),
+# Exclusion patterns: (regex_pattern, keyword(s)_to_exclude)
+# If the pattern matches, the specified keyword(s) should NOT be matched.
+# Units such as "teaspoon" are single words, so they never yield "tea": none needed.
+EXCLUSION_PATTERNS = []
 
-    # "cake pan" / "baking pan" - 'pan' is not an ingredient
-    (r'(cake|baking|muffin)\s+pan', 'pan'),
-]
+# Unit patterns: removed from the text before matching
+UNIT_PATTERNS = []

@@ -359,7 +359,6 @@ EN_INGREDIENTS = {
     # ============================================================
     'sugar': 'sugar',
     'honey': 'honey',
-    'syrup': 'syrup',
     'maple': 'maple-syrup',
     'molasses': 'brown-sugar',
     'jam': 'jam',
@@ -385,8 +384,8 @@ EN_INGREDIENTS = {
     'peanuts': 'peanut',
 
     # Rest → nuts (generic)
-    'walnut': 'nuts',
-    'walnuts': 'nuts',
+    'walnut': 'nut',
+    'walnuts': 'nut',
     'cashew': 'nuts',
     'cashews': 'nuts',
     'pistachio': 'nuts',
@@ -451,9 +450,7 @@ EN_INGREDIENTS = {
     # OILS → oil
     # ============================================================
     'oil': 'oil',
-    'vegetable': 'oil',
     'canola': 'oil',
-    'sunflower': 'oil',
 
     # ============================================================
     # CONDIMENTS & SAUCES
@@ -477,8 +474,6 @@ EN_INGREDIENTS = {
     'miso': 'miso',
     'pickle': 'pickle',
     'pickles': 'pickle',
-    'caper': 'caper',
-    'capers': 'caper',
 
     # ============================================================
     # BEVERAGES
