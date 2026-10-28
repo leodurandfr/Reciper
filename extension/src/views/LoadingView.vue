@@ -11,7 +11,6 @@
             alt=""
           />
         </Transition>
-        <div v-if="!currentImage" class="spinner"></div>
       </div>
     </div>
 
@@ -31,13 +30,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import BaseButton from '../components/BaseButton.vue'
+import { ingredientImages } from '@/assets/ingredientImages'
 
-// Auto-discover all ingredient images at build time
-const ingredientModules = import.meta.glob(
-  '@/assets/ingredients/**/*.{png,jpg,svg,webp}',
-  { eager: true, import: 'default' }
-)
-const allImages = Object.values(ingredientModules)
+const allImages = Object.values(ingredientImages)
 
 // Fisher-Yates shuffle
 function shuffle(arr) {
@@ -58,6 +53,15 @@ const currentImage = ref(allImages.length > 0 ? allImages[0] : null)
 let cycleInterval = null
 let imageIndex = 0
 let shuffledImages = shuffle(allImages)
+// Passe à false au démontage : la réponse du scraping est alors ignorée
+let active = true
+
+function stopCycle() {
+  if (cycleInterval) {
+    clearInterval(cycleInterval)
+    cycleInterval = null
+  }
+}
 
 function startCycle() {
   if (shuffledImages.length === 0) return
@@ -78,12 +82,10 @@ function startCycle() {
 onMounted(async () => {
   startCycle()
 
-  // Demo mode: skip scraping, let the loader cycle indefinitely
-  if (route.query.demo === 'true') return
-
   const url = route.query.url
 
   if (!url) {
+    stopCycle()
     error.value = t('loading.missingUrl')
     return
   }
@@ -94,24 +96,28 @@ onMounted(async () => {
       url: url
     })
 
-    if (response.success) {
+    // L'utilisateur a quitté la page pendant le scraping : ne pas le ramener de force
+    if (!active) return
+
+    if (response?.success) {
       const referrerUrl = route.query.referrerUrl
       const target = referrerUrl
         ? `/recipe/${response.recipeId}?referrerUrl=${encodeURIComponent(referrerUrl)}`
         : `/recipe/${response.recipeId}`
       router.replace(target)
     } else {
-      throw new Error(response.error || t('loading.scrapingError'))
+      throw new Error(response?.error || t('loading.scrapingError'))
     }
   } catch (err) {
+    if (!active) return
+    stopCycle()
     error.value = err.message || t('errors.unknown')
   }
 })
 
 onUnmounted(() => {
-  if (cycleInterval) {
-    clearInterval(cycleInterval)
-  }
+  active = false
+  stopCycle()
 })
 
 async function goBack() {
@@ -166,22 +172,6 @@ async function goBack() {
 .ingredient-enter-from,
 .ingredient-leave-to {
   opacity: 0;
-}
-
-/* Fallback spinner */
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--color-text);
-  border-top-color: var(--color-brand);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* Error state */

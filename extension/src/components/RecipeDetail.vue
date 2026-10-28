@@ -5,7 +5,7 @@
     <div class="col-left">
       <RecipeIngredients :ingredients="recipe.ingredients || []"
         :enriched-ingredients="recipe.enriched_ingredients || []" :scaled-ingredients="scaledIngredients"
-        :current-portions="currentPortions" :portion-options="portionOptions"
+        :current-portions="currentPortions" :portion-options="portionOptions" :can-scale="canScale"
         @update:current-portions="currentPortions = $event" />
     </div>
 
@@ -27,7 +27,7 @@ import RecipeIngredients from './recipe/RecipeIngredients.vue'
 import RecipeInstructions from './recipe/RecipeInstructions.vue'
 import RecipeFooter from './recipe/RecipeFooter.vue'
 import RecipeEditModal from './recipe/RecipeEditModal.vue'
-import { usePortionCalculator } from '../composables/usePortionCalculator'
+import { usePortionCalculator, parseYields } from '../composables/usePortionCalculator'
 
 const props = defineProps({
   recipe: {
@@ -44,6 +44,7 @@ const showEditModal = ref(false)
 const {
   originalPortions,
   currentPortions,
+  canScale,
   portionOptions,
   scaleAllIngredients,
 } = usePortionCalculator(props.recipe.yields)
@@ -57,12 +58,8 @@ const scaledIngredients = computed(() => {
 watch(
   () => props.recipe.yields,
   (newYields) => {
-    const parsed = newYields?.match(/(\d+)/)?.[1]
-    if (parsed) {
-      const portions = parseInt(parsed, 10)
-      originalPortions.value = portions
-      currentPortions.value = portions
-    }
+    originalPortions.value = parseYields(newYields)
+    currentPortions.value = originalPortions.value || 4
   }
 )
 
@@ -86,13 +83,6 @@ function handleRecipeDeleted() {
 .recipe-grid > :nth-child(1) { animation: stagger-in 300ms ease-out both; animation-delay: 150ms; }
 .recipe-grid > :nth-child(2) { animation: stagger-in 300ms ease-out both; animation-delay: 200ms; }
 .recipe-grid > :nth-child(3) { animation: stagger-in 300ms ease-out both; animation-delay: 250ms; }
-
-@keyframes stagger-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
 
 .col-left,
 .col-right {

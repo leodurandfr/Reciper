@@ -12,7 +12,7 @@
  */
 
 import { createHash } from 'crypto'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import { createRequire } from 'module'
 import { dirname, resolve } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
@@ -151,6 +151,16 @@ for (const name of PYODIDE_PACKAGES) {
 for (const [fileName, url, hash] of PYPI_WHEELS) {
   await downloadWheel(fileName, url, hash)
   wheels.push(fileName)
+}
+
+// Supprimer les fichiers périmés (anciennes versions de wheels, etc.) : vite.config.js copie
+// vendor/pyodide/ en entier dans dist/, ils partiraient sinon dans le paquet publié
+const expected = new Set([...CORE_FILES, ...wheels, 'wheels.json'])
+for (const file of readdirSync(outDir)) {
+  if (!expected.has(file)) rmSync(resolve(outDir, file), { recursive: true, force: true })
+}
+for (const file of readdirSync(cacheDir)) {
+  if (!wheels.includes(file)) rmSync(resolve(cacheDir, file), { recursive: true, force: true })
 }
 
 // Ne recompiler (et ne relister les sites) que si les wheels ou la version de Pyodide ont changé

@@ -7,15 +7,14 @@
   />
 </template>
 
-<script setup>
-import { computed } from 'vue'
-
+<script>
 import chevronLeft from '@/assets/icons/chevron-left.svg?raw'
 import close from '@/assets/icons/close.svg?raw'
 import arrowsVertical from '@/assets/icons/arrows-vertical.svg?raw'
 import cutlery from '@/assets/icons/cutlery.svg?raw'
 import magnifyingGlass from '@/assets/icons/magnifying-glass.svg?raw'
 
+// Au niveau du module : defineProps (hissé hors de setup) peut y faire référence
 const icons = {
   'chevron-left': chevronLeft,
   'close': close,
@@ -23,12 +22,16 @@ const icons = {
   'cutlery': cutlery,
   'magnifying-glass': magnifyingGlass,
 }
+</script>
+
+<script setup>
+import { computed } from 'vue'
 
 const props = defineProps({
   name: {
     type: String,
     required: true,
-    validator: (val) => ['chevron-left', 'close', 'arrows-vertical', 'cutlery', 'magnifying-glass'].includes(val),
+    validator: (val) => val in icons,
   },
   size: {
     type: String,

@@ -2,11 +2,21 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="open" class="modal-overlay">
-        <div class="modal-grid" @click.self="$emit('close')">
-          <div class="modal-panel" :class="`modal-panel--${size}`">
+        <div class="modal-grid" @mousedown.self="downOnBackdrop = true" @click.self="handleBackdropClick">
+          <div
+            ref="panel"
+            class="modal-panel"
+            :class="`modal-panel--${size}`"
+            role="dialog"
+            aria-modal="true"
+            :aria-labelledby="$slots.header ? undefined : titleId"
+            :aria-label="$slots.header ? title || undefined : undefined"
+            tabindex="-1"
+            @mousedown="downOnBackdrop = false"
+          >
             <header class="modal-header">
               <slot name="header">
-                <h2 class="heading-03">{{ title }}</h2>
+                <h2 :id="titleId" class="heading-03">{{ title }}</h2>
               </slot>
               <button @click="$emit('close')" class="modal-close" :aria-label="$t('modal.close')">
                 <Icon name="close" size="md" />
@@ -27,8 +37,13 @@
   </Teleport>
 </template>
 
+<script>
+// Compteur partagé entre les instances, pour des id de titre uniques
+let modalCount = 0
+</script>
+
 <script setup>
-import { watch, onBeforeUnmount } from 'vue'
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import Icon from './Icon.vue'
 
 const props = defineProps({
@@ -50,29 +65,71 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const titleId = `modal-title-${++modalCount}`
+const panel = ref(null)
+
+// Ne fermer au clic sur le fond que si le clic a aussi commencé sur le fond :
+// une sélection de texte commencée dans le panneau et relâchée dehors ne ferme pas la modale
+const downOnBackdrop = ref(false)
+
+function handleBackdropClick() {
+  if (downOnBackdrop.value) emit('close')
+  downOnBackdrop.value = false
+}
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([hidden]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 function handleKeydown(e) {
   if (e.key === 'Escape') {
     emit('close')
+  } else if (e.key === 'Tab' && panel.value) {
+    // Garder le focus dans le panneau
+    const focusables = [...panel.value.querySelectorAll(FOCUSABLE)]
+    if (focusables.length === 0) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (e.shiftKey && (document.activeElement === first || !panel.value.contains(document.activeElement))) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && (document.activeElement === last || !panel.value.contains(document.activeElement))) {
+      e.preventDefault()
+      first.focus()
+    }
   }
 }
 
+// Élément qui avait le focus avant l'ouverture, pour le lui rendre à la fermeture
+let previousFocus = null
+
 watch(
   () => props.open,
-  (isOpen) => {
+  async (isOpen, wasOpen) => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
       document.addEventListener('keydown', handleKeydown)
+      previousFocus = document.activeElement
+      await nextTick()
+      panel.value?.focus()
     } else {
       document.body.style.overflow = ''
       document.removeEventListener('keydown', handleKeydown)
+      if (wasOpen) restoreFocus()
     }
   },
   { immediate: true }
 )
 
+function restoreFocus() {
+  if (previousFocus && typeof previousFocus.focus === 'function') {
+    previousFocus.focus()
+  }
+  previousFocus = null
+}
+
 onBeforeUnmount(() => {
   document.body.style.overflow = ''
   document.removeEventListener('keydown', handleKeydown)
+  if (props.open) restoreFocus()
 })
 </script>
 
@@ -80,7 +137,7 @@ onBeforeUnmount(() => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: var(--color--contrast-50);
+  background: var(--color-overlay);
   z-index: 1000;
   display: flex;
   align-items: stretch;
@@ -109,6 +166,10 @@ onBeforeUnmount(() => {
   grid-column: 4 / 10;
   align-self: center;
   max-height: 100%;
+}
+
+.modal-panel:focus {
+  outline: none;
 }
 
 .modal-header {

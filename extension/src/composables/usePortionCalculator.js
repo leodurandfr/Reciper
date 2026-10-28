@@ -28,11 +28,16 @@ const UNICODE_FRACTIONS = {
 /**
  * Parse a yields string to extract the number of portions.
  * Examples: "6 personnes", "4 servings", "8 portions", "6", "Makes 12"
+ * Au-delà de MAX_PORTIONS (ex. « 1000 g »), la valeur est traitée comme inconnue,
+ * comme sur la page de partage.
  */
-function parseYields(yieldsStr) {
+const MAX_PORTIONS = 100
+
+export function parseYields(yieldsStr) {
   if (!yieldsStr) return null
-  const match = yieldsStr.match(/(\d+)/)
-  return match ? parseInt(match[1], 10) : null
+  const match = String(yieldsStr).match(/(\d+)/)
+  const portions = match ? parseInt(match[1], 10) : null
+  return portions && portions <= MAX_PORTIONS ? portions : null
 }
 
 /**
@@ -121,7 +126,19 @@ function formatQuantity(quantity) {
 
   // Default: round to 1 decimal, remove trailing zeros
   const rounded = Math.round(quantity * 10) / 10
+  if (rounded === 0 && quantity > 0) {
+    // Petite quantité non nulle : garder 1 chiffre significatif plutôt qu'afficher « 0 »
+    return Number(quantity.toPrecision(1)).toString()
+  }
   return rounded.toString().replace(/\.0$/, '')
+}
+
+// Fourchette en début d'ingrédient : « 2-3 », « 2 à 3 », « 2 to 3 », « 1,5 ou 2 », « 1 to 1 1/2 »…
+// Seuls la borne basse et le séparateur sont capturés ; la borne haute est lue par extractQuantity.
+const RANGE_PATTERN = /^(\d+(?:[.,]\d+)?)(\s*[-–]\s*|\s+(?:à|a|to|ou|or)\s+)(?=[\d½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])/
+
+function parseNumber(str) {
+  return parseFloat(str.replace(',', '.'))
 }
 
 /**
@@ -133,13 +150,25 @@ function scaleIngredientString(ingredient, originalPortions, newPortions) {
     return ingredient
   }
 
+  const ratio = newPortions / originalPortions
+
+  // Fourchette : mettre les deux bornes à l'échelle en gardant le séparateur d'origine
+  const range = ingredient.trim().match(RANGE_PATTERN)
+  if (range) {
+    const [whole, min, separator] = range
+    const max = extractQuantity(ingredient.trim().slice(whole.length))
+    if (max.quantity !== null) {
+      const scaledRange = `${formatQuantity(parseNumber(min) * ratio)}${separator}${formatQuantity(max.quantity * ratio)}`
+      return `${scaledRange} ${max.rest}`.trim()
+    }
+  }
+
   const { quantity, rest } = extractQuantity(ingredient)
 
   if (quantity === null) {
     return ingredient
   }
 
-  const ratio = newPortions / originalPortions
   const scaledQuantity = quantity * ratio
   const displayQuantity = formatQuantity(scaledQuantity)
 
@@ -149,6 +178,9 @@ function scaleIngredientString(ingredient, originalPortions, newPortions) {
 export function usePortionCalculator(yieldsStr) {
   const originalPortions = ref(parseYields(yieldsStr))
   const currentPortions = ref(originalPortions.value || 4)
+
+  // Sans nombre de portions d'origine, aucune mise à l'échelle n'est possible
+  const canScale = computed(() => !!originalPortions.value)
 
   /**
    * Available portion options for the dropdown.
@@ -164,43 +196,17 @@ export function usePortionCalculator(yieldsStr) {
   })
 
   /**
-   * Scale a single raw ingredient string.
-   */
-  function scaleIngredient(ingredient) {
-    return scaleIngredientString(ingredient, originalPortions.value, currentPortions.value)
-  }
-
-  /**
    * Scale all ingredients in a list.
    */
   function scaleAllIngredients(ingredients) {
-    return ingredients.map(ing => scaleIngredient(ing))
-  }
-
-  /**
-   * Set the current portions.
-   */
-  function setPortions(portions) {
-    currentPortions.value = portions
-  }
-
-  /**
-   * Reset to original portions.
-   */
-  function resetPortions() {
-    currentPortions.value = originalPortions.value || 4
+    return ingredients.map(ing => scaleIngredientString(ing, originalPortions.value, currentPortions.value))
   }
 
   return {
     originalPortions,
     currentPortions,
+    canScale,
     portionOptions,
-    scaleIngredient,
     scaleAllIngredients,
-    setPortions,
-    resetPortions,
-    formatQuantity,
-    parseYields,
-    extractQuantity,
   }
 }

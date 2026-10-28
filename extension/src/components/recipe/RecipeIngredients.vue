@@ -2,7 +2,7 @@
   <section class="recipe-ingredients">
     <div class="section-header">
       <h2 class="heading-03">{{ $t('recipe.ingredients') }}</h2>
-      <label class="portion-selector">
+      <label v-if="canScale" class="portion-selector">
 <Icon name="arrows-vertical" size="md" class="portion-arrows" />
         <span class="portion-value body-medium">{{ portions }}</span>
 <Icon name="cutlery" size="md" />
@@ -13,19 +13,19 @@
     </div>
 
     <ul class="ingredients-list">
-      <li v-for="(ingredient, index) in scaledIngredients" :key="index">
+      <li v-for="(item, index) in items" :key="index">
         <div class="ingredient-image">
           <img
             :src="getIngredientImageUrl(index)"
-            :alt="ingredient"
+            alt=""
             width="32"
             height="32"
             @error="onImageError"
           />
         </div>
         <div class="ingredient-content">
-          <span v-if="getIngredientParts(ingredient).quantity" class="ingredient-quantity">{{ getIngredientParts(ingredient).quantity }}</span>
-          <span class="ingredient-text">{{ getIngredientParts(ingredient).rest }}</span>
+          <span v-if="item.quantity" class="ingredient-quantity">{{ item.quantity }}</span>
+          <span class="ingredient-text">{{ item.rest }}</span>
         </div>
       </li>
     </ul>
@@ -36,6 +36,7 @@
 import { computed } from 'vue'
 import Icon from '@/components/Icon.vue'
 import placeholderUrl from '@/assets/ingredient-placeholder.png'
+import { ingredientImages } from '@/assets/ingredientImages'
 
 const props = defineProps({
   ingredients: {
@@ -58,6 +59,11 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  // Faux quand les portions d'origine sont inconnues : le sélecteur n'aurait aucun effet
+  canScale: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const emit = defineEmits(['update:current-portions'])
@@ -67,7 +73,12 @@ const portions = computed({
   set: (val) => emit('update:current-portions', val),
 })
 
-const QUANTITY_RE = /^(\d+[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]|\d+[.,]\d+|\d+|[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])(\s*(?:kg|mg|cl|dl|ml|g|l)\b)?/
+// Mêmes formes que usePortionCalculator : « 1 1/2 », « 1/2 », « 1 ½ », « 1,5 », « 2 »,
+// éventuellement en fourchette (« 4-6 », « 2 à 3 », « 1 to 1 1/2 »), suivies d'une unité métrique
+const NUMBER = String.raw`\d+\s+\d+\/\d+|\d+\/\d+|\d+\s*[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]|\d+[.,]\d+|\d+|[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]`
+const QUANTITY_RE = new RegExp(
+  String.raw`^((?:\d+(?:[.,]\d+)?(?:\s*[-–]\s*|\s+(?:à|a|to|ou|or)\s+))?(?:${NUMBER}))(\s*(?:kg|mg|cl|dl|ml|g|l)\b)?`
+)
 
 function getIngredientParts(ingredient) {
   const match = ingredient.match(QUANTITY_RE)
@@ -79,15 +90,13 @@ function getIngredientParts(ingredient) {
   return { quantity, rest }
 }
 
-// Images embarquées dans l'extension, indexées par image_id (nom du fichier)
-const ingredientImages = Object.fromEntries(
-  Object.entries(
-    import.meta.glob('@/assets/ingredients/*.png', { eager: true, import: 'default' })
-  ).map(([path, url]) => [path.split('/').pop().replace('.png', ''), url])
-)
+const items = computed(() => props.scaledIngredients.map(getIngredientParts))
 
+// N'utilise l'image que si l'entrée enrichie correspond bien à l'ingrédient à cet index
 function getIngredientImageUrl(index) {
-  const imageId = props.enrichedIngredients?.[index]?.image_id
+  const entry = props.enrichedIngredients?.[index]
+  const text = props.ingredients[index]
+  const imageId = entry && text != null && entry.text?.trim() === text.trim() ? entry.image_id : null
   return ingredientImages[imageId] || placeholderUrl
 }
 

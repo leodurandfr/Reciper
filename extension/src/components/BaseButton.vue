@@ -14,9 +14,8 @@
     :target="tag === 'a' ? '_blank' : undefined"
     :rel="tag === 'a' ? 'noopener' : undefined"
     :disabled="tag === 'button' ? disabled || undefined : undefined"
-    v-bind="$attrs"
   >
-<Icon v-if="iconLeft === 'chevron-left'" name="chevron-left" size="sm" />
+    <Icon v-if="iconLeft" :name="iconLeft" size="sm" />
     <slot />
   </component>
 </template>
@@ -24,7 +23,7 @@
 <script setup>
 import Icon from './Icon.vue'
 
-const props = defineProps({
+defineProps({
   variant: {
     type: String,
     default: 'outline',

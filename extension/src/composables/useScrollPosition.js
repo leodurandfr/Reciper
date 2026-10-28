@@ -1,7 +1,7 @@
-import { ref, nextTick } from 'vue'
+import { nextTick } from 'vue'
 
 // Store scroll positions per route path
-const scrollPositions = ref(new Map())
+const scrollPositions = new Map()
 
 // Track if we should restore scroll on next navigation
 let shouldRestore = false
@@ -12,14 +12,15 @@ export function useScrollPosition() {
    */
   function savePosition(routePath) {
     const position = window.scrollY
-    scrollPositions.value.set(routePath, position)
+    scrollPositions.set(routePath, position)
   }
 
   /**
    * Get saved position for a route (and clear it)
    */
   function getSavedPosition(routePath) {
-    const position = scrollPositions.value.get(routePath)
+    const position = scrollPositions.get(routePath)
+    scrollPositions.delete(routePath)
     return position ?? 0
   }
 
@@ -49,18 +50,9 @@ export function useScrollPosition() {
     shouldRestore = true
   }
 
-  /**
-   * Scroll to top (used during transitions)
-   */
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'instant' })
-  }
-
   return {
     savePosition,
     restorePosition,
     markForRestore,
-    scrollToTop,
-    scrollPositions,
   }
 }

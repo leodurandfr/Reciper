@@ -1,5 +1,5 @@
 /* ============================================
-   TYPOGRAPHY - RecettesScrapper
+   TYPOGRAPHY - Reciper
    ============================================ */
 
 /* === FONT FACES === */
@@ -25,13 +25,6 @@
 .heading-01 {
   font-family: var(--font-family-heading);
   font-size: var(--font-size-heading-01);
-  line-height: var(--line-height-heading);
-  font-weight: 600;
-}
-
-.heading-02 {
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-heading-02);
   line-height: var(--line-height-heading);
   font-weight: 600;
 }

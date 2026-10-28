@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, toRef } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAllRecipes } from '../services/db.js'
 import { useSearch } from '../composables/useSearch.js'
@@ -40,22 +40,45 @@ const filteredRecipes = computed(() => {
   )
 })
 
-async function fetchRecipes() {
-  loading.value = true
-  error.value = ''
+// Numéro de la dernière requête : une réponse plus ancienne arrivée en retard est ignorée
+let fetchId = 0
+
+// silent : rechargement en arrière-plan, sans repasser par l'état de chargement
+async function fetchRecipes({ silent = false } = {}) {
+  const id = ++fetchId
+  if (!silent) loading.value = true
   try {
-    recipes.value = await getAllRecipes({ favoritesOnly: props.favoritesOnly })
+    const result = await getAllRecipes({ favoritesOnly: props.favoritesOnly })
+    if (id !== fetchId) return
+    recipes.value = result
+    error.value = ''
   } catch (err) {
+    if (id !== fetchId) return
     console.error('Erreur chargement recettes:', err)
     error.value = t('home.errorLoading')
   } finally {
-    loading.value = false
+    if (id === fetchId) loading.value = false
   }
 }
 
-watch(toRef(props, 'favoritesOnly'), fetchRecipes)
+watch(toRef(props, 'favoritesOnly'), () => fetchRecipes())
 
-onMounted(fetchRecipes)
+// Recharger la liste quand l'index change (import, suppression depuis les réglages,
+// recette récupérée dans un autre onglet, etc.)
+function handleStorageChange(changes, areaName) {
+  if (areaName === 'local' && changes.recipes_index) {
+    fetchRecipes({ silent: true })
+  }
+}
+
+onMounted(() => {
+  fetchRecipes()
+  globalThis.chrome?.storage?.onChanged?.addListener(handleStorageChange)
+})
+
+onUnmounted(() => {
+  globalThis.chrome?.storage?.onChanged?.removeListener(handleStorageChange)
+})
 </script>
 
 <style scoped>
@@ -71,9 +94,6 @@ onMounted(fetchRecipes)
   padding: var(--space-06);
   background: var(--color-background-neutral);
   border-radius: var(--radius-02);
-}
-
-.error {
   color: var(--color-brand);
 }
 </style>

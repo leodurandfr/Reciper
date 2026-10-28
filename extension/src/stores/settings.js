@@ -3,20 +3,15 @@
  * Stockés dans chrome.storage.local (ou localStorage pour dev)
  */
 
-import { reactive, watch } from 'vue'
 import { detectBrowserLocale } from '../i18n/detect.js'
 
 const SETTINGS_KEY = 'settings'
 
 const defaultSettings = {
-  autoSaveImages: false, // Télécharger et sauver les images localement
   theme: 'light', // 'light', 'dark', 'system'
   language: null, // null = auto (suit le navigateur), sinon 'fr' | 'en' | 'es' | 'pt'
   scrapeAnySite: false, // Récupérer les recettes (schema.org) aussi sur les sites non supportés par recipe-scrapers
 }
-
-// Reactive settings store for composable
-let settingsStore = null
 
 /**
  * Récupère tous les paramètres
@@ -67,29 +62,12 @@ export async function getEffectiveLanguage() {
 }
 
 /**
- * Réinitialise les paramètres par défaut
- * @returns {Promise<void>}
- */
-export async function resetSettings() {
-  await saveSettings(defaultSettings)
-}
-
-/**
  * Récupère le thème configuré
  * @returns {Promise<string>}
  */
 export async function getTheme() {
   const settings = await getSettings()
   return settings.theme
-}
-
-/**
- * Modifie le thème
- * @param {'light'|'dark'|'system'} theme
- * @returns {Promise<void>}
- */
-export async function setTheme(theme) {
-  await saveSettings({ theme })
 }
 
 /**
@@ -103,6 +81,10 @@ export function applyTheme(theme) {
   } else {
     document.documentElement.setAttribute('data-theme', theme)
   }
+  // Relu par theme-boot.js au prochain chargement, avant le premier affichage
+  try {
+    localStorage.setItem('reciper-theme', theme)
+  } catch {}
 }
 
 /**
@@ -119,30 +101,4 @@ export async function initTheme() {
       applyTheme('system')
     }
   })
-}
-
-/**
- * Composable Vue pour utiliser les paramètres de manière réactive
- * @returns {Object} - Objet réactif contenant les paramètres
- */
-export function useSettings() {
-  if (!settingsStore) {
-    settingsStore = reactive({ ...defaultSettings })
-
-    // Charger les paramètres au premier appel
-    getSettings().then(settings => {
-      Object.assign(settingsStore, settings)
-    })
-
-    // Écouter les changements dans chrome.storage
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.onChanged.addListener((changes, areaName) => {
-        if (areaName === 'local' && changes[SETTINGS_KEY]) {
-          Object.assign(settingsStore, changes[SETTINGS_KEY].newValue)
-        }
-      })
-    }
-  }
-
-  return settingsStore
 }

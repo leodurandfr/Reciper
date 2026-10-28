@@ -39,8 +39,6 @@ export default {
     noResults: 'Aucune recette trouvée',
   },
   loading: {
-    connectingServer: 'Connexion au serveur...',
-    fetchingRecipe: 'Récupération de la recette...',
     errorOccurred: "Une erreur s'est produite",
     backToSite: 'Retour au site',
     missingUrl: 'URL manquante',
@@ -64,6 +62,7 @@ export default {
       cancel: 'Annuler',
       exportSuccess: '{count} recettes exportées',
       importSuccess: '{imported} recettes importées, {skipped} ignorées',
+      importInvalid: '{count} entrées invalides ignorées',
       exportError: "Erreur lors de l'export: {message}",
       importError: "Erreur lors de l'import: {message}",
       fileError: 'Erreur lors de la lecture du fichier',
@@ -95,7 +94,7 @@ export default {
     },
     about: {
       title: 'À propos',
-      version: 'Reciper v1.0.0',
+      version: 'Reciper v{version}',
       description: 'Sauvegardez automatiquement les recettes de 700+ sites de cuisine.',
     },
   },
@@ -125,10 +124,7 @@ export default {
     recipeNotFound: 'Recette non trouvée',
     deleteFailed: 'Erreur lors de la suppression',
     favoriteFailed: 'Erreur lors de la mise à jour des favoris',
-    updateFailed: 'Erreur lors de la mise à jour',
     invalidExportFormat: 'Format de fichier invalide: pas de tableau "recipes"',
     invalidFormat: 'Format invalide',
-    noBackupFound: 'Aucune sauvegarde trouvée',
-    restoreFailed: 'Restauration impossible: {message}',
   },
 }

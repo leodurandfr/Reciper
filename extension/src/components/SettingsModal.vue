@@ -140,7 +140,7 @@
         <div class="settings-card">
           <div class="settings-row settings-row--wrap">
             <span class="row-text">
-              <span class="row-title about-name">{{ $t('settings.about.version') }}</span>
+              <span class="row-title about-name">{{ $t('settings.about.version', { version: appVersion }) }}</span>
               <span class="row-description body-small">{{ $t('settings.about.description') }}</span>
             </span>
             <div class="button-group">
@@ -168,6 +168,7 @@ import { getSettings, saveSettings, applyTheme } from '../stores/settings.js'
 import { detectBrowserLocale } from '../i18n/detect.js'
 import { getRecipeCount, clearAllRecipes } from '../services/db.js'
 import { downloadRecipesExport, previewImportFile, importRecipesFromFile } from '../services/exportImport.js'
+import { version as packageVersion } from '../../package.json'
 
 const props = defineProps({
   isOpen: {
@@ -209,6 +210,9 @@ const languageOptions = [
 ]
 
 const scrapeAnySite = ref(false)
+
+// Version du manifest (celle publiée), ou de package.json hors extension (dev)
+const appVersion = globalThis.chrome?.runtime?.getManifest?.().version ?? packageVersion
 
 // Load data each time the modal opens
 watch(
@@ -256,12 +260,15 @@ async function handleImportFile(event) {
   const file = event.target.files[0]
   if (!file) return
 
-  importFile.value = file
+  // Oublier l'aperçu d'un fichier choisi précédemment
+  importPreview.value = null
+  importFile.value = null
   importResult.value = null
 
   try {
     const preview = await previewImportFile(file)
     if (preview.valid) {
+      importFile.value = file
       importPreview.value = preview
     } else {
       importResult.value = {
@@ -289,10 +296,15 @@ async function confirmImport() {
       overwrite: importOverwrite.value
     })
 
-    importResult.value = {
-      type: result.errors.length > 0 ? 'error' : 'success',
-      message: t('settings.data.importSuccess', { imported: result.imported, skipped: result.skipped })
+    // En cas d'échec, importRecipesFromFile lève une erreur (affichée par le catch)
+    let message = t('settings.data.importSuccess', {
+      imported: result.imported,
+      skipped: result.skipped,
+    })
+    if (result.invalid > 0) {
+      message += ` (${t('settings.data.importInvalid', { count: result.invalid })})`
     }
+    importResult.value = { type: 'success', message }
 
     recipeCount.value = await getRecipeCount()
     importPreview.value = null

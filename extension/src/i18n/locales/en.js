@@ -39,8 +39,6 @@ export default {
     noResults: 'No recipes found',
   },
   loading: {
-    connectingServer: 'Connecting to server...',
-    fetchingRecipe: 'Fetching recipe...',
     errorOccurred: 'An error occurred',
     backToSite: 'Back to site',
     missingUrl: 'Missing URL',
@@ -64,6 +62,7 @@ export default {
       cancel: 'Cancel',
       exportSuccess: '{count} recipes exported',
       importSuccess: '{imported} recipes imported, {skipped} skipped',
+      importInvalid: '{count} invalid entries ignored',
       exportError: 'Export error: {message}',
       importError: 'Import error: {message}',
       fileError: 'Error reading file',
@@ -95,7 +94,7 @@ export default {
     },
     about: {
       title: 'About',
-      version: 'Reciper v1.0.0',
+      version: 'Reciper v{version}',
       description: 'Save recipes automatically from 700+ cooking websites.',
     },
   },
@@ -125,10 +124,7 @@ export default {
     recipeNotFound: 'Recipe not found',
     deleteFailed: 'Error deleting recipe',
     favoriteFailed: 'Error updating favorites',
-    updateFailed: 'Error updating recipe',
     invalidExportFormat: 'Invalid file format: no "recipes" array',
     invalidFormat: 'Invalid format',
-    noBackupFound: 'No backup found',
-    restoreFailed: 'Restore failed: {message}',
   },
 }

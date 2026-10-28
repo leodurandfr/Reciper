@@ -125,6 +125,18 @@ watch(
   { immediate: true }
 )
 
+// Réaligne enriched_ingredients (images, associées par index) sur la nouvelle liste :
+// chaque ligne reprend la première entrée inutilisée de même texte, sinon pas d'image
+function realignEnrichedIngredients(ingredients) {
+  const remaining = [...(props.recipe.enriched_ingredients || [])]
+  return ingredients.map((text) => {
+    const index = remaining.findIndex(entry => entry?.text?.trim() === text)
+    if (index === -1) return { text, image_id: null }
+    const [entry] = remaining.splice(index, 1)
+    return { ...entry, text }
+  })
+}
+
 function close() {
   emit('close')
 }
@@ -155,6 +167,7 @@ async function handleSubmit() {
       total_time: totalTime,
       yields: form.value.yields || null,
       ingredients,
+      enriched_ingredients: realignEnrichedIngredients(ingredients),
       instructions,
     }
 

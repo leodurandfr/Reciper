@@ -19,16 +19,21 @@ function toBase64Url(buffer) {
  * @returns {Promise<{url: string}>}
  */
 export async function shareRecipe(recipe) {
+  const ingredients = recipe.ingredients || []
+  const enriched = recipe.enriched_ingredients || []
+
   const payload = {
     title: recipe.title,
     image_url: recipe.image_url,
     ingredients: recipe.ingredients,
-    image_ids: (recipe.enriched_ingredients || []).map((ingredient) => ingredient.image_id ?? null),
+    // N'utiliser l'image que si l'entrée enrichie correspond bien à l'ingrédient (liste éventuellement modifiée)
+    image_ids: ingredients.map((ingredient, index) =>
+      enriched[index]?.text?.trim() === ingredient?.trim() ? enriched[index].image_id ?? null : null
+    ),
     instructions: recipe.instructions,
     prep_time: recipe.prep_time,
     cook_time: recipe.cook_time,
     yields: recipe.yields,
-    host: recipe.host,
     url: recipe.url,
   }
 

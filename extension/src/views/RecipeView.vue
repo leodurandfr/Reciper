@@ -11,11 +11,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watchEffect, onMounted } from 'vue'
+import { ref, watchEffect, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { getRecipe, toggleFavorite } from '../services/db.js'
-import { parseInstructionsWithIngredients } from '../composables/useIngredientMatcher.js'
+import { parseInstructions } from '../composables/useIngredientMatcher.js'
 import { useHeaderButtons } from '../composables/useHeaderButtons.js'
 import { useScrollPosition } from '../composables/useScrollPosition.js'
 import RecipeDetail from '../components/RecipeDetail.vue'
@@ -26,34 +26,33 @@ const router = useRouter()
 const recipe = ref(null)
 const error = ref('')
 const togglingFavorite = ref(false)
-const localIsFavorite = ref(null)
 
-const isFavorite = computed(() => {
-  return localIsFavorite.value !== null ? localIsFavorite.value : recipe.value?.is_favorite
-})
-
-// Vérifie si on a un historique de navigation interne (hors /loading)
-const hasInternalHistory = computed(() => {
-  const back = window.history.state?.back
-  return back && !back.includes('/loading')
-})
+// Vérifie si on a un historique de navigation interne (hors /loading).
+// history.state n'est pas réactif : la valeur est lue une fois au setup
+const historyBack = window.history.state?.back
+const hasInternalHistory = !!historyBack && !historyBack.includes('/loading')
 
 // Scroll position restoration
 const { markForRestore } = useScrollPosition()
 
-// URL de la page précédente (transmise depuis le service worker via la loading page)
-const referrerUrl = route.query.referrerUrl
+// URL de la page précédente (transmise depuis le service worker via la loading page).
+// Seulement http(s) : une page d'extension ne peut pas naviguer vers chrome://newtab/ par exemple
+const referrerUrl = /^https?:\/\//i.test(route.query.referrerUrl || '') ? route.query.referrerUrl : ''
 
 function handleBack() {
   markForRestore()
-  if (hasInternalHistory.value) {
+  if (hasInternalHistory) {
     router.back()
   } else {
     router.push('/favorites')
   }
 }
 
-function handleBackToSite() {
+async function handleBackToSite() {
+  // Sinon le service worker intercepte de nouveau la navigation et renvoie l'onglet dans Reciper
+  if (globalThis.chrome?.runtime?.sendMessage) {
+    await chrome.runtime.sendMessage({ type: 'BYPASS_URL', url: referrerUrl }).catch(() => {})
+  }
   window.location.href = referrerUrl
 }
 
@@ -67,11 +66,8 @@ async function fetchRecipe() {
       return
     }
 
-    // Ajouter les instructions parsées avec les ingrédients associés
-    recipeData.parsed_instructions = parseInstructionsWithIngredients(
-      recipeData.instructions || [],
-      recipeData.ingredients || []
-    )
+    // Ajouter les instructions parsées
+    recipeData.parsed_instructions = parseInstructions(recipeData.instructions || [])
 
     recipe.value = recipeData
   } catch (err) {
@@ -84,7 +80,6 @@ async function handleToggleFavorite() {
   togglingFavorite.value = true
   try {
     const updated = await toggleFavorite(recipe.value.id)
-    localIsFavorite.value = updated.is_favorite
     recipe.value.is_favorite = updated.is_favorite
   } catch (err) {
     console.error('Erreur toggle favori:', err)
@@ -96,10 +91,7 @@ async function handleToggleFavorite() {
 
 function handleRecipeUpdated(updatedRecipe) {
   // Recalculer les instructions parsées
-  updatedRecipe.parsed_instructions = parseInstructionsWithIngredients(
-    updatedRecipe.instructions || [],
-    updatedRecipe.ingredients || []
-  )
+  updatedRecipe.parsed_instructions = parseInstructions(updatedRecipe.instructions || [])
   recipe.value = updatedRecipe
 }
 
@@ -110,16 +102,19 @@ function handleRecipeDeleted() {
 // Header buttons via composable (rendered by AppHeader)
 const { leftButton, rightButton } = useHeaderButtons()
 
-leftButton.value = referrerUrl
-  ? { label: t('nav.back'), iconLeft: 'chevron-left', handler: handleBackToSite }
-  : { label: hasInternalHistory.value ? t('nav.back') : t('nav.myRecipes'), iconLeft: 'chevron-left', handler: handleBack }
+// Dans un watchEffect pour que le libellé suive un changement de langue
+watchEffect(() => {
+  leftButton.value = referrerUrl
+    ? { label: t('nav.back'), iconLeft: 'chevron-left', handler: handleBackToSite }
+    : { label: hasInternalHistory ? t('nav.back') : t('nav.myRecipes'), iconLeft: 'chevron-left', handler: handleBack }
+})
 
 watchEffect(() => {
   if (recipe.value) {
     rightButton.value = {
       label: togglingFavorite.value
         ? '...'
-        : isFavorite.value ? t('recipe.removeFavorite') : t('recipe.addFavorite'),
+        : recipe.value.is_favorite ? t('recipe.removeFavorite') : t('recipe.addFavorite'),
       handler: handleToggleFavorite,
       disabled: togglingFavorite.value,
     }
@@ -146,9 +141,6 @@ onMounted(fetchRecipe)
   padding: var(--space-06);
   background: var(--color-background-neutral);
   border-radius: var(--radius-02);
-}
-
-.error {
   color: var(--color-brand);
 }
 </style>

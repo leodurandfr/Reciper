@@ -56,13 +56,6 @@ const emptyMessage = computed(() => {
   animation-delay: calc(150ms + var(--i) * 50ms);
 }
 
-@keyframes stagger-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
-
 .empty-state {
   grid-column: 1 / -1;
   animation: stagger-in 300ms ease-out both;

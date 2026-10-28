@@ -1,6 +1,6 @@
 <template>
   <footer class="recipe-footer">
-    <BaseButton tag="a" :href="recipe.url" variant="outline" @click="handleSourceClick">
+    <BaseButton tag="a" :href="recipe.url" variant="outline" @click="handleSourceClick" @auxclick="handleSourceAuxClick">
       {{ $t('recipe.source', { host: recipe.host }) }}
     </BaseButton>
 
@@ -63,10 +63,16 @@ async function handleShare() {
 
 async function handleSourceClick(event) {
   event.preventDefault()
-  if (chrome?.runtime?.sendMessage) {
-    await chrome.runtime.sendMessage({ type: 'BYPASS_URL', url: props.recipe.url })
+  // Sinon le service worker intercepte la page source et la renvoie dans Reciper
+  if (globalThis.chrome?.runtime?.sendMessage) {
+    await chrome.runtime.sendMessage({ type: 'BYPASS_URL', url: props.recipe.url }).catch(() => {})
   }
   window.open(props.recipe.url, '_blank', 'noopener')
+}
+
+// Clic du milieu : il ne déclenche pas `click`, on passe donc aussi par le bypass
+function handleSourceAuxClick(event) {
+  if (event.button === 1) handleSourceClick(event)
 }
 
 async function confirmDelete() {
