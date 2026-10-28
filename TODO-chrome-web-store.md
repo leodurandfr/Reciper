@@ -13,35 +13,24 @@
   - [ ] Page des paramètres
 - [ ] Small promo tile (440x280) — vignette dans les résultats de recherche
 
-## Mini-site (NAS + nom de domaine)
+## Mini-site (GitHub Pages, `docs/`)
 - [ ] Page d'accueil de présentation de l'extension
-- [ ] Page "Privacy Policy" (politique de confidentialité)
-  - Aucune donnée personnelle collectée
-  - Recettes stockées localement
-  - Communication HTTPS avec le backend (scraping uniquement)
-  - Pas d'analytics, cookies, ou partage tiers
-  - Backend configurable par l'utilisateur
+- [x] Page "Privacy Policy" (`docs/index.md`, https://leodurandfr.github.io/Reciper/)
 - [ ] Lien vers la page Chrome Web Store
-
-## Backend Cloud Run
-- [ ] Vérifier que l'instance Cloud Run est stable et accessible
-- [ ] Tester `/api/health` sur l'URL de production
-- [ ] Vérifier les quotas / limites Cloud Run (requêtes, cold starts)
-- [ ] S'assurer que le CORS autorise les requêtes depuis l'extension
 
 ## Tests avant soumission
 - [ ] Tester l'extension sur 5-10 sites de recettes variés
 - [ ] Vérifier le bon fonctionnement sur une installation fraîche (pas de données)
 - [ ] Tester l'export / import de recettes
-- [ ] Tester les paramètres (thème, langue, backend custom)
+- [ ] Tester les paramètres (thème, langue, récupération sur tous les sites)
 - [ ] Vérifier que l'extension fonctionne après un `npm run build` propre
 
 ## Description Chrome Web Store
 - [ ] Rédiger la description courte (~130 caractères)
 - [ ] Rédiger la description détaillée (~500-1000 caractères)
 - [ ] Choisir la catégorie (Productivité ou Mode de vie)
-- [ ] Préparer la justification pour la permission `<all_urls>` :
-  > "Reciper supports 606+ recipe websites. The extension detects recipe structured data (JSON-LD, microdata) on these sites. A static list of 606+ match patterns would be impractical and require constant updates."
+- [ ] Préparer la justification pour l'accès aux hôtes `http://*/*` et `https://*/*` :
+  > "Reciper supports 700+ recipe websites. The extension detects recipe structured data (JSON-LD, microdata) on these sites, and optionally on any website the user visits. A static list of 700+ match patterns would be impractical and require constant updates."
 
 ## Packaging et soumission
 - [ ] `npm run build` dans `extension/`

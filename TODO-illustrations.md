@@ -1,9 +1,9 @@
 # Illustrations des ingrédients - TODO
 
 > Fichier image attendu : `{image_id}.png`
-> Répertoire : `backend/app/static/ingredients/` + `extension/src/assets/ingredients/`
+> Répertoire : `extension/src/assets/ingredients/`
 >
-> **190 / 190 illustrations réalisées** (100%)
+> **190 / 190 illustrations réalisées** (100%), plus `chocolate-chip` et `nut`
 
 ---
 
@@ -246,13 +246,14 @@
 
 > **Note :** `gruyere` a été fusionné avec `cheese` (même image).
 > **Note :** `starch` et `baking-soda` sont consolidés en `white-powder.png`. `cornstarch` a sa propre image.
-> **Note :** `chocolate-chip` / `pépites` consolidés en `chocolate.png`.
+> **Note :** `chocolate-chip` / `pépites` ont leur propre image (`chocolate-chip.png`).
 > **Note :** `sauce bolognaise` redirige vers `tomato-sauce.png`.
 > **Note :** Fromages regroupés : `camembert` (reblochon, munster), `brie` (distinct), `goat-cheese` (chèvre, crottin), `blue-cheese` (roquefort, gorgonzola), `cheese` (gruyère, comté, emmental, etc.).
 > **Note :** `parmesan` / `parmigiano` ont leur propre image distincte.
 > **Note :** Poissons regroupés : `salmon` (saumon), `tuna` (thon), `white-fish` (cabillaud, colin, sole, dorade, bar...), `fish` (générique, truite, sardine, maquereau...).
-> **Note :** Noix regroupées : `almond` (amande), `hazelnut` (noisette), `peanut` (cacahuète), `nuts` (noix, pistache, cajou, pécan...).
+> **Note :** Noix regroupées : `almond` (amande), `hazelnut` (noisette), `peanut` (cacahuète), `nut` (noix, walnut), `nuts` (pistache, cajou, pécan...).
 > **Note :** `oyster` (huître) a sa propre image, distincte de `mussel`.
 > **Note :** `soy-sauce` et `fish-sauce` sont consolidés en `sauce.png`.
 > **Note :** `pesto-rosso` a sa propre image, distincte de `pesto`.
 > **Note :** `nutella` et `pâte à tartiner` sont consolidés en `spread.png`.
+> **Note :** `syrup` et `caper` n'ont pas d'image : aucun mapping (placeholder affiché).

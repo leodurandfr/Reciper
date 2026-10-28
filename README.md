@@ -1,105 +1,46 @@
 # Reciper
 
-Application web locale pour sauvegarder et organiser des recettes de cuisine via scraping d'URLs.
+Extension Chrome (Manifest V3) qui sauvegarde et organise vos recettes de cuisine. Tout se passe dans le navigateur : pas de compte, pas de serveur.
 
 ## Fonctionnalites
 
-- Afficher la liste des recettes sauvegardees
-- Voir le detail d'une recette (ingredients, instructions, temps)
-- Supprimer une recette
-- **Extension Chrome** : Sauvegarde automatique des recettes en cliquant sur les liens
+- Detection automatique des pages de recettes sur 700+ sites supportes (Marmiton, 750g, AllRecipes, BBC Good Food...)
+- Option (desactivee par defaut) pour recuperer les recettes sur n'importe quel site qui declare une recette schema.org
+- Bibliotheque de recettes stockee localement (`chrome.storage.local`)
+- Detail d'une recette : ingredients illustres, etapes, temps, calcul des portions, edition
+- Export / import des recettes
+- Partage par lien : la recette est compressee dans le fragment de l'URL d'une page statique (rien n'est envoye a un serveur)
 
 ## Stack technique
 
-- **Backend**: Python 3.11+ / FastAPI / SQLAlchemy / SQLite
-- **Scraping**: [recipe-scrapers](https://github.com/hhursev/recipe-scrapers) (700+ sites supportes)
-- **Frontend**: Vue.js 3 / Vite
-- **Extension**: Chrome Extension (Manifest V3)
+- **Scraping** : [recipe-scrapers](https://github.com/hhursev/recipe-scrapers) (Python), execute dans l'extension via [Pyodide](https://pyodide.org/) (WebAssembly)
+- **Interface** : Vue.js 3 / Vue Router / vue-i18n, build avec Vite
+- **Extension** : Chrome Manifest V3 (service worker, document offscreen + Web Worker pour Pyodide)
+- **Partage** : page statique `docs/share/` servie par GitHub Pages
 
 ## Installation
 
-### Backend
-
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Sur Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### Frontend
-
-```bash
-cd frontend
+cd extension
 npm install
+npm run build   # prepare Pyodide + wheels dans vendor/, puis build dans dist/
 ```
-
-## Lancement
-
-### Backend (Terminal 1)
-
-```bash
-cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload
-```
-
-L'API sera disponible sur http://localhost:8080
-
-### Frontend (Terminal 2)
-
-```bash
-cd frontend
-npm run dev
-```
-
-L'application sera disponible sur http://localhost:5173
-
-## Extension Chrome
-
-L'extension intercepte automatiquement les clics sur les liens de recettes depuis Google (ou autre) et les sauvegarde dans l'app locale.
-
-### Installation
 
 1. Ouvrir `chrome://extensions/`
 2. Activer le **Mode developpeur**
 3. Cliquer sur **Charger l'extension non empaquetee**
-4. Selectionner le dossier `extension/`
+4. Selectionner le dossier `extension/dist/`
 
-### Utilisation
+## Utilisation
 
-1. Lancer le backend et le frontend
-2. Chercher une recette sur Google (ex: "gateau chocolat marmiton")
-3. Cliquer sur le lien - la recette s'ouvre directement dans l'app locale
+1. Ouvrir une recette sur un site supporte (ex: une recette Marmiton depuis Google)
+2. L'extension analyse la page localement et ouvre la recette dans Reciper
+3. La recette est sauvegardee dans votre bibliotheque ; le bouton de retour ramene au site d'origine
 
-**Fallback** : Si le backend n'est pas lance, le site original s'ouvre normalement.
+Si la page n'est pas une recette, le site s'affiche normalement.
 
-## Tests
+## Documentation
 
-```bash
-cd backend
-source venv/bin/activate
-pytest
-```
-
-## Sites supportes
-
-L'application supporte plus de 700 sites de recettes grace a la bibliotheque recipe-scrapers, dont :
-
-- Marmiton
-- 750g
-- Cuisine AZ
-- AllRecipes
-- BBC Good Food
-- Et bien d'autres...
-
-## API Endpoints
-
-| Methode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/api/health` | Health check |
-| POST | `/api/recipes` | Ajouter une recette (body: `{"url": "..."}`) |
-| GET | `/api/recipes` | Liste toutes les recettes |
-| GET | `/api/recipes/{id}` | Detail d'une recette |
-| DELETE | `/api/recipes/{id}` | Supprimer une recette |
-
+- [`extension/README.md`](extension/README.md) : fonctionnement detaille, debug et structure de l'extension
+- [`CLAUDE.md`](CLAUDE.md) : architecture et organisation du code
+- [Politique de confidentialite](https://leodurandfr.github.io/Reciper/) (`docs/index.md`)

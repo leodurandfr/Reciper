@@ -6,7 +6,7 @@ description: Privacy policy for the Reciper Chrome extension
 
 # Reciper – Privacy Policy
 
-_Last updated: 2026-10-26_
+_Last updated: 2026-10-28_
 
 Reciper is a Chrome extension that automatically saves cooking recipes from
 supported websites into a personal library stored on your device. This page
@@ -26,7 +26,8 @@ describes, in plain terms, what data the extension handles and what it does
 When you navigate to a page on one of the 700+ supported recipe websites, the
 extension:
 
-1. Detects that the page contains a recipe (via Schema.org structured data).
+1. Recognises the website from the list of supported sites, downloads the page
+   and checks that it declares a recipe (Schema.org structured data).
 2. Extracts the recipe (ingredients, steps, cooking time, servings, title,
    image) locally, inside the extension, using the open source
    [recipe-scrapers](https://github.com/hhursev/recipe-scrapers) library.
@@ -65,8 +66,9 @@ any data to a Reciper server: there is none.
 
 If you explicitly click "Share" on a saved recipe, the extension builds a link
 to a static page hosted on GitHub Pages (`leodurandfr.github.io`). The recipe
-content (title, ingredients, steps, image URL, source URL) is compressed into
-the part of the link after the `#`, which browsers never send to a server:
+content (title, ingredients, ingredient illustration identifiers, steps,
+preparation and cooking times, servings, image URL and source URL) is
+compressed into the part of the link after the `#`, which browsers never send to a server:
 the recipe is not uploaded or stored anywhere. Whoever opens the link loads
 the page from GitHub, ingredient illustrations from GitHub
 (`raw.githubusercontent.com`) and the recipe photo from its original website.

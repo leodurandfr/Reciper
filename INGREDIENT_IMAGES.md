@@ -1,149 +1,87 @@
 # Guide d'utilisation : Images d'ingrédients
 
-Ce guide explique comment utiliser et étendre le système d'images d'ingrédients avec dictionnaires modulaires par langue.
+Ce guide explique comment fonctionne et comment étendre le système d'images d'ingrédients, avec ses dictionnaires par langue.
 
 ## 📋 Vue d'ensemble
 
-Le système associe automatiquement des images aux ingrédients scrapés, avec support multilingue via dictionnaires modulaires.
+Le système associe automatiquement une illustration à chaque ingrédient scrapé. Tout se passe dans l'extension : le matching est fait en Python (Pyodide) au moment du scraping, et les images sont embarquées dans le build.
 
-### Architecture v2 (Dictionnaires modulaires)
+### Architecture
 
 ```
-Backend scrape recette (français)
+Scraping de la recette dans Pyodide (extension/python/reciper/scraper.py)
     ↓
-Extrait ingrédients bruts: ["200g de farine", "2 tomates", ...]
+Langue détectée d'après le site (language_detection.py)
     ↓
-Dictionnaire FR→EN traduit: "farine" → "flour", "tomates" → "tomato"
+Ingrédients bruts : ["200g de farine", "2 tomates", ...]
     ↓
-Retourne enriched_ingredients avec image_id en anglais
+Dictionnaire de la langue : "farine" → "flour", "tomates" → "tomato"
     ↓
-Extension affiche l'image via: /api/ingredients/images/{image_id}
+enriched_ingredients : [{ text, image_id }, ...] sauvegardé avec la recette
     ↓
-Exemple: GET /api/ingredients/images/flour → flour.png
+L'app affiche src/assets/ingredients/{image_id}.png (RecipeIngredients.vue)
+La page de partage charge la même image depuis le dépôt GitHub
 ```
 
 **Langues actuellement supportées** :
-- ✅ Français → Anglais (467 entrées, 269 images uniques)
-- 🔜 Allemand → Anglais (futur)
-- 🔜 Espagnol → Anglais (futur)
-- 🔜 Italien → Anglais (futur)
+- ✅ Français (`fr_to_en.py` + `fr_patterns.py`)
+- ✅ Anglais (`en_ingredients.py` + `en_patterns.py`)
+- Autres langues : pas d'image (`image_id` vaut `null`)
+
+Fichiers concernés :
+- `extension/python/reciper/ingredient_image_matcher.py` : logique de matching commune à toutes les langues
+- `extension/python/reciper/data/translations/` : dictionnaires (mot → `image_id`) et motifs par langue
+- `extension/src/assets/ingredients/` : les illustrations (`{image_id}.png`)
 
 ## 🎨 Ajouter de nouvelles images
 
 ### Étape 1 : Créer l'illustration
 
-- **Format** : PNG
-- **Dimensions** : 64x64 pixels (@2x pour Retina)
+- **Format** : PNG transparent
+- **Dimensions** : 300x300 pixels (affichée en 36x36)
 - **Nom** : `{image_id}.png` (ex: `flour.png`, `tomato.png`)
 
 ### Étape 2 : Placer l'image
 
 Copiez le fichier PNG dans :
 ```
-backend/static/ingredients/{image_id}.png
+extension/src/assets/ingredients/{image_id}.png
 ```
 
-### Étape 3 : Ajouter au dictionnaire
+### Étape 3 : Ajouter aux dictionnaires
 
-Éditez `backend/app/data/ingredient_mapping.py` :
+Dans `extension/python/reciper/data/translations/`, ajoutez les mots de chaque langue :
 
 ```python
-INGREDIENT_DATABASE = {
-    # Exemple : ajouter "courgette"
-    'zucchini': {
-        'category': 'vegetable',
-        'keywords': {
-            'fr': ['courgette'],
-            'en': ['zucchini', 'courgette'],
-            'de': ['zucchini'],
-            'es': ['calabacín'],
-            'it': ['zucchina', 'zucchine']
-        }
-    },
-    # ... autres ingrédients
+# fr_to_en.py
+FR_TO_EN = {
+    'courgette': 'zucchini',
+    'courgettes': 'zucchini',
+    # ...
+}
+
+# en_ingredients.py
+EN_INGREDIENTS = {
+    'zucchini': 'zucchini',
+    'zucchinis': 'zucchini',
+    # ...
 }
 ```
+
+Les cas ambigus (« pâte feuilletée » ≠ « pâtes », « tomates cerise » ≠ « cerise ») se règlent dans `{langue}_patterns.py` (`COMPOUND_PATTERNS`, `EXCLUSION_PATTERNS` — un mot-clé ou un tuple de mots-clés à exclure —, et `UNIT_PATTERNS` pour les unités à retirer du texte avant le matching, ex. « c. à café »).
 
 ### Étape 4 : Tester
 
 ```bash
-# Redémarrer le backend (en mode --reload il se recharge automatiquement)
-# Scraper une recette contenant cet ingrédient
-# Vérifier que l'image s'affiche
+cd extension/python
+python3 -c "
+from reciper.ingredient_image_matcher import get_ingredient_image_id
+for text in ['200g de farine', '1 pâte feuilletée']:
+    print(text, '->', get_ingredient_image_id(text, 'fr'))
+"
 ```
 
-## 📚 Ingrédients actuellement disponibles (MVP)
-
-| Image ID | Catégorie | Exemples FR | Exemples EN | Exemples DE |
-|----------|-----------|-------------|-------------|-------------|
-| `flour` | starch | farine, fécule | flour, starch | mehl, stärke |
-| `tomato` | vegetable | tomate | tomato | tomate |
-| `onion` | vegetable | oignon | onion | zwiebel |
-| `garlic` | vegetable | ail, gousse | garlic, clove | knoblauch |
-| `potato` | vegetable | pomme, patate | potato | kartoffel |
-| `carrot` | vegetable | carotte | carrot | karotte |
-| `sugar` | ingredient | sucre | sugar | zucker |
-| `salt` | spice | sel | salt | salz |
-| `pepper` | spice | poivre | pepper | pfeffer |
-| `egg` | protein | œuf, oeuf | egg | ei |
-| `milk` | dairy | lait | milk | milch |
-| `butter` | dairy | beurre | butter | butter |
-| `oil` | liquid | huile | oil | öl |
-| `chicken` | protein | poulet, volaille | chicken | hähnchen |
-| `beef` | protein | bœuf, viande | beef, meat | rindfleisch |
-
-## 🧪 Tests
-
-### Tester le matching en Python
-
-```bash
-cd backend
-source venv/bin/activate
-python3 << 'EOF'
-from app.ingredient_image_matcher import get_ingredient_image_id
-
-tests = ["200g de farine", "2 tomatoes", "1 Zwiebel"]
-for test in tests:
-    print(f"{test} → {get_ingredient_image_id(test)}")
-EOF
-```
-
-### Tester l'API
-
-```bash
-# 1. Scraper une recette
-curl -X POST http://localhost:8742/api/scrape \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://www.marmiton.org/recettes/recette_pate-a-crepes_12372.aspx"}' \
-  | python3 -m json.tool | grep -A 3 enriched_ingredients
-
-# 2. Récupérer une image (une fois qu'elle existe)
-curl http://localhost:8742/api/ingredients/images/flour --output /tmp/flour.png
-open /tmp/flour.png
-```
-
-## 🔄 Démarrage du backend
-
-### En développement (Mac)
-
-```bash
-cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload --port 8742
-```
-
-Le backend sera accessible à `http://localhost:8742`
-
-### En production (Docker)
-
-Le dossier `static/ingredients/` sera automatiquement inclus dans l'image Docker.
-
-```bash
-cd backend
-docker-compose up -d --build
-```
-
-Les images seront servies via HTTPS : `https://api.votre-domaine.com/api/ingredients/images/{image_id}`
+Puis `npm run build` dans `extension/`, recharger l'extension et scraper une recette contenant cet ingrédient. Les recettes déjà sauvegardées gardent leur `image_id` d'origine.
 
 ## 📝 Bonnes pratiques
 
@@ -152,92 +90,34 @@ Les images seront servies via HTTPS : `https://api.votre-domaine.com/api/ingredi
 - Utiliser l'anglais pour l'ID (convention internationale)
 - Utiliser le singulier : `tomato` (pas `tomatoes`)
 - Minuscules uniquement : `onion` (pas `Onion`)
-- Pas d'espaces : `bell-pepper` ou `bell_pepper`
+- Mots séparés par des tirets : `bell-pepper` (la page de partage n'accepte que `[a-z0-9-]`)
+- Ne pas renommer ni supprimer une image existante : les liens de partage déjà envoyés la chargent par son nom depuis la branche `main`
 
 ### Mots-clés multilingues
 
 - Inclure les formes courantes (avec/sans accent : `oeuf`, `œuf`)
-- Penser aux pluriels irréguliers
-- Ajouter les synonymes régionaux (ex: `patate` ET `pomme` pour potato en FR)
+- Penser aux pluriels (le dictionnaire liste les formes explicitement)
+- Ajouter les synonymes régionaux (ex: `patate` ET `pomme de terre` pour potato en FR)
+- Regrouper les ingrédients proches sous une même image (ex: tagliatelle, farfalle → `pasta` si pas d'image dédiée)
 
 ### Gestion des variations
 
 Le matcher gère automatiquement :
-- ✅ Pluriels en -s : `tomates` → `tomate`
-- ✅ Pluriels en -es : `tomatoes` → `tomato`
 - ✅ Casse : `Farine` → `farine`
-- ✅ Stopwords : "de", "le", "la", articles
-
-Pas encore géré (améliorations futures) :
-- ❌ Stemming avancé : "farine complète" ne matche pas automatiquement
-- ❌ Variations orthographiques : "boeuf" vs "bœuf" (ajouter les deux au dictionnaire)
-
-## 🚀 Extensions futures
-
-### Phase 2 : Plus d'ingrédients
-
-Étendre à ~50-100 ingrédients courants :
-- Légumes : courgette, poivron, aubergine, épinard...
-- Fruits : pomme, banane, citron, orange...
-- Féculents : riz, pâtes, pain, quinoa...
-- Protéines : poisson, porc, tofu...
-- Herbes : basilic, persil, thym, romarin...
-
-### Phase 3 : Catégories de fallback
-
-Afficher une icône générique quand l'ingrédient spécifique n'est pas trouvé :
-- `category-vegetable.png`
-- `category-fruit.png`
-- `category-protein.png`
-- etc.
-
-### Phase 4 : Interface d'administration
-
-Page web pour gérer le dictionnaire sans éditer le code :
-- Ajouter/modifier des ingrédients
-- Upload d'images
-- Gestion des traductions
+- ✅ Ponctuation et apostrophes : `Œuf(s)`, `d'ail`
+- ✅ Unités et quantités (`UNIT_PATTERNS`)
+- ✅ Plusieurs mots-clés : le dernier mot reconnu l'emporte (« huile d'olive » → `oil`)
 
 ## 🐛 Dépannage
 
 ### L'image ne s'affiche pas dans l'extension
 
-1. Vérifier que le fichier PNG existe : `ls backend/static/ingredients/`
-2. Tester l'endpoint directement : `curl http://localhost:8742/api/ingredients/images/{image_id}`
-3. Vérifier la console du navigateur (F12) pour les erreurs CORS
-4. Vérifier que l'URL du backend est correcte dans les settings de l'extension
+1. Vérifier que le fichier PNG existe : `ls extension/src/assets/ingredients/`
+2. Vérifier l'`image_id` renvoyé par le matcher (voir Étape 4)
+3. Refaire `npm run build` : les images sont intégrées au build
 
 ### Le matching ne fonctionne pas
 
-1. Vérifier que le mot-clé est dans le dictionnaire :
-   ```python
-   from app.data.ingredient_mapping import INGREDIENT_DATABASE
-   print(INGREDIENT_DATABASE['flour']['keywords'])
-   ```
-
-2. Tester manuellement :
-   ```python
-   from app.ingredient_image_matcher import get_ingredient_image_id
-   print(get_ingredient_image_id("votre ingrédient ici"))
-   ```
-
-3. Ajouter des logs pour debugger :
-   ```python
-   # Dans ingredient_image_matcher.py
-   keywords = extract_keywords(ingredient)
-   print(f"Keywords extracted: {keywords}")
-   ```
-
-### Le backend ne démarre pas
-
-1. Vérifier que le venv est activé : `source venv/bin/activate`
-2. Vérifier que les dépendances sont installées : `pip list | grep fastapi`
-3. Vérifier les logs : `cat /tmp/reciper-backend.log`
-4. Tester le health check : `curl http://localhost:8742/api/health`
-
-## 📞 Contact / Support
-
-Pour toute question sur l'implémentation :
-- Consulter le plan détaillé : `.claude/plans/proud-swimming-newell.md`
-- Vérifier les tests : `backend/tests/`
-- Examiner le code source des composants critiques listés ci-dessus
+1. Vérifier que le mot-clé est dans le dictionnaire de la langue
+2. Vérifier la langue détectée pour le site (`language_detection.py`)
+3. Chercher un motif d'exclusion ou composé qui l'intercepte (`{langue}_patterns.py`)
