@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
+  <!-- Le fragment est fourni par n'importe qui : pas de script inline, pas de referrer vers les hôtes d'images -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; font-src 'self'; img-src 'self' https: http:; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <title>Reciper</title>
   <link rel="icon" type="image/png" href="favicon.png">
 
@@ -31,13 +34,11 @@
     /* === DESIGN TOKENS === */
     :root {
       --color-brand: #FF5500;
-      --color-brand-hover: #e55a24;
       --color-text: #2E2B25;
       --color-text-50: rgba(46, 43, 37, 0.5);
       --color-background: #f8f6f2;
       --color-background-strong: #F2EEE5;
       --color-background-neutral: #ffffff;
-      --color-text-contrast: #FFF;
       --color-border: rgba(46, 43, 37, 0.04);
       --color-border-strong: rgba(46, 43, 37, 0.12);
 
@@ -176,7 +177,6 @@
     }
 
     /* === COL LAYOUT === */
-    .col-full { grid-column: 1 / -1; }
     .col-left {
       grid-column: 1 / 4;
       padding: var(--space-06);
@@ -194,7 +194,7 @@
       .col-right { grid-column: 5 / -1; }
     }
     @media (max-width: 800px) {
-      .col-full, .col-left, .col-right { grid-column: 1 / -1; }
+      .col-left, .col-right { grid-column: 1 / -1; }
     }
 
     /* === RECIPE HEADER (mirrors RecipeHeader.vue) === */
@@ -389,14 +389,6 @@
     }
     [hidden] { display: none !important; }
     .share-error { text-align: center; padding: 64px 0; }
-    .expire-notice {
-      display: inline-block;
-      background: var(--color-background-neutral);
-      padding: 6px var(--space-04);
-      border-radius: 9999px;
-      margin-bottom: var(--space-02);
-      font-size: var(--font-size-body-small);
-    }
 
     /* === ANIMATIONS === */
     .recipe-grid > :nth-child(1) { animation: stagger-in 300ms ease-out both; animation-delay: 150ms; }
@@ -471,194 +463,10 @@
 
       </article>
 
-      <p class="share-error body-medium" id="error" hidden>Ce lien de partage est invalide ou incomplet.</p>
+      <p class="share-error" id="error" hidden>Ce lien de partage est invalide ou incomplet.</p>
     </main>
   </div>
 
-  <script>
-  (function() {
-    // Images d'ingrédients servies depuis le dépôt (mêmes fichiers que l'extension)
-    var INGREDIENT_IMAGES = 'https://raw.githubusercontent.com/leodurandfr/Reciper/main/extension/src/assets/ingredients/';
-
-    var RE = /^(\d+[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]|\d+[.,]\d+|\d+|[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])(\s*(?:kg|mg|cl|dl|ml|g|l)\b)?/;
-    function splitQty(text) {
-      var m = text.match(RE);
-      if (m) return { qty: m[0], rest: text.slice(m[0].length).trimStart() };
-      return { qty: '', rest: text };
-    }
-
-    // --- Portion Calculator (from usePortionCalculator.js) ---
-    const FRACTION_MAP = {
-      0.25: '\u00BC', 0.5: '\u00BD', 0.75: '\u00BE',
-      0.333: '\u2153', 0.667: '\u2154',
-      0.125: '\u215B', 0.375: '\u215C', 0.625: '\u215D', 0.875: '\u215E',
-    };
-    const UNICODE_FRACTIONS = {
-      '\u00BD': 0.5, '\u2153': 1/3, '\u2154': 2/3, '\u00BC': 0.25, '\u00BE': 0.75,
-      '\u2155': 0.2, '\u2156': 0.4, '\u2157': 0.6, '\u2158': 0.8,
-      '\u2159': 1/6, '\u215A': 5/6, '\u215B': 0.125, '\u215C': 0.375, '\u215D': 0.625, '\u215E': 0.875,
-    };
-
-    function extractQuantity(ingredient) {
-      const original = ingredient.trim();
-      const pattern = /^(\d+\s*)?([½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞])|^(\d+)\s+(\d+)\/(\d+)|^(\d+)\/(\d+)|^(\d+[.,]\d+)|^(\d+)/;
-      const match = original.match(pattern);
-      if (!match) return { quantity: null, rest: original };
-      let quantity = null;
-      const matchLength = match[0].length;
-      if (match[2]) {
-        const fraction = UNICODE_FRACTIONS[match[2]] || 0;
-        const whole = match[1] ? parseInt(match[1].trim(), 10) : 0;
-        quantity = whole + fraction;
-      } else if (match[3] && match[4] && match[5]) {
-        quantity = parseInt(match[3], 10) + parseInt(match[4], 10) / parseInt(match[5], 10);
-      } else if (match[6] && match[7]) {
-        quantity = parseInt(match[6], 10) / parseInt(match[7], 10);
-      } else if (match[8]) {
-        quantity = parseFloat(match[8].replace(',', '.'));
-      } else if (match[9]) {
-        quantity = parseInt(match[9], 10);
-      }
-      return { quantity, rest: original.slice(matchLength).trim() };
-    }
-
-    function formatQuantity(q) {
-      if (q === null || q === undefined) return '';
-      if (Number.isInteger(q)) return q.toString();
-      const whole = Math.floor(q);
-      const frac = Math.round((q - whole) * 1000) / 1000;
-      for (const [dec, sym] of Object.entries(FRACTION_MAP)) {
-        if (Math.abs(frac - parseFloat(dec)) < 0.01) return whole > 0 ? whole + sym : sym;
-      }
-      const rounded = Math.round(q * 10) / 10;
-      return rounded.toString().replace(/\.0$/, '');
-    }
-
-    function scaleIngredient(ingredient, originalPortions, newPortions) {
-      if (!originalPortions) return ingredient;
-      const { quantity, rest } = extractQuantity(ingredient);
-      if (quantity === null) return ingredient;
-      const scaled = quantity * (newPortions / originalPortions);
-      return (formatQuantity(scaled) + ' ' + rest).trim();
-    }
-
-    async function decodeRecipe(fragment) {
-      var b64 = fragment.replace(/-/g, '+').replace(/_/g, '/');
-      var bytes = Uint8Array.from(atob(b64), function(c) { return c.charCodeAt(0); });
-      var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-      return JSON.parse(await new Response(stream).text());
-    }
-
-    function el(tag, className, text) {
-      var node = document.createElement(tag);
-      if (className) node.className = className;
-      if (text !== undefined) node.textContent = text;
-      return node;
-    }
-
-    function addTime(container, label, minutes) {
-      if (!minutes) return;
-      var tag = el('span', 'tag');
-      tag.append(el('span', 'tag-label', label), el('span', 'tag-value', minutes + 'min'));
-      container.append(tag);
-      container.hidden = false;
-    }
-
-    function setIngredientText(li, text) {
-      var p = splitQty(text);
-      li.querySelector('.ingredient-quantity').textContent = p.qty;
-      li.querySelector('.ingredient-text').textContent = p.rest;
-    }
-
-    function render(recipe) {
-      document.title = recipe.title + ' — Reciper';
-      document.getElementById('title').textContent = recipe.title;
-
-      var times = document.getElementById('times');
-      addTime(times, 'Prép.', recipe.prep_time);
-      addTime(times, 'Cuisson', recipe.cook_time);
-
-      if (recipe.image_url && /^https?:\/\//.test(recipe.image_url)) {
-        var image = document.getElementById('image');
-        image.src = recipe.image_url;
-        image.alt = recipe.title;
-        document.getElementById('image-container').hidden = false;
-      }
-
-      var list = document.getElementById('ingredients-list');
-      (recipe.ingredients || []).forEach(function(ingredient, i) {
-        var li = el('li');
-        li.setAttribute('data-original', ingredient);
-        var imageBox = el('div', 'ingredient-image');
-        var imageId = (recipe.image_ids || [])[i];
-        if (imageId && /^[a-z0-9-]+$/.test(imageId)) {
-          var img = el('img');
-          img.src = INGREDIENT_IMAGES + imageId + '.png';
-          img.alt = '';
-          img.width = 36;
-          img.height = 36;
-          img.onerror = function() { this.style.display = 'none'; };
-          imageBox.append(img);
-        }
-        var content = el('div', 'ingredient-content');
-        content.append(el('span', 'ingredient-quantity'), el('span', 'ingredient-text'));
-        li.append(imageBox, content);
-        setIngredientText(li, ingredient);
-        list.append(li);
-      });
-
-      var steps = document.getElementById('instructions-list');
-      (recipe.instructions || []).forEach(function(instruction, i) {
-        var li = el('li');
-        li.append(el('span', 'step-number', 'Étape ' + (i + 1)), el('p', 'step-text', instruction));
-        steps.append(li);
-      });
-
-      if (recipe.url && /^https?:\/\//.test(recipe.url)) {
-        var source = document.getElementById('source');
-        source.href = recipe.url;
-        source.textContent = 'Source : ' + recipe.host;
-        source.hidden = false;
-      }
-
-      setupPortions(recipe.yields);
-      document.getElementById('recipe').hidden = false;
-    }
-
-    function setupPortions(yieldsStr) {
-      var yieldsMatch = yieldsStr ? String(yieldsStr).match(/(\d+)/) : null;
-      var originalPortions = yieldsMatch ? parseInt(yieldsMatch[1], 10) : null;
-      if (!originalPortions) return;
-
-      var select = document.getElementById('portion-select');
-      var display = document.getElementById('portion-display');
-      var items = document.querySelectorAll('#ingredients-list li');
-
-      var max = Math.max(12, originalPortions);
-      for (var i = 1; i <= max; i++) {
-        var opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = i;
-        if (i === originalPortions) opt.selected = true;
-        select.appendChild(opt);
-      }
-
-      display.textContent = originalPortions;
-      document.getElementById('portion-selector').hidden = false;
-
-      select.addEventListener('change', function() {
-        var currentPortions = parseInt(this.value, 10);
-        display.textContent = currentPortions;
-        items.forEach(function(li) {
-          setIngredientText(li, scaleIngredient(li.getAttribute('data-original'), originalPortions, currentPortions));
-        });
-      });
-    }
-
-    decodeRecipe(location.hash.slice(1))
-      .then(render)
-      .catch(function() { document.getElementById('error').hidden = false; });
-  })();
-  </script>
+  <script src="share-page.js"></script>
 </body>
 </html>
