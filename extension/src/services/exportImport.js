@@ -3,7 +3,7 @@
  * Permet de sauvegarder et restaurer les recettes au format JSON
  */
 
-import { exportRecipes, importRecipes, clearAllRecipes } from './db.js'
+import { exportRecipes, importRecipes } from './db.js'
 import i18n from '../i18n/index.js'
 
 const t = i18n.global.t
@@ -41,47 +41,82 @@ export async function downloadRecipesExport() {
   return { success: true, count: recipes.length }
 }
 
+const TIME_FIELDS = ['prep_time', 'cook_time', 'total_time']
+
+function isHttpUrl(value) {
+  return typeof value === 'string' && /^https?:\/\//i.test(value)
+}
+
+function stringList(value) {
+  return Array.isArray(value) ? value.filter(item => typeof item === 'string') : []
+}
+
+/**
+ * Valide une entrée de sauvegarde et n'en garde que les champs connus d'une recette.
+ * @returns {Object|null} La recette nettoyée, ou null si l'entrée est inutilisable
+ */
+function sanitizeRecipe(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null
+
+  const ingredients = stringList(entry.ingredients)
+  const instructions = stringList(entry.instructions)
+  if (ingredients.length === 0 && instructions.length === 0) return null
+
+  const recipe = {
+    url: isHttpUrl(entry.url) ? entry.url : null,
+    title: typeof entry.title === 'string' ? entry.title : '',
+    image_url: isHttpUrl(entry.image_url) ? entry.image_url : null,
+    ingredients,
+    enriched_ingredients: Array.isArray(entry.enriched_ingredients)
+      ? entry.enriched_ingredients
+        .filter(item => item && typeof item.text === 'string')
+        .map(item => ({ text: item.text, image_id: typeof item.image_id === 'string' ? item.image_id : null }))
+      : [],
+    instructions,
+    yields: typeof entry.yields === 'string' ? entry.yields : (Number.isFinite(entry.yields) ? String(entry.yields) : null),
+    host: typeof entry.host === 'string' ? entry.host : null,
+    is_favorite: entry.is_favorite === true,
+  }
+  for (const field of TIME_FIELDS) {
+    recipe[field] = Number.isFinite(entry[field]) && entry[field] > 0 ? entry[field] : null
+  }
+  if (typeof entry.created_at === 'string' && !Number.isNaN(Date.parse(entry.created_at))) {
+    recipe.created_at = entry.created_at
+  }
+  return recipe
+}
+
 /**
  * Importe des recettes depuis un fichier JSON
  * @param {File} file - Le fichier JSON à importer
  * @param {Object} options - Options d'import
  * @param {boolean} options.overwrite - Écraser les recettes existantes
- * @param {boolean} options.clearFirst - Vider la base avant import
- * @returns {Promise<{imported: number, skipped: number, errors: string[]}>}
+ * @returns {Promise<{imported: number, skipped: number, invalid: number, version: string}>}
+ *   invalid : entrées inutilisables, ignorées
+ * @throws {Error} Fichier illisible ou au mauvais format, ou échec de l'écriture
  */
 export async function importRecipesFromFile(file, options = {}) {
-  const { overwrite = false, clearFirst = false } = options
-  const errors = []
+  const { overwrite = false } = options
 
+  let data
   try {
-    const text = await file.text()
-    const data = JSON.parse(text)
+    data = JSON.parse(await file.text())
+  } catch {
+    throw new Error(t('errors.invalidFormat'))
+  }
 
-    // Vérifier le format
-    if (!data.recipes || !Array.isArray(data.recipes)) {
-      throw new Error(t('errors.invalidExportFormat'))
-    }
+  // Vérifier le format
+  if (!data || !Array.isArray(data.recipes)) {
+    throw new Error(t('errors.invalidExportFormat'))
+  }
 
-    // Vider la base si demandé
-    if (clearFirst) {
-      await clearAllRecipes()
-    }
+  const recipes = data.recipes.map(sanitizeRecipe).filter(Boolean)
+  const result = await importRecipes(recipes, overwrite)
 
-    // Importer les recettes
-    const result = await importRecipes(data.recipes, overwrite)
-
-    return {
-      ...result,
-      errors,
-      version: data.version || 'unknown',
-    }
-  } catch (error) {
-    errors.push(error.message)
-    return {
-      imported: 0,
-      skipped: 0,
-      errors,
-    }
+  return {
+    ...result,
+    invalid: data.recipes.length - recipes.length,
+    version: data.version || 'unknown',
   }
 }
 
@@ -95,7 +130,7 @@ export async function previewImportFile(file) {
     const text = await file.text()
     const data = JSON.parse(text)
 
-    if (!data.recipes || !Array.isArray(data.recipes)) {
+    if (!data || !Array.isArray(data.recipes)) {
       throw new Error(t('errors.invalidFormat'))
     }
 
@@ -105,8 +140,8 @@ export async function previewImportFile(file) {
       exportDate: data.exportDate || null,
       recipeCount: data.recipes.length,
       recipes: data.recipes.slice(0, 5).map(r => ({
-        title: r.title,
-        host: r.host,
+        title: r?.title,
+        host: r?.host,
       })),
     }
   } catch (error) {
@@ -114,62 +149,6 @@ export async function previewImportFile(file) {
       valid: false,
       error: error.message,
     }
-  }
-}
-
-/**
- * Crée une sauvegarde automatique dans chrome.storage.local
- * Utile pour la récupération en cas de problème
- */
-export async function createAutoBackup() {
-  try {
-    const recipes = await exportRecipes()
-
-    const backup = {
-      date: new Date().toISOString(),
-      recipeCount: recipes.length,
-      recipes,
-    }
-
-    // Stocker dans chrome.storage.local (limite 10MB avec unlimitedStorage)
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.set({ autoBackup: backup })
-    } else {
-      // Fallback localStorage pour dev
-      localStorage.setItem('autoBackup', JSON.stringify(backup))
-    }
-
-    return { success: true, count: recipes.length }
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde auto:', error)
-    return { success: false, error: error.message }
-  }
-}
-
-/**
- * Restaure depuis une sauvegarde automatique
- * @returns {Promise<{restored: number}>}
- */
-export async function restoreFromAutoBackup() {
-  try {
-    let backup
-
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      const result = await chrome.storage.local.get('autoBackup')
-      backup = result.autoBackup
-    } else {
-      const stored = localStorage.getItem('autoBackup')
-      backup = stored ? JSON.parse(stored) : null
-    }
-
-    if (!backup || !backup.recipes) {
-      throw new Error(t('errors.noBackupFound'))
-    }
-
-    const result = await importRecipes(backup.recipes, false)
-    return result
-  } catch (error) {
-    throw new Error(t('errors.restoreFailed', { message: error.message }))
   }
 }
 

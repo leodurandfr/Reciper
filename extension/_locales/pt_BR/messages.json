@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Reciper",
+    "description": "Extension name shown in the Chrome Web Store and chrome://extensions"
+  },
+  "extDescription": {
+    "message": "Veja receitas de culinária sem anúncios, com um layout limpo, favoritos e histórico.",
+    "description": "Short description / package summary shown in the Chrome Web Store (max 132 chars)"
+  },
+  "extActionTitle": {
+    "message": "Reciper - Minhas receitas",
+    "description": "Tooltip shown when hovering the extension icon in the browser toolbar"
+  }
+}

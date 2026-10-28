@@ -1,8 +1,9 @@
 // Généré au build par scripts/vendor-pyodide.mjs depuis recipe_scrapers.SCRAPERS
 import { SUPPORTED_SITES } from "./supported-sites.js";
 import { initLocale, t } from "./i18n-lite.js";
+import { createRecipeStore } from "./recipe-store.js";
 
-// Set pour tracker les URLs en cours de traitement
+// Pages en cours de traitement, clé « tabId url » (voir processingKey)
 const processingUrls = new Set();
 
 // Set pour les URLs à ne pas intercepter (bypass depuis le lien source)
@@ -27,26 +28,45 @@ const FETCH_TIMEOUT_MS = 15000;
 const OVERLAY_SCRIPT_ID = "reciper-overlay";
 const DETECT_SCRIPT_ID = "reciper-detect";
 
+// Domaines généralistes de la liste recipe-scrapers : seules les pages sous ce chemin sont
+// interceptées. Sinon chaque article serait masqué par l'overlay le temps de le retélécharger.
+const SUPPORTED_SITE_PATHS = {
+  "bbc.co.uk": "/food/",
+  "bbc.com": "/food/",
+  "theguardian.com": "/food/",
+};
+
 /**
- * Vérifie si un hostname correspond à un site supporté (même règle que recipe-scrapers :
- * le domaine exact, avec ou sans « www. »)
- * @param {string} hostname - Le hostname à vérifier (ex: "www.marmiton.org")
+ * Vérifie si une URL correspond à un site supporté (même règle que recipe-scrapers :
+ * le domaine exact, avec ou sans « www. », plus le chemin pour les domaines généralistes)
+ * @param {URL} url - L'URL à vérifier (ex: https://www.marmiton.org/recettes/…)
  * @returns {boolean}
  */
-function isSupportedSite(hostname) {
-  return SUPPORTED_SITES.has(hostname.replace(/^www\./, ""));
+function isSupportedSite(url) {
+  const domain = url.hostname.replace(/^www\./, "");
+  if (!SUPPORTED_SITES.has(domain)) return false;
+  const path = SUPPORTED_SITE_PATHS[domain];
+  return !path || url.pathname.startsWith(path);
 }
 
 /**
- * Motifs des sites supportés pour les content scripts (mêmes domaines que isSupportedSite)
+ * Motifs des sites supportés pour les content scripts (mêmes règles que isSupportedSite)
  */
 function supportedSitePatterns() {
   const patterns = [];
   for (const domain of SUPPORTED_SITES) {
-    patterns.push(`*://${domain}/*`);
-    patterns.push(`*://www.${domain}/*`);
+    const path = SUPPORTED_SITE_PATHS[domain] ?? "/";
+    patterns.push(`*://${domain}${path}*`);
+    patterns.push(`*://www.${domain}${path}*`);
   }
   return patterns;
+}
+
+/**
+ * Clé de processingUrls : une même URL peut être traitée dans deux onglets à la fois
+ */
+function processingKey(tabId, url) {
+  return `${tabId} ${url}`;
 }
 
 /**
@@ -65,61 +85,13 @@ function isScrapeAnySiteEnabled() {
 // Couvre le premier démarrage de Python (plusieurs secondes, davantage sur une machine lente)
 const SCRAPE_TIMEOUT_MS = 60000;
 
-/**
- * Recupere l'index des recettes depuis chrome.storage.local
- */
-async function getIndex() {
-  const result = await chrome.storage.local.get("recipes_index");
-  return result.recipes_index || { nextId: 1, ids: [], urlMap: {} };
-}
+// Stockage des recettes (implémentation partagée avec l'app). addRecipe passe par une
+// file d'écriture : deux scrapings simultanés ne peuvent pas obtenir le même id.
+const { getRecipeByUrl, addRecipe } = createRecipeStore(chrome.storage.local);
 
-/**
- * Recupere une recette par URL
- */
-async function getRecipeByUrl(url) {
-  const index = await getIndex();
-  const id = index.urlMap[url];
-  if (!id) return null;
-  const result = await chrome.storage.local.get(`recipe_${id}`);
-  return result[`recipe_${id}`] || null;
-}
-
-/**
- * Ajoute une recette dans chrome.storage.local
- */
-async function addRecipe(recipe) {
-  const index = await getIndex();
-
-  // Verifier si la recette existe deja
-  if (recipe.url && index.urlMap[recipe.url]) {
-    const existingId = index.urlMap[recipe.url];
-    const result = await chrome.storage.local.get(`recipe_${existingId}`);
-    return result[`recipe_${existingId}`];
-  }
-
-  const id = index.nextId;
-  const recipeData = {
-    ...recipe,
-    id,
-    is_favorite: false,
-    image_base64: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-
-  index.nextId = id + 1;
-  index.ids.unshift(id);
-  if (recipe.url) {
-    index.urlMap[recipe.url] = id;
-  }
-
-  await chrome.storage.local.set({
-    [`recipe_${id}`]: recipeData,
-    recipes_index: index,
-  });
-
-  return recipeData;
-}
+// Langue des messages (réglage de l'app, sinon celle du navigateur) ; rechargée quand
+// les réglages changent
+let localeReady = initLocale();
 
 /**
  * Vrai si un bloc JSON-LD décrit une recette comme sujet de la page : nœud racine, entrée
@@ -156,12 +128,25 @@ function containsRecipe(html) {
 }
 
 /**
+ * Erreur affichée telle quelle par la page de chargement : message traduit (i18n-lite.js)
+ * suivi du détail technique éventuel
+ */
+function localizedError(code, detail) {
+  return new Error(detail ? `${t(code)}: ${detail}` : t(code));
+}
+
+/**
  * Fetch le HTML d'une URL
  */
 async function fetchPageHtml(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  let response;
+  try {
+    response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  } catch (error) {
+    throw localizedError("fetchFailed", error.message);
+  }
   if (!response.ok) {
-    throw new Error(`Impossible de récupérer la page: HTTP ${response.status}`);
+    throw localizedError("fetchFailed", `HTTP ${response.status}`);
   }
   return response.text();
 }
@@ -174,7 +159,23 @@ async function fetchAndCheckRecipe(url) {
   const html = await fetchPageHtml(url).catch(() => null);
   if (!html) return false;
   cachePageHtml(url, html);
-  return containsRecipe(html);
+  const isRecipe = containsRecipe(html);
+  // Charger Python dès maintenant (premier démarrage de plusieurs secondes),
+  // seulement pour une recette : Pyodide occupe plusieurs dizaines de Mo
+  if (isRecipe) ensureOffscreenDocument().catch(() => {});
+  return isRecipe;
+}
+
+/**
+ * Lance le pre-fetch de détection d'une page, consommé par onCommitted
+ */
+function startRecipeCheck(url) {
+  const check = fetchAndCheckRecipe(url);
+  pendingRecipeChecks.set(url, check);
+  // Jamais consommé (redirection, navigation annulée) : l'oublier
+  setTimeout(() => {
+    if (pendingRecipeChecks.get(url) === check) pendingRecipeChecks.delete(url);
+  }, PAGE_HTML_TTL_MS);
 }
 
 /**
@@ -248,7 +249,7 @@ async function scrapeRecipe(url) {
     let timeoutId;
     const timeout = new Promise((resolve) => {
       timeoutId = setTimeout(
-        () => resolve({ success: false, error: "Délai dépassé lors de l'analyse de la recette", fatal: true }),
+        () => resolve({ success: false, errorCode: "scrapeTimeout", fatal: true }),
         SCRAPE_TIMEOUT_MS
       );
     });
@@ -259,9 +260,10 @@ async function scrapeRecipe(url) {
 
     if (!response?.success) {
       // Python n'a pas pu se charger, ou le worker est bloqué / planté : repartir de zéro
-      // au prochain scraping plutôt que de réutiliser un document cassé
-      if (response?.fatal) closeOffscreenDocument().catch(() => {});
-      throw new Error(response?.error || t("error"));
+      // au prochain scraping plutôt que de réutiliser un document cassé. Pas pendant
+      // d'autres scrapings : le dernier à échouer s'en charge.
+      if (response?.fatal && scrapesInFlight === 1) closeOffscreenDocument().catch(() => {});
+      throw localizedError(response?.errorCode || "error", response?.errorDetail);
     }
     return response.recipe;
   } finally {
@@ -273,6 +275,9 @@ async function scrapeRecipe(url) {
  * Scrape et sauvegarde une recette
  */
 async function scrapeAndSave(url) {
+  // Langue des messages d'erreur et du titre par défaut
+  await localeReady;
+
   // Vérifier si la recette existe déjà
   const existing = await getRecipeByUrl(url);
   if (existing) {
@@ -281,6 +286,7 @@ async function scrapeAndSave(url) {
 
   // Scraper localement (Pyodide)
   const scrapedRecipe = await scrapeRecipe(url);
+  if (!scrapedRecipe.title) scrapedRecipe.title = t("untitledRecipe");
 
   // Sauvegarder dans chrome.storage.local
   const savedRecipe = await addRecipe(scrapedRecipe);
@@ -343,9 +349,11 @@ function syncContentScripts({ refresh = false } = {}) {
 
 chrome.runtime.onInstalled.addListener(() => syncContentScripts({ refresh: true }));
 
-// L'option « tous les sites » a changé : (dés)activer le script de détection
+// Les réglages ont changé : langue, et (dés)activation du script de détection
+// si l'option « tous les sites » a changé
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local" || !changes.settings) return;
+  localeReady = initLocale();
   const before = Boolean(changes.settings.oldValue?.scrapeAnySite);
   const after = Boolean(changes.settings.newValue?.scrapeAnySite);
   scrapeAnySitePromise = Promise.resolve(after);
@@ -374,8 +382,9 @@ async function handleDetectedRecipePage(tabId, url, html) {
     return;
   }
   if (!(await isScrapeAnySiteEnabled())) return;
-  if (processingUrls.has(url) || !containsRecipe(html)) return;
-  processingUrls.add(url);
+  const key = processingKey(tabId, url);
+  if (processingUrls.has(key) || !containsRecipe(html)) return;
+  processingUrls.add(key);
 
   try {
     // Vérifier que l'onglet est toujours sur la même page
@@ -389,7 +398,24 @@ async function handleDetectedRecipePage(tabId, url, html) {
     ensureOffscreenDocument().catch(() => {});
     await openLoadingPage(tabId, url, referrerUrl);
   } finally {
-    processingUrls.delete(url);
+    processingUrls.delete(key);
+  }
+}
+
+/**
+ * Retire l'overlay injecté par le content script. Celui-ci (document_start) peut ne pas
+ * encore écouter quand onCommitted arrive : réessayer brièvement, comme sendToOffscreen.
+ * Le message vise le document de la navigation, pas une page chargée depuis dans l'onglet.
+ */
+async function removeOverlay({ tabId, documentId }) {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      await chrome.tabs.sendMessage(tabId, { type: "REMOVE_OVERLAY" }, documentId ? { documentId } : {});
+      return;
+    } catch (error) {
+      if (!String(error.message).includes("Receiving end does not exist")) return;
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
   }
 }
 
@@ -400,25 +426,29 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return;
   const url = new URL(details.url);
   if (!/^https?:$/.test(url.protocol)) return;
-  const supported = isSupportedSite(url.hostname);
-  if (!supported && !(await isScrapeAnySiteEnabled())) return;
+  // Retour au site depuis Reciper : la page ne sera pas interceptée
+  if (bypassUrls.has(details.url)) return;
 
-  // Capturer l'URL de la page précédente
-  try {
-    const tab = await chrome.tabs.get(details.tabId);
+  // Même URL que l'onglet : rechargement, ignoré par onCommitted
+  const tab = await chrome.tabs.get(details.tabId).catch(() => null);
+  const isReload = tab?.url === details.url;
+
+  if (isSupportedSite(url)) {
+    // Lancer le pre-fetch tout de suite, pour détecter @type: Recipe avant onCommitted
+    // (pas pour un rechargement : il retéléchargerait la page et chargerait Pyodide pour rien)
+    if (!isReload) startRecipeCheck(details.url);
+  } else if (!(await isScrapeAnySiteEnabled())) {
+    // Sites non supportés : la détection se fait sur la page chargée (detect-content-script.js)
+    return;
+  }
+
+  // Capturer l'URL de la page précédente (pas lors d'un rechargement : la page serait
+  // sa propre « page précédente », et le retour au site ramènerait dans Reciper)
+  if (tab?.url && !isReload) {
     preNavigationUrls.set(details.tabId, tab.url);
-  } catch {}
-
-  // Sites non supportés : la détection se fait sur la page chargée (detect-content-script.js)
-  if (!supported) return;
-
-  // Lancer le pre-fetch pour détecter @type: Recipe avant onCommitted
-  const checkPromise = fetchAndCheckRecipe(details.url);
-  pendingRecipeChecks.set(details.url, checkPromise);
-
-  // Charger Python dès maintenant (premier démarrage de plusieurs secondes),
-  // sans attendre de savoir si la page est une recette
-  ensureOffscreenDocument().catch(() => {});
+  } else {
+    preNavigationUrls.delete(details.tabId);
+  }
 });
 
 /**
@@ -429,17 +459,20 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 chrome.webNavigation.onCommitted.addListener(
   async (details) => {
     if (details.frameId !== 0) return;
-    if (details.transitionType === "auto_subframe") return;
 
     const url = new URL(details.url);
-    const supported = isSupportedSite(url.hostname);
+    const supported = isSupportedSite(url);
+
+    // Pre-fetch lancé par onBeforeNavigate : consommé ici, ou abandonné
+    const pendingCheck = pendingRecipeChecks.get(details.url);
+    pendingRecipeChecks.delete(details.url);
 
     // Bypass si demandé (retour depuis Reciper vers le site)
     bypassedTabUrls.delete(details.tabId);
     if (bypassUrls.has(details.url)) {
       bypassUrls.delete(details.url);
       if (supported) {
-        chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+        removeOverlay(details);
       } else {
         // Consommé plus tard par handleDetectedRecipePage (option « tous les sites »)
         bypassedTabUrls.set(details.tabId, details.url);
@@ -448,33 +481,38 @@ chrome.webNavigation.onCommitted.addListener(
     }
     if (!supported) return;
 
-    // Bypass les navigations back/forward du navigateur
-    // (filet de sécurité pour les cas cross-origin où replaceState ne fonctionne pas)
-    if (details.transitionQualifiers?.includes("forward_back")) {
-      chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+    // Bypass les navigations back/forward du navigateur (filet de sécurité pour les cas
+    // cross-origin où replaceState ne fonctionne pas) et les rechargements : la page
+    // affichée a déjà été laissée au site (bypass, retour arrière…)
+    if (details.transitionQualifiers?.includes("forward_back") || details.transitionType === "reload") {
+      removeOverlay(details);
       return;
     }
 
-    // Éviter les doubles traitements
-    if (processingUrls.has(details.url)) return;
-    processingUrls.add(details.url);
+    // Éviter les doubles traitements (le premier ouvrira Reciper si c'est une recette)
+    const key = processingKey(details.tabId, details.url);
+    if (processingUrls.has(key)) {
+      removeOverlay(details);
+      return;
+    }
+    processingUrls.add(key);
 
     try {
       // Consommer le pre-fetch lancé par onBeforeNavigate (ou fallback)
-      const isRecipe = pendingRecipeChecks.has(details.url)
-        ? await pendingRecipeChecks.get(details.url)
-        : await fetchAndCheckRecipe(details.url);
-      pendingRecipeChecks.delete(details.url);
+      const isRecipe = await (pendingCheck ?? fetchAndCheckRecipe(details.url));
 
       if (!isRecipe) {
         // Pas une recette : retirer l'overlay injecté par le content script
-        chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+        removeOverlay(details);
         return;
       }
 
       // Vérifier que l'onglet est toujours sur la même page
       const tab = await chrome.tabs.get(details.tabId).catch(() => null);
-      if (!tab || tab.url !== details.url) return;
+      if (!tab || tab.url !== details.url) {
+        removeOverlay(details);
+        return;
+      }
 
       // Récupérer l'URL de la page précédente (capturée par onBeforeNavigate)
       const referrerUrl = preNavigationUrls.get(details.tabId) || "";
@@ -498,9 +536,9 @@ chrome.webNavigation.onCommitted.addListener(
       await openLoadingPage(details.tabId, details.url, referrerUrl);
     } catch {
       // En cas d'erreur, retirer l'overlay pour ne pas bloquer la page
-      chrome.tabs.sendMessage(details.tabId, { type: "REMOVE_OVERLAY" }).catch(() => {});
+      removeOverlay(details);
     } finally {
-      processingUrls.delete(details.url);
+      processingUrls.delete(key);
     }
   },
   {
@@ -509,7 +547,7 @@ chrome.webNavigation.onCommitted.addListener(
 );
 
 /**
- * Gestionnaire de messages (pour le popup et la page de chargement)
+ * Gestionnaire de messages (page de chargement, document offscreen, content scripts)
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SCRAPE_AND_SAVE") {
@@ -540,9 +578,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     bypassUrls.add(message.url);
     setTimeout(() => bypassUrls.delete(message.url), 10000);
     sendResponse({ success: true });
-    return true;
+    return;
   }
-
 });
 
 /**
@@ -558,7 +595,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   bypassedTabUrls.delete(tabId);
 });
 
-// Initialiser la locale et log au démarrage
-initLocale().then(() => {
+// Log au démarrage, une fois la locale chargée
+localeReady.then(() => {
   console.log(t("extensionLoaded").replace("{count}", SUPPORTED_SITES.size));
 });

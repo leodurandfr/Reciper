@@ -1,66 +1,65 @@
 /**
- * Lightweight i18n for non-Vue contexts (service-worker, popup).
+ * Lightweight i18n for non-Vue contexts (service worker).
  * Reads language setting from chrome.storage.local.
+ * detectBrowserLocale is also used by the Vue app (src/i18n/detect.js).
  */
 
 const messages = {
   fr: {
-    recipesStored: 'recettes sauvegardées',
-    openMyRecipes: 'Ouvrir mes recettes',
-    addThisPage: 'Ajouter cette page',
-    scraping: 'Scraping en cours...',
-    recipeAdded: 'Recette ajoutée !',
-    addError: "Erreur lors de l'ajout",
     error: 'Erreur',
-    errorPrefix: 'Erreur: ',
     extensionLoaded: 'Reciper: Extension chargée - {count} sites supportés',
+    untitledRecipe: 'Recette sans titre',
+    fetchFailed: 'Impossible de récupérer la page',
+    scrapeTimeout: "Délai dépassé lors de l'analyse de la recette",
+    pythonLoadFailed: 'Échec du chargement de Python',
+    noRecipeFound: 'Aucune recette trouvée sur cette page',
+    scrapeFailed: 'Erreur lors de la récupération de la recette',
   },
   en: {
-    recipesStored: 'saved recipes',
-    openMyRecipes: 'Open my recipes',
-    addThisPage: 'Add this page',
-    scraping: 'Scraping...',
-    recipeAdded: 'Recipe added!',
-    addError: 'Error adding recipe',
     error: 'Error',
-    errorPrefix: 'Error: ',
     extensionLoaded: 'Reciper: Extension loaded - {count} supported sites',
+    untitledRecipe: 'Untitled recipe',
+    fetchFailed: 'Could not load the page',
+    scrapeTimeout: 'Timed out while reading the recipe',
+    pythonLoadFailed: 'Could not load Python',
+    noRecipeFound: 'No recipe found on this page',
+    scrapeFailed: 'Error while reading the recipe',
   },
   es: {
-    recipesStored: 'recetas guardadas',
-    openMyRecipes: 'Abrir mis recetas',
-    addThisPage: 'Agregar esta página',
-    scraping: 'Extrayendo...',
-    recipeAdded: '¡Receta agregada!',
-    addError: 'Error al agregar la receta',
     error: 'Error',
-    errorPrefix: 'Error: ',
     extensionLoaded: 'Reciper: Extensión cargada - {count} sitios compatibles',
+    untitledRecipe: 'Receta sin título',
+    fetchFailed: 'No se pudo cargar la página',
+    scrapeTimeout: 'Tiempo agotado al leer la receta',
+    pythonLoadFailed: 'No se pudo cargar Python',
+    noRecipeFound: 'No se encontró ninguna receta en esta página',
+    scrapeFailed: 'Error al leer la receta',
   },
   pt: {
-    recipesStored: 'receitas salvas',
-    openMyRecipes: 'Abrir minhas receitas',
-    addThisPage: 'Adicionar esta página',
-    scraping: 'Extraindo...',
-    recipeAdded: 'Receita adicionada!',
-    addError: 'Erro ao adicionar a receita',
     error: 'Erro',
-    errorPrefix: 'Erro: ',
     extensionLoaded: 'Reciper: Extensão carregada - {count} sites compatíveis',
+    untitledRecipe: 'Receita sem título',
+    fetchFailed: 'Não foi possível carregar a página',
+    scrapeTimeout: 'Tempo esgotado ao ler a receita',
+    pythonLoadFailed: 'Não foi possível carregar o Python',
+    noRecipeFound: 'Nenhuma receita encontrada nesta página',
+    scrapeFailed: 'Erro ao ler a receita',
   },
 }
 
 const SUPPORTED = ['en', 'fr', 'es', 'pt']
 let currentLocale = 'en'
 
-function detectBrowserLocale() {
+export function detectBrowserLocale() {
+  let raw
   try {
-    const raw = chrome.i18n?.getUILanguage?.() || 'en'
-    const base = raw.toLowerCase().split('-')[0]
-    return SUPPORTED.includes(base) ? base : 'en'
+    raw = chrome.i18n?.getUILanguage?.()
   } catch {
-    return 'en'
+    // Hors extension (serveur de dev Vite) : pas d'API chrome
   }
+  raw ||= globalThis.navigator?.language || 'en'
+  const base = raw.toLowerCase().split('-')[0]
+  return SUPPORTED.includes(base) ? base : 'en'
 }
 
 export async function initLocale() {

@@ -9,13 +9,15 @@ import { loadPyodide } from "./pyodide/pyodide.mjs";
 const PYTHON_ROOT = "/home/pyodide/reciper_src";
 const extensionRoot = new URL("./", self.location.href).href;
 
+let pyodide = null;
+
 /**
  * Charge Pyodide, les wheels embarquées et le code Python de Reciper.
  * Retourne la fonction Python scrape_recipe_json.
  */
 async function initPython() {
   const indexURL = `${extensionRoot}pyodide/`;
-  const pyodide = await loadPyodide({ indexURL });
+  pyodide = await loadPyodide({ indexURL });
 
   const wheels = await fetch(indexURL + "wheels.json").then((r) => r.json());
   await pyodide.loadPackage(wheels.map((wheel) => indexURL + wheel), {
@@ -39,24 +41,39 @@ async function initPython() {
 // Chargement lancé dès le démarrage du worker, pour être prêt au premier scraping
 const scraperReady = initPython();
 
+/**
+ * Erreur renvoyée au service worker, qui traduit son code (i18n-lite.js).
+ * fatal : le worker est inutilisable, le document offscreen doit être recréé.
+ */
+function scrapeError(code, detail, fatal) {
+  return Object.assign(new Error(detail || code), { code, detail, fatal });
+}
+
 async function scrape(html, url) {
   let scrapeRecipeJson;
   try {
     scrapeRecipeJson = await scraperReady;
   } catch (error) {
     // Échec définitif pour ce worker : le service worker recrée le document offscreen
-    throw Object.assign(new Error(`Échec du chargement de Python: ${error.message}`), { fatal: true });
+    throw scrapeError("pythonLoadFailed", error.message, true);
   }
+  let recipeJson;
   try {
-    return JSON.parse(scrapeRecipeJson(html, url));
+    recipeJson = scrapeRecipeJson(html, url);
   } catch (error) {
-    // PythonError : ne garder que le message de l'exception, pas la traceback
-    if (error.type === "NoRecipeFoundError") {
-      throw new Error(`Aucune recette trouvée sur cette page: ${url}`);
+    // Seule une exception Python laisse l'interpréteur utilisable. Toute autre erreur
+    // (abort wasm, mémoire épuisée, « Pyodide already fatally failed »…) est fatale.
+    if (!(error instanceof pyodide.ffi.PythonError)) {
+      throw scrapeError("scrapeFailed", error.message, true);
     }
+    if (error.type === "NoRecipeFoundError") {
+      throw scrapeError("noRecipeFound", "", false);
+    }
+    // Ne garder que le message de l'exception, pas la traceback
     const lastLine = String(error.message).trim().split("\n").pop();
-    throw new Error(`Erreur de scraping: ${lastLine}`);
+    throw scrapeError("scrapeFailed", lastLine, false);
   }
+  return JSON.parse(recipeJson);
 }
 
 self.onmessage = async ({ data }) => {
@@ -64,6 +81,12 @@ self.onmessage = async ({ data }) => {
     const recipe = await scrape(data.html, data.url);
     self.postMessage({ id: data.id, success: true, recipe });
   } catch (error) {
-    self.postMessage({ id: data.id, success: false, error: error.message, fatal: Boolean(error.fatal) });
+    self.postMessage({
+      id: data.id,
+      success: false,
+      errorCode: error.code || "scrapeFailed",
+      errorDetail: error.code ? error.detail : error.message,
+      fatal: Boolean(error.fatal),
+    });
   }
 };

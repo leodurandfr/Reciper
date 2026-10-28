@@ -7,12 +7,13 @@
 
 const IDLE_CLOSE_MS = 5 * 60 * 1000;
 
-// Démarré tout de suite : Pyodide se charge pendant que la page de chargement s'ouvre
-const worker = new Worker("pyodide-worker.js", { type: "module" });
-
 const pendingRequests = new Map();
 let nextRequestId = 1;
 let idleTimer = null;
+
+// Démarré tout de suite : Pyodide se charge pendant que la page de chargement s'ouvre.
+// Recréé à la demande suivante s'il a planté.
+let worker = createWorker();
 
 function scheduleIdleClose() {
   clearTimeout(idleTimer);
@@ -26,27 +27,39 @@ function scheduleIdleClose() {
   }, IDLE_CLOSE_MS);
 }
 
-function failPendingRequests(error) {
-  for (const sendResponse of pendingRequests.values()) {
-    sendResponse({ success: false, error, fatal: true });
-  }
-  pendingRequests.clear();
+function createWorker() {
+  const newWorker = new Worker("pyodide-worker.js", { type: "module" });
+
+  newWorker.onmessage = ({ data }) => {
+    const sendResponse = pendingRequests.get(data.id);
+    pendingRequests.delete(data.id);
+    sendResponse?.(
+      data.success
+        ? { success: true, recipe: data.recipe }
+        : { success: false, errorCode: data.errorCode, errorDetail: data.errorDetail, fatal: data.fatal }
+    );
+    // Pyodide inutilisable : les autres demandes n'aboutiront pas non plus
+    if (!data.success && data.fatal) discardWorker(data.errorDetail);
+    scheduleIdleClose();
+  };
+
+  // Erreur de chargement ou plantage du worker : faire échouer les demandes en attente
+  newWorker.onerror = (event) => discardWorker(event.message || "Pyodide worker error");
+  newWorker.onmessageerror = () => discardWorker("Pyodide worker message error");
+  return newWorker;
 }
 
-worker.onmessage = ({ data }) => {
-  const sendResponse = pendingRequests.get(data.id);
-  pendingRequests.delete(data.id);
-  sendResponse?.(
-    data.success
-      ? { success: true, recipe: data.recipe }
-      : { success: false, error: data.error, fatal: data.fatal }
-  );
-  scheduleIdleClose();
-};
-
-// Erreur de chargement ou plantage du worker : faire échouer les demandes en attente
-worker.onerror = (event) => failPendingRequests(event.message || "Pyodide worker error");
-worker.onmessageerror = () => failPendingRequests("Pyodide worker message error");
+/**
+ * Abandonne le worker (et ses demandes en attente) : le suivant est créé à la prochaine demande
+ */
+function discardWorker(errorDetail) {
+  for (const sendResponse of pendingRequests.values()) {
+    sendResponse({ success: false, errorCode: "scrapeFailed", errorDetail, fatal: true });
+  }
+  pendingRequests.clear();
+  worker?.terminate();
+  worker = null;
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.target !== "offscreen") return;
@@ -54,6 +67,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SCRAPE_HTML") {
     const id = nextRequestId++;
     pendingRequests.set(id, sendResponse);
+    worker ??= createWorker();
     worker.postMessage({ id, html: message.html, url: message.url });
     scheduleIdleClose();
     return true;
